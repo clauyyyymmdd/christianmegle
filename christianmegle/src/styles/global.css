@@ -1,0 +1,294 @@
+/* === CHRISTIANMEGLE — Gothic Church Aesthetic === */
+
+:root {
+  /* Deep ecclesiastical palette */
+  --bg-primary: #0a0908;
+  --bg-secondary: #151210;
+  --bg-elevated: #1c1815;
+  --bg-glass: rgba(28, 24, 21, 0.85);
+
+  /* Gold leaf and candlelight */
+  --gold: #c9a84c;
+  --gold-dim: #8b6f2e;
+  --gold-bright: #e6c55a;
+  --candle: #f5deb3;
+  --candle-glow: rgba(245, 222, 179, 0.08);
+
+  /* Blood and wine */
+  --crimson: #6b1c23;
+  --crimson-dim: #3d1015;
+
+  /* Stone and parchment */
+  --stone: #7a7168;
+  --parchment: #d4c5a9;
+  --text-primary: #d4c5a9;
+  --text-secondary: #8a7e6e;
+  --text-dim: #5a5249;
+
+  /* Typography */
+  --font-display: 'Cinzel', serif;
+  --font-body: 'Crimson Text', serif;
+
+  /* Spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 2rem;
+  --space-xl: 4rem;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 18px;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* === Typography === */
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  color: var(--gold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+h1 {
+  font-size: 2.8rem;
+  line-height: 1.2;
+}
+
+h2 {
+  font-size: 1.8rem;
+  line-height: 1.3;
+}
+
+h3 {
+  font-size: 1.2rem;
+}
+
+p {
+  max-width: 60ch;
+}
+
+a {
+  color: var(--gold);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: var(--gold-bright);
+}
+
+/* === Buttons === */
+
+button {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: var(--space-sm) var(--space-lg);
+  border: 1px solid var(--gold-dim);
+  background: transparent;
+  color: var(--gold);
+  cursor: pointer;
+  transition: all 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, var(--candle-glow), transparent);
+  transition: left 0.6s ease;
+}
+
+button:hover {
+  border-color: var(--gold);
+  color: var(--gold-bright);
+  box-shadow: 0 0 20px rgba(201, 168, 76, 0.1);
+}
+
+button:hover::before {
+  left: 100%;
+}
+
+button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+button.primary {
+  background: var(--crimson-dim);
+  border-color: var(--crimson);
+}
+
+button.primary:hover {
+  background: var(--crimson);
+  border-color: var(--gold-dim);
+}
+
+/* === Form elements === */
+
+input, textarea, select {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--bg-secondary);
+  border: 1px solid var(--text-dim);
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: var(--gold-dim);
+}
+
+/* === Video containers === */
+
+.video-container {
+  position: relative;
+  background: var(--bg-secondary);
+  border: 1px solid var(--text-dim);
+  overflow: hidden;
+}
+
+.video-container video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.video-container.local {
+  position: absolute;
+  bottom: var(--space-md);
+  right: var(--space-md);
+  width: 180px;
+  height: 135px;
+  z-index: 10;
+  border-color: var(--gold-dim);
+}
+
+/* === Decorative elements === */
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin: var(--space-lg) 0;
+  color: var(--text-dim);
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--gold-dim),
+    transparent
+  );
+}
+
+.cross {
+  font-size: 1.2rem;
+  color: var(--gold-dim);
+}
+
+/* === Page transitions === */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.page-enter {
+  animation: fadeIn 0.8s ease forwards;
+}
+
+/* === Candle flicker effect === */
+
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+  75% { opacity: 0.95; }
+}
+
+.flicker {
+  animation: flicker 3s ease-in-out infinite;
+}
+
+/* === Gothic border pattern === */
+
+.gothic-border {
+  border: 1px solid var(--gold-dim);
+  position: relative;
+}
+
+.gothic-border::before,
+.gothic-border::after {
+  content: '✦';
+  position: absolute;
+  color: var(--gold-dim);
+  font-size: 0.6rem;
+}
+
+.gothic-border::before {
+  top: -0.4rem;
+  left: var(--space-md);
+}
+
+.gothic-border::after {
+  bottom: -0.4rem;
+  right: var(--space-md);
+}
+
+/* === Scrollbar === */
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gold-dim);
+  border-radius: 3px;
+}
+
+/* === Utility === */
+
+.text-center { text-align: center; }
+.text-dim { color: var(--text-dim); }
+.text-gold { color: var(--gold); }
+.mt-sm { margin-top: var(--space-sm); }
+.mt-md { margin-top: var(--space-md); }
+.mt-lg { margin-top: var(--space-lg); }
+.mt-xl { margin-top: var(--space-xl); }

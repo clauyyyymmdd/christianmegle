@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Wrangler temp files
+.wrangler/
+
+# Environment files
+.env
+.env.local
+.dev.vars
+
+# OS files
+.DS_Store
+
+# Logs
+*.log

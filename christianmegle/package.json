@@ -1,0 +1,29 @@
+{
+  "name": "christianmegle",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "worker:dev": "wrangler dev worker/index.ts",
+    "worker:deploy": "wrangler deploy worker/index.ts",
+    "db:create": "wrangler d1 create christianmegle-db",
+    "db:migrate": "wrangler d1 execute christianmegle-db --file=./db/schema.sql"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.20.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20231218.0",
+    "@types/react": "^18.2.43",
+    "@types/react-dom": "^18.2.17",
+    "@vitejs/plugin-react": "^4.2.1",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.8",
+    "wrangler": "^3.22.1"
+  }
+}

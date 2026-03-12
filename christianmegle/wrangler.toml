@@ -1,0 +1,28 @@
+name = "christianmegle"
+main = "worker/index.ts"
+compatibility_date = "2024-01-01"
+
+[durable_objects]
+bindings = [
+  { name = "SIGNALING", class_name = "SignalingRoom" },
+  { name = "MATCHMAKER", class_name = "Matchmaker" }
+]
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["SignalingRoom", "Matchmaker"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "christianmegle-db"
+database_id = "6cf57254-c6ac-475e-be85-42d07544e9af"
+
+[vars]
+TURN_SERVER_URL = ""
+TURN_USERNAME = ""
+TURN_CREDENTIAL = ""
+ADMIN_SECRET = "change-this-to-a-real-secret"
+
+# For local dev, serve the Vite frontend too
+[dev]
+port = 8787
