@@ -1,6 +1,50 @@
 // === Roles ===
 export type UserRole = 'priest' | 'sinner';
 
+// === Priest Toolkit Types ===
+export type PenanceType =
+  | 'hail-mary'
+  | 'our-father'
+  | 'rosary'
+  | 'stations'
+  | 'fasting'
+  | 'almsgiving'
+  | 'custom';
+
+export type VisualEffectType =
+  | 'absolution'
+  | 'stained-glass'
+  | 'incense'
+  | 'candlelight'
+  | 'holy-water';
+
+export type SinCategory =
+  | 'pride'
+  | 'greed'
+  | 'lust'
+  | 'envy'
+  | 'gluttony'
+  | 'wrath'
+  | 'sloth';
+
+export interface ScriptureVerse {
+  reference: string;
+  text: string;
+  category: SinCategory;
+}
+
+export interface PenanceAssignment {
+  type: PenanceType;
+  quantity?: number;
+  customText?: string;
+}
+
+export interface BookEntry {
+  id: string;
+  text: string;
+  timestamp: number;
+}
+
 // === Signaling ===
 export type SignalMessage =
   | { type: 'join'; role: UserRole; priestId?: string }
@@ -11,7 +55,16 @@ export type SignalMessage =
   | { type: 'end-session' }
   | { type: 'partner-left' }
   | { type: 'waiting'; position: number }
-  | { type: 'error'; message: string };
+  | { type: 'error'; message: string }
+  // Priest toolkit messages
+  | { type: 'priest-penance'; penance: PenanceAssignment }
+  | { type: 'priest-absolution' }
+  | { type: 'priest-scripture'; verse: ScriptureVerse }
+  | { type: 'priest-effect'; effect: VisualEffectType }
+  | { type: 'priest-excommunicate' }
+  | { type: 'priest-silence'; active: boolean }
+  | { type: 'priest-inscribe'; text: string }
+  | { type: 'priest-bells' };
 
 // === Priest ===
 export interface PriestApplication {

@@ -1,5 +1,23 @@
 import { SignalMessage, UserRole } from '../src/lib/types';
 
+// Priest action message types that should be relayed
+const PRIEST_ACTION_TYPES = [
+  'priest-penance',
+  'priest-absolution',
+  'priest-scripture',
+  'priest-effect',
+  'priest-excommunicate',
+  'priest-silence',
+  'priest-inscribe',
+  'priest-bells',
+] as const;
+
+type PriestActionType = typeof PRIEST_ACTION_TYPES[number];
+
+function isPriestAction(type: string): type is PriestActionType {
+  return PRIEST_ACTION_TYPES.includes(type as PriestActionType);
+}
+
 interface WaitingUser {
   ws: WebSocket;
   role: UserRole;
@@ -21,6 +39,7 @@ export class Matchmaker {
   private sessions: Map<string, { priest: string; sinner: string }> = new Map();
   private userToSession: Map<string, string> = new Map();
   private userConnections: Map<string, WebSocket> = new Map();
+  private userRoles: Map<string, UserRole> = new Map();
 
   constructor(state: DurableObjectState) {
     this.state = state;
@@ -76,11 +95,41 @@ export class Matchmaker {
       case 'end-session':
         this.handleEndSession(userId);
         break;
+
+      default:
+        // Handle priest action messages
+        if (isPriestAction(msg.type)) {
+          this.handlePriestAction(userId, msg);
+        }
+        break;
+    }
+  }
+
+  private handlePriestAction(userId: string, msg: SignalMessage): void {
+    // Validate that the sender is a priest
+    const userRole = this.userRoles.get(userId);
+    if (userRole !== 'priest') {
+      console.warn(`[Matchmaker] Non-priest user ${userId} attempted priest action: ${msg.type}`);
+      return;
+    }
+
+    // Relay to partner (the sinner)
+    this.relayToPartner(userId, msg);
+
+    // Handle excommunication - end the session
+    if (msg.type === 'priest-excommunicate') {
+      // Small delay to allow the effect to play
+      setTimeout(() => {
+        this.handleEndSession(userId);
+      }, 3000);
     }
   }
 
   private handleJoin(userId: string, role: UserRole, ws: WebSocket, priestId?: string): void {
     const user: WaitingUser = { ws, role, priestId, joinedAt: Date.now() };
+
+    // Store user's role for validation
+    this.userRoles.set(userId, role);
 
     if (role === 'priest') {
       // Check if there's a waiting sinner
@@ -162,8 +211,9 @@ export class Matchmaker {
     // End any active session
     this.handleEndSession(userId);
 
-    // Remove connection
+    // Remove connection and role
     this.userConnections.delete(userId);
+    this.userRoles.delete(userId);
 
     // Update waiting positions
     this.broadcastWaitingPositions();

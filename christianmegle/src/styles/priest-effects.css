@@ -1,0 +1,846 @@
+/* === PRIEST EFFECTS — Liturgical Visual Effects === */
+
+/* === Base Effects Container === */
+.effects-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 50;
+  overflow: hidden;
+}
+
+/* === Absolution Effect — Golden Radial Light + Dove === */
+@keyframes absolution-glow {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  20% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  80% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.3);
+  }
+}
+
+@keyframes dove-flight {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 100%) scale(0.5);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, 50%) scale(1);
+  }
+  60% {
+    opacity: 1;
+    transform: translate(-50%, -20%) scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -100%) scale(0.8);
+  }
+}
+
+.effect-absolution {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.effect-absolution .glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 150vmax;
+  height: 150vmax;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    circle,
+    rgba(201, 168, 76, 0.4) 0%,
+    rgba(201, 168, 76, 0.2) 30%,
+    rgba(201, 168, 76, 0.05) 60%,
+    transparent 80%
+  );
+  animation: absolution-glow 7s ease-out forwards;
+}
+
+.effect-absolution .dove {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  font-size: 4rem;
+  filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.8));
+  animation: dove-flight 6s ease-out forwards;
+}
+
+/* === Stained Glass Overlay === */
+@keyframes stained-glass-in {
+  0% {
+    clip-path: circle(0% at 50% 50%);
+    opacity: 0;
+  }
+  100% {
+    clip-path: circle(100% at 50% 50%);
+    opacity: 1;
+  }
+}
+
+@keyframes stained-glass-out {
+  0% {
+    clip-path: circle(100% at 50% 50%);
+    opacity: 1;
+  }
+  100% {
+    clip-path: circle(0% at 50% 50%);
+    opacity: 0;
+  }
+}
+
+.effect-stained-glass {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    linear-gradient(135deg,
+      rgba(139, 0, 0, 0.15) 0%,
+      rgba(0, 100, 0, 0.15) 25%,
+      rgba(0, 0, 139, 0.15) 50%,
+      rgba(255, 215, 0, 0.15) 75%,
+      rgba(128, 0, 128, 0.15) 100%
+    );
+  mix-blend-mode: overlay;
+  animation: stained-glass-in 2s ease-out forwards;
+}
+
+.effect-stained-glass.removing {
+  animation: stained-glass-out 2s ease-in forwards;
+}
+
+/* Stained glass pattern overlay */
+.effect-stained-glass::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('/assets/images/stained-glass-overlay.png');
+  background-size: cover;
+  background-position: center;
+  opacity: 0.3;
+  mix-blend-mode: multiply;
+}
+
+/* === Incense Effect — Rising Smoke Particles === */
+@keyframes incense-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(1);
+  }
+  20% {
+    opacity: 0.6;
+  }
+  80% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-100vh) scale(2);
+  }
+}
+
+@keyframes incense-sway {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(20px);
+  }
+}
+
+.effect-incense {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+}
+
+.effect-incense .smoke-particle {
+  position: absolute;
+  bottom: -20px;
+  width: 60px;
+  height: 60px;
+  background: radial-gradient(
+    circle,
+    rgba(200, 200, 200, 0.4) 0%,
+    rgba(200, 200, 200, 0.1) 50%,
+    transparent 70%
+  );
+  border-radius: 50%;
+  animation:
+    incense-rise 8s ease-out infinite,
+    incense-sway 3s ease-in-out infinite;
+  filter: blur(8px);
+}
+
+.effect-incense .smoke-particle:nth-child(1) { left: 10%; animation-delay: 0s; }
+.effect-incense .smoke-particle:nth-child(2) { left: 30%; animation-delay: 1s; }
+.effect-incense .smoke-particle:nth-child(3) { left: 50%; animation-delay: 2s; }
+.effect-incense .smoke-particle:nth-child(4) { left: 70%; animation-delay: 1.5s; }
+.effect-incense .smoke-particle:nth-child(5) { left: 90%; animation-delay: 0.5s; }
+.effect-incense .smoke-particle:nth-child(6) { left: 20%; animation-delay: 3s; }
+.effect-incense .smoke-particle:nth-child(7) { left: 60%; animation-delay: 2.5s; }
+.effect-incense .smoke-particle:nth-child(8) { left: 80%; animation-delay: 4s; }
+
+/* === Candlelight Effect — Sepia Warmth Filter === */
+@keyframes candlelight-pulse {
+  0%, 100% {
+    opacity: 0.4;
+    filter: sepia(0.3) brightness(1.1);
+  }
+  50% {
+    opacity: 0.5;
+    filter: sepia(0.4) brightness(1.15);
+  }
+}
+
+.effect-candlelight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 200, 100, 0.1) 0%,
+    rgba(255, 180, 80, 0.15) 100%
+  );
+  animation: candlelight-pulse 3s ease-in-out infinite;
+}
+
+.effect-candlelight::after {
+  content: '';
+  position: absolute;
+  bottom: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(
+    circle,
+    rgba(255, 200, 100, 0.3) 0%,
+    transparent 70%
+  );
+  filter: blur(30px);
+  animation: flicker 2s ease-in-out infinite;
+}
+
+/* === Holy Water Effect — Rippling Blue Circles === */
+@keyframes holy-water-ripple {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0.8;
+    border-width: 3px;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(3);
+    opacity: 0;
+    border-width: 1px;
+  }
+}
+
+.effect-holy-water {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.effect-holy-water .ripple {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100px;
+  height: 100px;
+  border: 3px solid rgba(100, 180, 255, 0.8);
+  border-radius: 50%;
+  animation: holy-water-ripple 1s ease-out forwards;
+}
+
+.effect-holy-water .ripple:nth-child(1) { animation-delay: 0s; }
+.effect-holy-water .ripple:nth-child(2) { animation-delay: 0.2s; }
+.effect-holy-water .ripple:nth-child(3) { animation-delay: 0.4s; }
+
+.effect-holy-water .droplet {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  font-size: 2rem;
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 0 10px rgba(100, 180, 255, 0.8));
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* === Excommunication Effect — Glass Shatter + Fade to Black === */
+@keyframes excommunicate-flash {
+  0% {
+    background: transparent;
+  }
+  10% {
+    background: rgba(107, 28, 35, 0.8);
+  }
+  30% {
+    background: transparent;
+  }
+}
+
+@keyframes excommunicate-fade {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes shatter-piece {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--tx), var(--ty)) rotate(var(--rot));
+    opacity: 0;
+  }
+}
+
+.effect-excommunicate {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  animation: excommunicate-flash 0.5s ease-out;
+}
+
+.effect-excommunicate .fade-black {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #0a0908;
+  animation: excommunicate-fade 2s ease-in 1s forwards;
+}
+
+.effect-excommunicate .shatter-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(5, 1fr);
+}
+
+.effect-excommunicate .shatter-piece {
+  background: linear-gradient(
+    135deg,
+    rgba(107, 28, 35, 0.3) 0%,
+    rgba(61, 16, 21, 0.3) 100%
+  );
+  border: 1px solid rgba(107, 28, 35, 0.5);
+  animation: shatter-piece 1.5s ease-out forwards;
+  animation-delay: var(--delay);
+}
+
+.effect-excommunicate .message {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-display);
+  font-size: 2rem;
+  color: var(--crimson);
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  opacity: 0;
+  animation: fadeIn 1s ease-out 2s forwards;
+  text-shadow: 0 0 30px rgba(107, 28, 35, 0.8);
+}
+
+/* === Silence Effect — Screen Dims + Candle Flicker === */
+@keyframes silence-dim {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes silence-candle {
+  0%, 100% {
+    opacity: 0.8;
+    transform: translateX(-50%) scale(1);
+  }
+  25% {
+    opacity: 0.6;
+    transform: translateX(-48%) scale(0.95);
+  }
+  75% {
+    opacity: 0.9;
+    transform: translateX(-52%) scale(1.02);
+  }
+}
+
+.effect-silence {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(10, 9, 8, 0.7);
+  animation: silence-dim 1s ease-out forwards;
+}
+
+.effect-silence .candle {
+  position: absolute;
+  bottom: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 5rem;
+  animation: silence-candle 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 30px rgba(245, 222, 179, 0.6));
+}
+
+.effect-silence .message {
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--gold-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  opacity: 0.7;
+}
+
+/* === Penance Display === */
+@keyframes penance-appear {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.penance-display {
+  position: absolute;
+  top: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-glass);
+  border: 1px solid var(--gold-dim);
+  padding: 2rem 3rem;
+  text-align: center;
+  animation: penance-appear 0.5s ease-out;
+  z-index: 60;
+}
+
+.penance-display h3 {
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  letter-spacing: 0.2em;
+}
+
+.penance-display .penance-text {
+  font-family: var(--font-body);
+  font-size: 1.3rem;
+  font-style: italic;
+  color: var(--parchment);
+}
+
+.penance-display .penance-quantity {
+  margin-top: 0.5rem;
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+/* === Scripture Display === */
+@keyframes scripture-appear {
+  0% {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.scripture-display {
+  position: absolute;
+  top: 20%;
+  right: 2rem;
+  max-width: 400px;
+  background: var(--bg-glass);
+  border: 1px solid var(--gold-dim);
+  border-left: 3px solid var(--gold);
+  padding: 1.5rem;
+  animation: scripture-appear 0.5s ease-out;
+  z-index: 60;
+}
+
+.scripture-display .verse-text {
+  font-family: var(--font-body);
+  font-size: 1.1rem;
+  font-style: italic;
+  color: var(--parchment);
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.scripture-display .verse-reference {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  color: var(--gold);
+  letter-spacing: 0.1em;
+  text-align: right;
+}
+
+/* === Book of Life === */
+.book-of-life {
+  position: absolute;
+  bottom: 6rem;
+  left: 1.5rem;
+  width: 280px;
+  max-height: 200px;
+  background: linear-gradient(
+    to bottom,
+    rgba(28, 24, 21, 0.95) 0%,
+    rgba(28, 24, 21, 0.9) 100%
+  );
+  border: 1px solid var(--gold-dim);
+  padding: 1rem;
+  overflow-y: auto;
+  z-index: 40;
+}
+
+.book-of-life h4 {
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--text-dim);
+}
+
+.book-of-life .entry {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+  padding-left: 0.5rem;
+  border-left: 2px solid var(--gold-dim);
+}
+
+.book-of-life .entry-time {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  margin-top: 0.25rem;
+}
+
+/* === Priest Toolbar === */
+.priest-toolbar {
+  position: absolute;
+  top: 50%;
+  left: 1rem;
+  transform: translateY(-50%);
+  width: 200px;
+  background: var(--bg-glass);
+  border: 1px solid var(--gold-dim);
+  z-index: 100;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.priest-toolbar .toolbar-section {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--text-dim);
+}
+
+.priest-toolbar .toolbar-section:last-child {
+  border-bottom: none;
+}
+
+.priest-toolbar .section-title {
+  font-family: var(--font-display);
+  font-size: 0.55rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+  margin-bottom: 0.5rem;
+}
+
+.priest-toolbar button {
+  width: 100%;
+  font-size: 0.65rem;
+  padding: 0.4rem 0.6rem;
+  margin-bottom: 0.3rem;
+  text-align: left;
+  letter-spacing: 0.08em;
+}
+
+.priest-toolbar button:last-child {
+  margin-bottom: 0;
+}
+
+.priest-toolbar button.active {
+  background: var(--gold-dim);
+  color: var(--bg-primary);
+}
+
+.priest-toolbar button.danger {
+  border-color: var(--crimson);
+  color: var(--crimson);
+}
+
+.priest-toolbar button.danger:hover {
+  background: var(--crimson-dim);
+  border-color: var(--crimson);
+}
+
+/* === Confirm Modal === */
+.confirm-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(10, 9, 8, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.confirm-modal .modal-content {
+  background: var(--bg-elevated);
+  border: 1px solid var(--crimson);
+  padding: 2rem;
+  max-width: 400px;
+  text-align: center;
+}
+
+.confirm-modal h3 {
+  color: var(--crimson);
+  margin-bottom: 1rem;
+}
+
+.confirm-modal p {
+  color: var(--text-secondary);
+  font-style: italic;
+  margin-bottom: 1.5rem;
+}
+
+.confirm-modal .modal-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+/* === Inscribe Input === */
+.inscribe-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(10, 9, 8, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.inscribe-modal .modal-content {
+  background: var(--bg-elevated);
+  border: 1px solid var(--gold-dim);
+  padding: 2rem;
+  max-width: 500px;
+  width: 90%;
+}
+
+.inscribe-modal h3 {
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.inscribe-modal textarea {
+  width: 100%;
+  min-height: 100px;
+  resize: vertical;
+  margin-bottom: 1rem;
+}
+
+.inscribe-modal .modal-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+/* === Scripture Picker === */
+.scripture-picker {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(10, 9, 8, 0.95);
+  display: flex;
+  flex-direction: column;
+  z-index: 200;
+  padding: 2rem;
+}
+
+.scripture-picker h3 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.scripture-picker .sin-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.scripture-picker .sin-tab {
+  padding: 0.5rem 1rem;
+  font-size: 0.7rem;
+}
+
+.scripture-picker .sin-tab.active {
+  background: var(--gold-dim);
+  color: var(--bg-primary);
+}
+
+.scripture-picker .verses-list {
+  flex: 1;
+  overflow-y: auto;
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.scripture-picker .verse-item {
+  background: var(--bg-secondary);
+  border: 1px solid var(--text-dim);
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.scripture-picker .verse-item:hover {
+  border-color: var(--gold-dim);
+  background: var(--bg-elevated);
+}
+
+.scripture-picker .verse-item .text {
+  font-style: italic;
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+}
+
+.scripture-picker .verse-item .reference {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  color: var(--gold);
+  letter-spacing: 0.1em;
+}
+
+.scripture-picker .close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 0.7rem;
+  padding: 0.5rem 1rem;
+}
+
+/* === Penance Dropdown === */
+.penance-dropdown {
+  position: relative;
+}
+
+.penance-dropdown .dropdown-content {
+  position: absolute;
+  left: 100%;
+  top: 0;
+  margin-left: 0.5rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--gold-dim);
+  min-width: 200px;
+  z-index: 110;
+}
+
+.penance-dropdown .penance-option {
+  padding: 0.5rem 0.75rem;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background 0.2s ease;
+  border-bottom: 1px solid var(--text-dim);
+}
+
+.penance-dropdown .penance-option:last-child {
+  border-bottom: none;
+}
+
+.penance-dropdown .penance-option:hover {
+  background: var(--bg-glass);
+}
+
+.penance-dropdown .quantity-input {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-top: 1px solid var(--gold-dim);
+}
+
+.penance-dropdown .quantity-input input {
+  width: 50px;
+  padding: 0.25rem;
+  text-align: center;
+}
+
+.penance-dropdown .quantity-input button {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.65rem;
+}

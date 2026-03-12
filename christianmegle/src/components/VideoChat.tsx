@@ -1,7 +1,16 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { WebRTCManager } from '../lib/webrtc';
 import { SignalingClient } from '../lib/signaling';
-import { UserRole } from '../lib/types';
+import {
+  UserRole,
+  SignalMessage,
+  VisualEffectType,
+  PenanceAssignment,
+  ScriptureVerse,
+  BookEntry,
+} from '../lib/types';
+import { getAudioManager } from '../lib/audio';
+import { PriestToolbar, EffectsOverlay, BookOfLife } from './priest-toolkit';
 
 interface VideoChatProps {
   signaling: SignalingClient;
@@ -18,6 +27,85 @@ export default function VideoChat({ signaling, role, onSessionEnd }: VideoChatPr
   const [error, setError] = useState<string | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
+
+  // Priest toolkit state
+  const [activeEffects, setActiveEffects] = useState<Set<VisualEffectType>>(new Set());
+  const [absolutionActive, setAbsolutionActive] = useState(false);
+  const [silenceActive, setSilenceActive] = useState(false);
+  const [excommunicateActive, setExcommunicateActive] = useState(false);
+  const [currentPenance, setCurrentPenance] = useState<PenanceAssignment | null>(null);
+  const [currentScripture, setCurrentScripture] = useState<ScriptureVerse | null>(null);
+  const [bookEntries, setBookEntries] = useState<BookEntry[]>([]);
+
+  const audioManager = getAudioManager();
+
+  // Preload audio on mount
+  useEffect(() => {
+    audioManager.preload();
+    return () => {
+      audioManager.stopAllLoops();
+    };
+  }, []);
+
+  // Handle incoming priest messages
+  const handlePriestMessage = useCallback((msg: SignalMessage) => {
+    switch (msg.type) {
+      case 'priest-penance':
+        setCurrentPenance(msg.penance);
+        break;
+
+      case 'priest-absolution':
+        setAbsolutionActive(true);
+        audioManager.play('organ-swell');
+        setTimeout(() => setAbsolutionActive(false), 100);
+        break;
+
+      case 'priest-scripture':
+        setCurrentScripture(msg.verse);
+        break;
+
+      case 'priest-effect':
+        setActiveEffects(prev => {
+          const next = new Set(prev);
+          if (next.has(msg.effect)) {
+            next.delete(msg.effect);
+          } else {
+            next.add(msg.effect);
+          }
+          return next;
+        });
+        break;
+
+      case 'priest-bells':
+        audioManager.play('sanctus-bells');
+        break;
+
+      case 'priest-silence':
+        setSilenceActive(msg.active);
+        if (msg.active) {
+          audioManager.startLoop('ambient-silence');
+        } else {
+          audioManager.stopLoop('ambient-silence');
+        }
+        break;
+
+      case 'priest-inscribe':
+        setBookEntries(prev => [
+          ...prev,
+          {
+            id: crypto.randomUUID(),
+            text: msg.text,
+            timestamp: Date.now(),
+          },
+        ]);
+        break;
+
+      case 'priest-excommunicate':
+        setExcommunicateActive(true);
+        // Session will end via partner-left message from server
+        break;
+    }
+  }, [audioManager]);
 
   useEffect(() => {
     const rtc = new WebRTCManager(signaling, {
@@ -40,6 +128,7 @@ export default function VideoChat({ signaling, role, onSessionEnd }: VideoChatPr
         setSessionActive(false);
         setConnectionState('ended');
         if (timerRef.current) clearInterval(timerRef.current);
+        audioManager.stopAllLoops();
       },
       onError: (err) => {
         setError(err);
@@ -55,10 +144,12 @@ export default function VideoChat({ signaling, role, onSessionEnd }: VideoChatPr
       }
     });
 
-    // Listen for match
+    // Listen for match and priest messages
     const cleanup = signaling.onMessage(async (msg) => {
       if (msg.type === 'matched') {
         await rtc.initialize(msg.initiator);
+      } else if (msg.type.startsWith('priest-')) {
+        handlePriestMessage(msg);
       }
     });
 
@@ -66,12 +157,14 @@ export default function VideoChat({ signaling, role, onSessionEnd }: VideoChatPr
       cleanup();
       if (timerRef.current) clearInterval(timerRef.current);
       rtc.destroy();
+      audioManager.stopAllLoops();
     };
-  }, [signaling]);
+  }, [signaling, handlePriestMessage]);
 
   const handleEndSession = () => {
     rtcRef.current?.endSession();
     if (timerRef.current) clearInterval(timerRef.current);
+    audioManager.stopAllLoops();
     onSessionEnd();
   };
 
@@ -79,6 +172,75 @@ export default function VideoChat({ signaling, role, onSessionEnd }: VideoChatPr
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
     return `${m}:${s.toString().padStart(2, '0')}`;
+  };
+
+  // Priest action handlers
+  const handleSendPenance = (penance: PenanceAssignment) => {
+    signaling.send({ type: 'priest-penance', penance });
+    // Also show locally for feedback
+    setCurrentPenance(penance);
+  };
+
+  const handleGrantAbsolution = () => {
+    signaling.send({ type: 'priest-absolution' });
+    setAbsolutionActive(true);
+    audioManager.play('organ-swell');
+    setTimeout(() => setAbsolutionActive(false), 100);
+  };
+
+  const handleSendScripture = (verse: ScriptureVerse) => {
+    signaling.send({ type: 'priest-scripture', verse });
+    setCurrentScripture(verse);
+  };
+
+  const handleToggleEffect = (effect: VisualEffectType) => {
+    signaling.send({ type: 'priest-effect', effect });
+    setActiveEffects(prev => {
+      const next = new Set(prev);
+      if (next.has(effect)) {
+        next.delete(effect);
+      } else {
+        next.add(effect);
+      }
+      return next;
+    });
+  };
+
+  const handleRingBells = () => {
+    signaling.send({ type: 'priest-bells' });
+    audioManager.play('sanctus-bells');
+  };
+
+  const handleToggleSilence = () => {
+    const newState = !silenceActive;
+    signaling.send({ type: 'priest-silence', active: newState });
+    setSilenceActive(newState);
+    if (newState) {
+      audioManager.startLoop('ambient-silence');
+    } else {
+      audioManager.stopLoop('ambient-silence');
+    }
+  };
+
+  const handleExcommunicate = () => {
+    signaling.send({ type: 'priest-excommunicate' });
+    setExcommunicateActive(true);
+    // The server will handle ending the session
+    setTimeout(() => {
+      handleEndSession();
+    }, 3000);
+  };
+
+  const handleInscribe = (text: string) => {
+    signaling.send({ type: 'priest-inscribe', text });
+    setBookEntries(prev => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        text,
+        timestamp: Date.now(),
+      },
+    ]);
   };
 
   return (
@@ -103,6 +265,18 @@ export default function VideoChat({ signaling, role, onSessionEnd }: VideoChatPr
             </p>
           </div>
         )}
+
+        {/* Effects Overlay */}
+        <EffectsOverlay
+          activeEffects={activeEffects}
+          absolutionActive={absolutionActive}
+          silenceActive={silenceActive}
+          excommunicateActive={excommunicateActive}
+          currentPenance={currentPenance}
+          currentScripture={currentScripture}
+          onPenanceDismiss={() => setCurrentPenance(null)}
+          onScriptureDismiss={() => setCurrentScripture(null)}
+        />
       </div>
 
       {/* Local video (small overlay) */}
@@ -118,6 +292,27 @@ export default function VideoChat({ signaling, role, onSessionEnd }: VideoChatPr
           {role === 'priest' ? '☦ Priest' : 'Penitent'}
         </div>
       </div>
+
+      {/* Priest Toolbar */}
+      {role === 'priest' && sessionActive && (
+        <PriestToolbar
+          activeEffects={activeEffects}
+          silenceActive={silenceActive}
+          onSendPenance={handleSendPenance}
+          onGrantAbsolution={handleGrantAbsolution}
+          onSendScripture={handleSendScripture}
+          onToggleEffect={handleToggleEffect}
+          onRingBells={handleRingBells}
+          onToggleSilence={handleToggleSilence}
+          onExcommunicate={handleExcommunicate}
+          onInscribe={handleInscribe}
+        />
+      )}
+
+      {/* Book of Life */}
+      {bookEntries.length > 0 && (
+        <BookOfLife entries={bookEntries} />
+      )}
 
       {/* Controls bar */}
       <div style={styles.controls}>
