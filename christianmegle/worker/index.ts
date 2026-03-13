@@ -116,10 +116,32 @@ export default {
       // === Priest status check ===
       if (path.startsWith('/api/priest/') && request.method === 'GET') {
         const priestId = path.split('/').pop();
-        const priest = await env.DB.prepare('SELECT * FROM priests WHERE id = ?').bind(priestId).first();
+        const priest = await env.DB.prepare('SELECT * FROM priests WHERE id = ?').bind(priestId).first() as any;
 
         if (!priest) {
           return Response.json({ error: 'Not found' }, { status: 404, headers: corsHeaders });
+        }
+
+        // Auto-approve priests who passed the quiz after 1 minute
+        if (priest.status === 'pending') {
+          const createdAt = new Date(priest.created_at).getTime();
+          const now = Date.now();
+          const oneMinute = 60 * 1000;
+
+          // Check if they passed (60% threshold) and 1 minute has elapsed
+          const passed = priest.quiz_score >= Math.ceil(priest.quiz_total * 0.6);
+
+          if (passed && (now - createdAt) >= oneMinute) {
+            // Auto-approve
+            await env.DB.prepare(
+              `UPDATE priests SET status = 'approved', approved_at = datetime('now'), notes = 'Auto-approved after 1 minute' WHERE id = ?`
+            ).bind(priestId).run();
+
+            return Response.json(
+              { id: priest.id, displayName: priest.display_name, status: 'approved' },
+              { headers: corsHeaders }
+            );
+          }
         }
 
         return Response.json(

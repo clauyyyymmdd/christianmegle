@@ -13,15 +13,16 @@ type Phase =
   | 'loading'
   | 'quiz'           // Priest taking quiz
   | 'applied'        // Priest passed quiz, awaiting approval
-  | 'rejected'       // Priest failed quiz
+  | 'still-a-sinner' // Priest failed quiz, transitioning to sinner
   | 'waiting'        // In matchmaking queue
   | 'connected'      // In video session
   | 'ended';         // Session ended, option to rejoin
 
 export default function Confessional({ apiUrl }: ConfessionalProps) {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
-  const role = (searchParams.get('role') as UserRole) || 'sinner';
+  const initialRole = (searchParams.get('role') as UserRole) || 'sinner';
+  const [role, setRole] = useState<UserRole>(initialRole);
   const [phase, setPhase] = useState<Phase>('loading');
   const [priestId, setPriestId] = useState<string | null>(
     localStorage.getItem('christianmegle_priest_id')
@@ -30,7 +31,7 @@ export default function Confessional({ apiUrl }: ConfessionalProps) {
   const signalingRef = useRef<SignalingClient | null>(null);
 
   useEffect(() => {
-    if (role === 'priest') {
+    if (initialRole === 'priest') {
       // Check if already approved
       if (priestId) {
         checkPriestStatus(priestId);
@@ -67,7 +68,7 @@ export default function Confessional({ apiUrl }: ConfessionalProps) {
             clearInterval(interval);
             localStorage.removeItem('christianmegle_priest_id');
             setPriestId(null);
-            setPhase('rejected');
+            setPhase('still-a-sinner');
           }
         }, 10000);
         return () => clearInterval(interval);
@@ -109,8 +110,17 @@ export default function Confessional({ apiUrl }: ConfessionalProps) {
       setPhase('applied');
       checkPriestStatus(id);
     } else {
-      setPhase('rejected');
+      // Failed quiz - show "still a sinner" screen then transition to sinner role
+      setPhase('still-a-sinner');
     }
+  };
+
+  const handleBecomeSinner = () => {
+    // Update role to sinner
+    setRole('sinner');
+    setSearchParams({ role: 'sinner' });
+    // Connect to matchmaker as a sinner
+    connectToMatchmaker();
   };
 
   const handleSessionEnd = () => {
@@ -150,18 +160,27 @@ export default function Confessional({ apiUrl }: ConfessionalProps) {
     );
   }
 
-  if (phase === 'rejected') {
+  if (phase === 'still-a-sinner') {
     return (
       <div style={styles.centered} className="page-enter">
-        <h2>Insufficient Knowledge</h2>
+        <span style={styles.sinnerIcon}>🕯</span>
+        <h2 style={styles.sinnerTitle}>You Are Still a Sinner</h2>
         <p style={styles.statusText}>
           You have not demonstrated sufficient knowledge of scripture
-          to serve as a priest at this time.
+          to serve as a priest. Perhaps confession will help illuminate your path.
         </p>
-        <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
-          <button onClick={() => setPhase('quiz')}>Retake Quiz</button>
-          <button onClick={() => navigate('/')}>Return Home</button>
+        <div className="divider" style={{ width: '200px', margin: '2rem 0' }}>
+          <span className="cross">✦</span>
         </div>
+        <p style={styles.transitionText}>
+          You shall enter the confessional as a penitent instead.
+        </p>
+        <button
+          onClick={handleBecomeSinner}
+          style={{ marginTop: '1.5rem' }}
+        >
+          Enter as Sinner
+        </button>
       </div>
     );
   }
@@ -238,6 +257,22 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '2.5rem',
     color: 'var(--gold-dim)',
     marginBottom: '1.5rem',
+  },
+  sinnerIcon: {
+    fontSize: '4rem',
+    marginBottom: '1.5rem',
+    display: 'block',
+  },
+  sinnerTitle: {
+    color: 'var(--crimson)',
+    fontSize: '2rem',
+  },
+  transitionText: {
+    fontFamily: 'var(--font-display)',
+    fontSize: '0.85rem',
+    letterSpacing: '0.1em',
+    color: 'var(--gold-dim)',
+    textTransform: 'uppercase',
   },
   statusText: {
     fontStyle: 'italic',
