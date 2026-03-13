@@ -15,10 +15,37 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
   const [phase, setPhase] = useState<'saved' | 'heaven' | 'name' | 'quiz' | 'submitting' | 'result'>('saved');
   const [result, setResult] = useState<any>(null);
   const [heavenResponse, setHeavenResponse] = useState('');
+  const [showCheatingModal, setShowCheatingModal] = useState(false);
+  const [cheatingCount, setCheatingCount] = useState(0);
 
   useEffect(() => {
     fetchQuestions();
   }, []);
+
+  // Detect tab switching / clicking away during quiz
+  useEffect(() => {
+    if (phase !== 'quiz') return;
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        setShowCheatingModal(true);
+        setCheatingCount((prev) => prev + 1);
+      }
+    };
+
+    const handleBlur = () => {
+      setShowCheatingModal(true);
+      setCheatingCount((prev) => prev + 1);
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('blur', handleBlur);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('blur', handleBlur);
+    };
+  }, [phase]);
 
   const fetchQuestions = async () => {
     try {
@@ -166,6 +193,28 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
 
     return (
       <div style={styles.container} className="page-enter">
+        {/* Cheating Modal */}
+        {showCheatingModal && (
+          <div style={styles.cheatingOverlay}>
+            <div style={styles.cheatingModal}>
+              <span style={styles.cheatingIcon}>👁</span>
+              <h2 style={styles.cheatingTitle}>No Cheating</h2>
+              <p style={styles.cheatingText}>God is watching.</p>
+              {cheatingCount > 1 && (
+                <p style={styles.cheatingWarning}>
+                  You have looked away {cheatingCount} times.
+                </p>
+              )}
+              <button
+                onClick={() => setShowCheatingModal(false)}
+                style={{ marginTop: '1.5rem' }}
+              >
+                I Repent
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Progress */}
         <div style={styles.progress}>
           <span style={styles.progressText}>
@@ -430,5 +479,47 @@ const styles: Record<string, React.CSSProperties> = {
     letterSpacing: '0.1em',
     color: 'var(--text-dim)',
     alignSelf: 'flex-end',
+  },
+  cheatingOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: 'rgba(10, 9, 8, 0.95)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000,
+  },
+  cheatingModal: {
+    background: 'var(--bg-elevated)',
+    border: '2px solid var(--crimson)',
+    padding: '3rem',
+    textAlign: 'center',
+    maxWidth: '400px',
+  },
+  cheatingIcon: {
+    fontSize: '4rem',
+    display: 'block',
+    marginBottom: '1rem',
+  },
+  cheatingTitle: {
+    color: 'var(--crimson)',
+    fontSize: '2rem',
+    marginBottom: '0.5rem',
+  },
+  cheatingText: {
+    fontFamily: 'var(--font-body)',
+    fontSize: '1.2rem',
+    fontStyle: 'italic',
+    color: 'var(--gold)',
+  },
+  cheatingWarning: {
+    fontFamily: 'var(--font-display)',
+    fontSize: '0.75rem',
+    letterSpacing: '0.1em',
+    color: 'var(--text-dim)',
+    marginTop: '1rem',
   },
 };
