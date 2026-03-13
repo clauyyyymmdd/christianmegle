@@ -11,6 +11,37 @@ interface Env {
   TURN_SERVER_URL: string;
   TURN_USERNAME: string;
   TURN_CREDENTIAL: string;
+  NOTIFICATION_EMAIL: string;
+  RESEND_API_KEY?: string;
+}
+
+// Email notification using Resend API (or fallback to console log)
+async function sendEmailNotification(
+  env: Env,
+  { to, subject, body }: { to: string; subject: string; body: string }
+): Promise<void> {
+  if (env.RESEND_API_KEY) {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: 'ChristianMegle <noreply@christianmegle.com>',
+        to: [to],
+        subject,
+        text: body,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Email send failed: ${response.status}`);
+    }
+  } else {
+    // Fallback: just log if no email service configured
+    console.log(`[Email Notification] To: ${to}, Subject: ${subject}\n${body}`);
+  }
 }
 
 export default {
@@ -58,7 +89,7 @@ export default {
       }
 
       if (path === '/api/quiz/submit' && request.method === 'POST') {
-        const body: { answers: Record<string, string>; displayName: string; email?: string } =
+        const body: { answers: Record<string, string>; displayName: string; email?: string; heavenResponse?: string } =
           await request.json();
 
         // Grade the quiz
@@ -92,11 +123,24 @@ export default {
         // Create priest application
         const priestId = crypto.randomUUID().slice(0, 16);
         await env.DB.prepare(
-          `INSERT INTO priests (id, display_name, email, quiz_score, quiz_total, status) 
-           VALUES (?, ?, ?, ?, ?, 'pending')`
+          `INSERT INTO priests (id, display_name, email, quiz_score, quiz_total, status, heaven_response)
+           VALUES (?, ?, ?, ?, ?, 'pending', ?)`
         )
-          .bind(priestId, body.displayName, body.email || null, score, total)
+          .bind(priestId, body.displayName, body.email || null, score, total, body.heavenResponse || null)
           .run();
+
+        // Send email notification with heaven response
+        if (body.heavenResponse && env.NOTIFICATION_EMAIL) {
+          try {
+            await sendEmailNotification(env, {
+              to: env.NOTIFICATION_EMAIL,
+              subject: `Priest Application: ${body.displayName}`,
+              body: `New priest application received.\n\nName: ${body.displayName}\nQuiz Score: ${score}/${total}\nPassed: ${passed ? 'Yes' : 'No'}\n\n"Will you go to heaven? Why?"\n${body.heavenResponse}`,
+            });
+          } catch (e) {
+            console.error('Failed to send email notification:', e);
+          }
+        }
 
         return Response.json(
           {

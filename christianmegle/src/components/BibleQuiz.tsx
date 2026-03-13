@@ -4,15 +4,17 @@ import { QuizQuestion } from '../lib/types';
 interface BibleQuizProps {
   apiUrl: string;
   onComplete: (priestId: string, passed: boolean) => void;
+  onNotSaved: () => void;
 }
 
-export default function BibleQuiz({ apiUrl, onComplete }: BibleQuizProps) {
+export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizProps) {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [currentIndex, setCurrentIndex] = useState(0);
   const [displayName, setDisplayName] = useState('');
-  const [phase, setPhase] = useState<'name' | 'quiz' | 'submitting' | 'result'>('name');
+  const [phase, setPhase] = useState<'saved' | 'heaven' | 'name' | 'quiz' | 'submitting' | 'result'>('saved');
   const [result, setResult] = useState<any>(null);
+  const [heavenResponse, setHeavenResponse] = useState('');
 
   useEffect(() => {
     fetchQuestions();
@@ -46,7 +48,7 @@ export default function BibleQuiz({ apiUrl, onComplete }: BibleQuizProps) {
       const res = await fetch(`${apiUrl}/api/quiz/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ answers, displayName }),
+        body: JSON.stringify({ answers, displayName, heavenResponse }),
       });
       const data = await res.json();
       setResult(data);
@@ -56,6 +58,67 @@ export default function BibleQuiz({ apiUrl, onComplete }: BibleQuizProps) {
       setPhase('quiz');
     }
   };
+
+  // === "Are you saved?" phase ===
+  if (phase === 'saved') {
+    return (
+      <div style={styles.container} className="page-enter">
+        <span style={styles.icon}>✝</span>
+        <h2>Are You Saved?</h2>
+        <p style={styles.description}>
+          Before you may shepherd others, you must know your own salvation.
+        </p>
+
+        <div style={styles.savedOptions}>
+          <button
+            onClick={() => setPhase('heaven')}
+            style={styles.savedButton}
+          >
+            Yes
+          </button>
+          <button
+            onClick={onNotSaved}
+            style={styles.savedButton}
+          >
+            No
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // === "Will you go to heaven?" phase ===
+  if (phase === 'heaven') {
+    return (
+      <div style={styles.container} className="page-enter">
+        <span style={styles.icon}>☁</span>
+        <h2>Will You Go to Heaven?</h2>
+        <p style={styles.description}>
+          Explain why you believe you will enter the Kingdom of Heaven.
+        </p>
+
+        <div style={styles.heavenForm}>
+          <textarea
+            value={heavenResponse}
+            onChange={(e) => setHeavenResponse(e.target.value.slice(0, 500))}
+            placeholder="I will go to heaven because..."
+            style={styles.textarea}
+            autoFocus
+          />
+          <div style={styles.charCount}>
+            {heavenResponse.length}/500 characters
+          </div>
+          <button
+            onClick={() => setPhase('name')}
+            disabled={heavenResponse.trim().length < 10}
+            style={{ marginTop: '1.5rem' }}
+          >
+            Continue
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // === Name entry phase ===
   if (phase === 'name') {
@@ -330,5 +393,42 @@ const styles: Record<string, React.CSSProperties> = {
     letterSpacing: '0.1em',
     color: 'var(--gold)',
     marginTop: '0.5rem',
+  },
+  savedOptions: {
+    display: 'flex',
+    gap: '2rem',
+    marginTop: '2rem',
+  },
+  savedButton: {
+    minWidth: '120px',
+    padding: '1rem 2rem',
+  },
+  heavenForm: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '0.5rem',
+    marginTop: '1.5rem',
+    width: '100%',
+    maxWidth: '500px',
+  },
+  textarea: {
+    width: '100%',
+    minHeight: '150px',
+    padding: '1rem',
+    fontFamily: 'var(--font-body)',
+    fontSize: '1rem',
+    lineHeight: 1.6,
+    resize: 'vertical',
+    background: 'var(--bg-secondary)',
+    border: '1px solid var(--text-dim)',
+    color: 'var(--text-primary)',
+  },
+  charCount: {
+    fontFamily: 'var(--font-display)',
+    fontSize: '0.7rem',
+    letterSpacing: '0.1em',
+    color: 'var(--text-dim)',
+    alignSelf: 'flex-end',
   },
 };

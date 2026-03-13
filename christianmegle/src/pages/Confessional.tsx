@@ -12,6 +12,7 @@ interface ConfessionalProps {
 type Phase =
   | 'loading'
   | 'quiz'           // Priest taking quiz
+  | 'not-saved'      // Priest answered "No" to "Are you saved?"
   | 'applied'        // Priest passed quiz, awaiting approval
   | 'still-a-sinner' // Priest failed quiz, transitioning to sinner
   | 'waiting'        // In matchmaking queue
@@ -123,6 +124,10 @@ export default function Confessional({ apiUrl }: ConfessionalProps) {
     connectToMatchmaker();
   };
 
+  const handleNotSaved = () => {
+    setPhase('not-saved');
+  };
+
   const handleSessionEnd = () => {
     setPhase('ended');
   };
@@ -143,7 +148,31 @@ export default function Confessional({ apiUrl }: ConfessionalProps) {
   }
 
   if (phase === 'quiz') {
-    return <BibleQuiz apiUrl={apiUrl} onComplete={handleQuizComplete} />;
+    return <BibleQuiz apiUrl={apiUrl} onComplete={handleQuizComplete} onNotSaved={handleNotSaved} />;
+  }
+
+  if (phase === 'not-saved') {
+    return (
+      <div style={styles.centered} className="page-enter">
+        <span style={styles.notSavedIcon}>⚠</span>
+        <h2 style={styles.notSavedTitle}>You Are in the Wrong Place</h2>
+        <p style={styles.statusText}>
+          To prevent going to the TRUE wrong place, repent for your sins.
+        </p>
+        <div className="divider" style={{ width: '200px', margin: '2rem 0' }}>
+          <span className="cross">✦</span>
+        </div>
+        <p style={styles.transitionText}>
+          Enter the confessional and seek forgiveness.
+        </p>
+        <button
+          onClick={handleBecomeSinner}
+          style={{ marginTop: '1.5rem' }}
+        >
+          Repent as Sinner
+        </button>
+      </div>
+    );
   }
 
   if (phase === 'applied') {
@@ -266,6 +295,15 @@ const styles: Record<string, React.CSSProperties> = {
   sinnerTitle: {
     color: 'var(--crimson)',
     fontSize: '2rem',
+  },
+  notSavedIcon: {
+    fontSize: '4rem',
+    marginBottom: '1.5rem',
+    display: 'block',
+  },
+  notSavedTitle: {
+    color: 'var(--crimson)',
+    fontSize: '1.8rem',
   },
   transitionText: {
     fontFamily: 'var(--font-display)',
