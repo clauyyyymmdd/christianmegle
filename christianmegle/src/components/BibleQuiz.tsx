@@ -12,7 +12,7 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [currentIndex, setCurrentIndex] = useState(0);
   const [displayName, setDisplayName] = useState('');
-  const [phase, setPhase] = useState<'saved' | 'heaven' | 'name' | 'quiz' | 'submitting' | 'result'>('saved');
+  const [phase, setPhase] = useState<'name' | 'saved' | 'heaven' | 'quiz' | 'submitting' | 'result'>('name');
   const [result, setResult] = useState<any>(null);
   const [heavenResponse, setHeavenResponse] = useState('');
   const [showCheatingModal, setShowCheatingModal] = useState(false);
@@ -136,11 +136,11 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
             {heavenResponse.length}/500 characters
           </div>
           <button
-            onClick={() => setPhase('name')}
+            onClick={() => setPhase('quiz')}
             disabled={heavenResponse.trim().length < 10}
             style={{ marginTop: '1.5rem' }}
           >
-            Continue
+            Begin the Examination
           </button>
         </div>
       </div>
@@ -173,11 +173,11 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
             autoFocus
           />
           <button
-            onClick={() => setPhase('quiz')}
+            onClick={() => setPhase('saved')}
             disabled={!displayName.trim()}
             style={{ marginTop: '1.5rem' }}
           >
-            Begin the Examination
+            Continue
           </button>
         </div>
       </div>
