@@ -8,7 +8,8 @@ CREATE TABLE IF NOT EXISTS priests (
   status TEXT NOT NULL DEFAULT 'pending', -- pending | approved | rejected
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   approved_at TEXT,
-  notes TEXT -- your notes on why approved/rejected
+  notes TEXT, -- your notes on why approved/rejected
+  heaven_response TEXT -- answer to "Will you go to heaven? Why?"
 );
 
 -- Bible quiz questions
