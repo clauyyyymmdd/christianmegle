@@ -1,41 +1,13 @@
--- Priest applications
-CREATE TABLE IF NOT EXISTS priests (
-  id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(8)))),
-  display_name TEXT NOT NULL,
-  email TEXT,
-  quiz_score INTEGER NOT NULL,
-  quiz_total INTEGER NOT NULL,
-  status TEXT NOT NULL DEFAULT 'pending', -- pending | approved | rejected
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  approved_at TEXT,
-  notes TEXT, -- your notes on why approved/rejected
-  heaven_response TEXT -- answer to "Will you go to heaven? Why?"
-);
+-- Migration: Replace all quiz questions with new set
+-- Run this to update an existing database
 
--- Bible quiz questions
-CREATE TABLE IF NOT EXISTS quiz_questions (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  question TEXT NOT NULL,
-  option_a TEXT NOT NULL,
-  option_b TEXT NOT NULL,
-  option_c TEXT NOT NULL,
-  option_d TEXT NOT NULL,
-  correct_option TEXT NOT NULL CHECK (correct_option IN ('a', 'b', 'c', 'd')),
-  category TEXT NOT NULL DEFAULT 'scripture', -- sin_redemption | scripture | weird | theology
-  difficulty INTEGER NOT NULL DEFAULT 1 -- 1-3
-);
+-- Delete old questions
+DELETE FROM quiz_questions;
 
--- Session logs (optional — confession content is NEVER stored)
-CREATE TABLE IF NOT EXISTS sessions (
-  id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(8)))),
-  priest_id TEXT REFERENCES priests(id),
-  started_at TEXT NOT NULL DEFAULT (datetime('now')),
-  ended_at TEXT,
-  ended_by TEXT CHECK (ended_by IN ('priest', 'sinner', 'disconnect')),
-  duration_seconds INTEGER
-);
+-- Reset autoincrement
+DELETE FROM sqlite_sequence WHERE name='quiz_questions';
 
--- Seed quiz questions
+-- Insert new questions
 INSERT INTO quiz_questions (question, option_a, option_b, option_c, option_d, correct_option, category, difficulty) VALUES
 
 -- Sin and Redemption

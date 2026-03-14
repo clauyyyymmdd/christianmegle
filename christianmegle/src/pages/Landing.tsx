@@ -14,7 +14,7 @@ export default function Landing() {
       <div style={styles.header}>
         <div className="cross" style={styles.crossTop}>✝</div>
         <h1 style={styles.title}>ChristianMegle</h1>
-        <p style={styles.subtitle}>A digital confessional</p>
+        <p style={styles.subtitle}>confess your sins to strangers</p>
       </div>
 
       {/* Divider */}
@@ -53,7 +53,7 @@ export default function Landing() {
         >
           <span style={styles.roleIcon}>🕯</span>
           <span style={styles.roleLabel}>I am a Sinner</span>
-          <span style={styles.roleDesc}>Confess and be heard</span>
+          <span style={styles.roleDesc}>Confess and be saved</span>
         </button>
       </div>
 
@@ -113,6 +113,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '1.1rem',
     letterSpacing: '0.05em',
     textTransform: 'none' as const,
+    textAlign: 'center',
   },
   roleContainer: {
     display: 'flex',
