@@ -17,6 +17,8 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
   const [heavenResponse, setHeavenResponse] = useState('');
   const [showCheatingModal, setShowCheatingModal] = useState(false);
   const [cheatingCount, setCheatingCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchQuestions();
@@ -48,12 +50,23 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
   }, [phase]);
 
   const fetchQuestions = async () => {
+    setLoading(true);
+    setError(null);
     try {
       const res = await fetch(`${apiUrl}/api/quiz`);
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
       const data = await res.json();
+      if (!data || data.length === 0) {
+        throw new Error('No questions returned');
+      }
       setQuestions(data);
     } catch (e) {
       console.error('Failed to fetch quiz:', e);
+      setError(e instanceof Error ? e.message : 'Failed to load questions');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -186,6 +199,32 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
 
   // === Quiz phase ===
   if (phase === 'quiz' || phase === 'submitting') {
+    // Show loading state
+    if (loading) {
+      return (
+        <div style={styles.container} className="page-enter">
+          <div className="flicker" style={{ fontSize: '3rem' }}>📖</div>
+          <p style={styles.description}>Loading the examination...</p>
+        </div>
+      );
+    }
+
+    // Show error state
+    if (error || questions.length === 0) {
+      return (
+        <div style={styles.container} className="page-enter">
+          <span style={styles.icon}>⚠</span>
+          <h2>Failed to Load Questions</h2>
+          <p style={styles.description}>
+            {error || 'No questions available. Please try again.'}
+          </p>
+          <button onClick={fetchQuestions} style={{ marginTop: '1.5rem' }}>
+            Retry
+          </button>
+        </div>
+      );
+    }
+
     const question = questions[currentIndex];
     if (!question) return null;
 
