@@ -128,6 +128,13 @@ export default function Confessional({ apiUrl }: ConfessionalProps) {
     setPhase('not-saved');
   };
 
+  const handleStartOver = () => {
+    // Clear priest status and retake quiz
+    localStorage.removeItem('christianmegle_priest_id');
+    setPriestId(null);
+    setPhase('quiz');
+  };
+
   const handleSessionEnd = () => {
     setPhase('ended');
   };
@@ -185,6 +192,12 @@ export default function Confessional({ apiUrl }: ConfessionalProps) {
           Please wait for approval. This page will update automatically.
         </p>
         <div className="flicker" style={{ fontSize: '1.5rem', marginTop: '2rem' }}>🕯</div>
+        <button
+          onClick={handleStartOver}
+          style={{ marginTop: '2rem', opacity: 0.7 }}
+        >
+          Start Over
+        </button>
       </div>
     );
   }
@@ -231,6 +244,16 @@ export default function Confessional({ apiUrl }: ConfessionalProps) {
             Position in queue: {waitingPosition}
           </p>
         )}
+        <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem' }}>
+          <button onClick={() => navigate('/')}>
+            Leave
+          </button>
+          {role === 'priest' && (
+            <button onClick={handleStartOver} style={{ opacity: 0.7 }}>
+              Retake Quiz
+            </button>
+          )}
+        </div>
       </div>
     );
   }
