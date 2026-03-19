@@ -23,13 +23,13 @@ INSERT INTO quiz_questions (question, option_a, option_b, option_c, option_d, co
 ('How many days did God take to create the world?', '5', '6', '7', '40 days and 40 nights', 'b', 'scripture', 1),
 ('Who was swallowed by a great fish?', 'Lucifer', 'Jonah', 'Jesus', 'Your mom', 'b', 'scripture', 1),
 ('What is the shortest verse in the Bible?', 'Jesus wept.', 'He said.', 'Be clean!', 'I am.', 'a', 'scripture', 1),
-('What happened after Simon-Peter denied Jesus?', 'Judas kissed him', 'He denied him 2 more times', 'His ear was cut off', 'The rooster crowed', 'b', 'scripture', 2),
+('What happened after Simon-Peter denied Jesus?', 'Judas kissed him', 'He denied him 2 more times', 'His ear was cut off', 'The rooster crowed', 'd', 'scripture', 2),
 ('What is the third book of the Bible?', 'The Revelations of John', 'Jebediah', 'Leviticus', 'Mary Magdalene', 'c', 'scripture', 1),
 ('On which mountain did Moses receive the Ten Commandments?', 'Mount Zion', 'Mount Sinai', 'Mount Ararat', 'Mount Nebo', 'b', 'scripture', 2),
 ('What fruit is traditionally associated with the forbidden fruit, though it is never named in Genesis?', 'Durian', 'Pomegranate', 'Apple', 'Grape', 'c', 'scripture', 2),
 
 -- Weird / Vibes
-('A stranger approaches you at a bus stop and says, "I have sinned." What do you do?', 'Call the police', 'Listen with compassion', 'Recommend Christianmegle', 'Pretend you dont speak English', 'c', 'weird', 1),
+('A stranger approaches you at a bus stop and says, "I have sinned." What do you do?', 'Call the police', 'Listen with compassion', 'Recommend Christianmegle', 'Pretend you dont speak English', 'b', 'weird', 1),
 ('Which of these is NOT a real book of the Bible?', 'Ruth', 'Zion', 'Habakkuk', 'Job', 'b', 'weird', 2),
 ('If Jesus had a favorite meal, what would it be?', 'Bread and wine, body and blood', 'Figs and olives', 'Simon Peters famous hummus', 'He would fast', 'd', 'weird', 1),
 ('What is the proper response when someone confesses to eating their roommates leftovers?', '10 Hail Marys', 'Jesus fasted, so can you.', 'Thats not a real sin', 'All sin is equal before God', 'd', 'weird', 1),

@@ -57,14 +57,6 @@ export default function Landing() {
         </button>
       </div>
 
-      {/* Footer */}
-      <div style={styles.footer}>
-        <p style={styles.footerText}>
-          "If we confess our sins, he is faithful and just to forgive us our sins,
-          and to cleanse us from all unrighteousness."
-        </p>
-        <p style={styles.footerCite}>— 1 John 1:9</p>
-      </div>
     </div>
   );
 }
@@ -95,6 +87,10 @@ const styles: Record<string, React.CSSProperties> = {
   header: {
     textAlign: 'center',
     marginBottom: '1rem',
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    alignItems: 'center',
   },
   crossTop: {
     fontSize: '2rem',
@@ -166,23 +162,5 @@ const styles: Record<string, React.CSSProperties> = {
     fontStyle: 'italic',
     color: 'var(--text-dim)',
     fontSize: '1rem',
-  },
-  footer: {
-    marginTop: '4rem',
-    textAlign: 'center',
-    maxWidth: '500px',
-  },
-  footerText: {
-    fontStyle: 'italic',
-    color: 'var(--text-dim)',
-    fontSize: '0.9rem',
-    lineHeight: 1.8,
-  },
-  footerCite: {
-    color: 'var(--gold-dim)',
-    fontSize: '0.8rem',
-    marginTop: '0.5rem',
-    fontFamily: 'var(--font-display)',
-    letterSpacing: '0.05em',
   },
 };

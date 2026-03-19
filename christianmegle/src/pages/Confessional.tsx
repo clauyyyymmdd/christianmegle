@@ -4,6 +4,7 @@ import { SignalingClient } from '../lib/signaling';
 import { UserRole } from '../lib/types';
 import VideoChat from '../components/VideoChat';
 import BibleQuiz from '../components/BibleQuiz';
+import LoadingScreen from '../components/LoadingScreen';
 
 interface ConfessionalProps {
   apiUrl: string;
@@ -146,12 +147,7 @@ export default function Confessional({ apiUrl }: ConfessionalProps) {
   // === Render based on phase ===
 
   if (phase === 'loading') {
-    return (
-      <div style={styles.centered} className="page-enter">
-        <div className="flicker" style={{ fontSize: '2rem' }}>🕯</div>
-        <p style={styles.statusText}>Preparing the confessional...</p>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (phase === 'quiz') {

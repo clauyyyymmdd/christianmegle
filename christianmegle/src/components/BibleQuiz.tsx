@@ -17,6 +17,7 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
   const [heavenResponse, setHeavenResponse] = useState('');
   const [showCheatingModal, setShowCheatingModal] = useState(false);
   const [cheatingCount, setCheatingCount] = useState(0);
+  const [showShortResponseModal, setShowShortResponseModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -129,8 +130,44 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
 
   // === "Will you go to heaven?" phase ===
   if (phase === 'heaven') {
+    const hasEnoughText = heavenResponse.trim().length >= 10;
+    const needsRetry = !loading && (error || questions.length === 0);
+
+    const handleHeavenSubmit = () => {
+      // Check text length first, before anything else
+      if (!hasEnoughText) {
+        setShowShortResponseModal(true);
+        return;
+      }
+      if (loading) return;
+      if (needsRetry) {
+        fetchQuestions();
+      } else {
+        setPhase('quiz');
+      }
+    };
+
     return (
       <div style={styles.container} className="page-enter">
+        {/* Short Response Modal */}
+        {showShortResponseModal && (
+          <div style={styles.cheatingOverlay}>
+            <div style={styles.cheatingModal}>
+              <span style={styles.cheatingIcon}>✍</span>
+              <h2 style={styles.shortResponseTitle}>Say How You REALLY Feel</h2>
+              <p style={styles.cheatingText}>
+                Your eternal soul deserves more than {heavenResponse.trim().length} characters.
+              </p>
+              <button
+                onClick={() => setShowShortResponseModal(false)}
+                style={{ marginTop: '1.5rem' }}
+              >
+                I'll Elaborate
+              </button>
+            </div>
+          </div>
+        )}
+
         <span style={styles.icon}>☁</span>
         <h2>Will You Go to Heaven?</h2>
         <p style={styles.description}>
@@ -148,12 +185,17 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
           <div style={styles.charCount}>
             {heavenResponse.length}/500 characters
           </div>
+          {needsRetry && (
+            <p style={{ color: 'var(--crimson)', marginTop: '1rem', fontSize: '0.9rem' }}>
+              {error || 'Failed to load questions'}
+            </p>
+          )}
           <button
-            onClick={() => setPhase('quiz')}
-            disabled={heavenResponse.trim().length < 10}
+            onClick={handleHeavenSubmit}
+            disabled={loading}
             style={{ marginTop: '1.5rem' }}
           >
-            Begin the Examination
+            {loading ? 'Loading Questions...' : needsRetry ? 'Retry Loading' : 'Begin the Examination'}
           </button>
         </div>
       </div>
@@ -560,5 +602,10 @@ const styles: Record<string, React.CSSProperties> = {
     letterSpacing: '0.1em',
     color: 'var(--text-dim)',
     marginTop: '1rem',
+  },
+  shortResponseTitle: {
+    color: 'var(--gold)',
+    fontSize: '1.8rem',
+    marginBottom: '0.5rem',
   },
 };
