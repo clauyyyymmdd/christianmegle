@@ -1,138 +1,98 @@
 import { useState, useEffect } from 'react';
 
-// ASCII art patterns - 1s render as 'x', 0s render as space
-const patterns = [
-  // Crucifix with ornate frame
-  `
-0000000000000xxx0000000000000
-0000000000000xxx0000000000000
-0000000000000xxx0000000000000
-0000000000000xxx0000000000000
-0000000xxxxxxxxxxxxxxx000000
-0000000xxxxxxxxxxxxxxx000000
-0000000000000xxx0000000000000
-0000000000000xxx0000000000000
-0000000000000xxx0000000000000
-0000000000000xxx0000000000000
-0000000000000xxx0000000000000
-0000000000000xxx0000000000000
-`,
-  // Gothic rose window
-  `
-00000000xxxxxxxxxxxx00000000
-000000xx000000000000xx000000
-0000xx0000xxxxxxxx0000xx0000
-000x0000xx00000000xx0000x000
-00x000xx0000xxxx0000xx000x00
-0x000x0000xx0000xx0000x000x0
-0x00x000xx00x00x00xx000x00x0
-0x00x000x00x0000x00x000x00x0
-0x00x000xx00x00x00xx000x00x0
-0x000x0000xx0000xx0000x000x0
-00x000xx0000xxxx0000xx000x00
-000x0000xx00000000xx0000x000
-0000xx0000xxxxxxxx0000xx0000
-000000xx000000000000xx000000
-00000000xxxxxxxxxxxx00000000
-`,
-  // Ornate cross with lace border
-  `
-x0x0x0x0x0x0x0x0x0x0x0x0x0x0x
-0x0x0x0x0x0xxx0x0x0x0x0x0x0x0
-x0x0x0x0x0x0xxx0x0x0x0x0x0x0x
-0x0x0x0x0x0xxx0x0x0x0x0x0x0x0
-x0x0x0xxxxxxxxxxxxx0x0x0x0x0x
-0x0x0x0x0x0xxx0x0x0x0x0x0x0x0
-x0x0x0x0x0x0xxx0x0x0x0x0x0x0x
-0x0x0x0x0x0xxx0x0x0x0x0x0x0x0
-x0x0x0x0x0x0xxx0x0x0x0x0x0x0x
-0x0x0x0x0x0xxx0x0x0x0x0x0x0x0
-x0x0x0x0x0x0x0x0x0x0x0x0x0x0x
-`,
-  // Stained glass diamond pattern
-  `
-000000000000x000000000000
-00000000000x0x00000000000
-0000000000x000x0000000000
-000000000x00x00x000000000
-00000000x00x0x00x00000000
-0000000x00x000x00x0000000
-000000x00x00x00x00x000000
-00000x00x00x0x00x00x00000
-0000x00x00x000x00x00x0000
-000x00x00x00x00x00x00x000
-00xxxxxxxxxxxxxxxxxxxxxxx
-000x00x00x00x00x00x00x000
-0000x00x00x000x00x00x0000
-00000x00x00x0x00x00x00000
-000000x00x00x00x00x000000
-0000000x00x000x00x0000000
-00000000x00x0x00x00000000
-000000000x00x00x000000000
-0000000000x000x0000000000
-00000000000x0x00000000000
-000000000000x000000000000
-`,
-  // Celtic cross knot
-  `
-00000000xxxxx00000000
-0000000x00000x0000000
-000000x0xxxxx0x000000
-00000x0x00000x0x00000
-0000x0x0xxxxx0x0x0000
-xxxxx0x0x000x0x0xxxxx
-0000x0x0x0x0x0x0x0000
-0000x0x0x0x0x0x0x0000
-xxxxx0x0x000x0x0xxxxx
-0000x0x0xxxxx0x0x0000
-00000x0x00000x0x00000
-000000x0xxxxx0x000000
-0000000x00000x0000000
-00000000xxxxx00000000
-`,
+const loadingMessages = [
+  'ESTABLISHING SACRED CONNECTION...',
+  'LOADING CONFESSION PROTOCOLS...',
+  'INITIALIZING GRACE BUFFERS...',
+  'PREPARING ABSOLUTION SEQUENCE...',
+  'SYNCING WITH HEAVENLY SERVERS...',
+  'CALIBRATING PENITENCE MODULES...',
 ];
 
+// ASCII cross patterns for terminal
+const crossPattern = `
+       ║
+       ║
+   ════╬════
+       ║
+       ║
+`;
+
+const roseWindow = `
+    ╔═══════════╗
+   ╔╝           ╚╗
+  ╔╝      †      ╚╗
+ ╔╝    ╱   ╲      ╚╗
+ ║   ╱   ✦   ╲     ║
+ ║  ╱    │    ╲    ║
+ ║  ╲    │    ╱    ║
+ ║   ╲   ✦   ╱     ║
+ ╚╗    ╲   ╱      ╔╝
+  ╚╗      †      ╔╝
+   ╚╗           ╔╝
+    ╚═══════════╝
+`;
+
+const chalice = `
+      ╱▔▔▔╲
+     ╱     ╲
+     ╲     ╱
+      ╲   ╱
+       │ │
+       │ │
+     ╱─────╲
+`;
+
+const patterns = [crossPattern, roseWindow, chalice];
+
 export default function LoadingScreen() {
+  const [messageIndex, setMessageIndex] = useState(0);
   const [patternIndex, setPatternIndex] = useState(0);
-  const [opacity, setOpacity] = useState(1);
+  const [dots, setDots] = useState('');
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setOpacity(0);
-      setTimeout(() => {
-        setPatternIndex((prev) => (prev + 1) % patterns.length);
-        setOpacity(1);
-      }, 300);
-    }, 2500);
+    const dotInterval = setInterval(() => {
+      setDots(prev => prev.length >= 3 ? '' : prev + '.');
+    }, 400);
 
-    return () => clearInterval(interval);
+    const messageInterval = setInterval(() => {
+      setMessageIndex(prev => (prev + 1) % loadingMessages.length);
+      setPatternIndex(prev => (prev + 1) % patterns.length);
+    }, 2000);
+
+    return () => {
+      clearInterval(dotInterval);
+      clearInterval(messageInterval);
+    };
   }, []);
-
-  const renderPattern = (pattern: string) => {
-    return pattern.trim().split('\n').map((line, i) => (
-      <div key={i} style={styles.line}>
-        {line.split('').map((char, j) => (
-          <span
-            key={j}
-            style={{
-              ...styles.char,
-              opacity: char === 'x' ? 1 : 0,
-              color: char === 'x' ? 'var(--gold-dim)' : 'transparent',
-            }}
-          >
-            ✦
-          </span>
-        ))}
-      </div>
-    ));
-  };
 
   return (
     <div style={styles.container}>
-      <div style={{ ...styles.patternContainer, opacity }}>
-        {renderPattern(patterns[patternIndex])}
+      <pre style={styles.pattern}>{patterns[patternIndex]}</pre>
+
+      <div style={styles.messageContainer}>
+        <span style={styles.prompt}>&gt; </span>
+        <span style={styles.message}>{loadingMessages[messageIndex]}</span>
+        <span style={styles.dots}>{dots}</span>
       </div>
-      <p style={styles.loadingText}>Preparing the confessional...</p>
+
+      <div style={styles.progressBar}>
+        <div style={styles.progressTrack}>
+          {'['}
+          <span style={styles.progressFill} className="flicker">
+            {'▓▓▓▓▓▓▓▓░░░░░░░░'}
+          </span>
+          {']'}
+        </div>
+      </div>
+
+      <div style={styles.statusLine}>
+        ══════════════════════════════════
+        <br />
+        AWAITING DIVINE RESPONSE
+        <br />
+        ══════════════════════════════════
+      </div>
     </div>
   );
 }
@@ -146,31 +106,52 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: 'center',
     background: 'var(--bg-primary)',
     padding: '2rem',
+    fontFamily: 'var(--font-terminal)',
   },
-  patternContainer: {
-    fontFamily: 'monospace',
-    fontSize: '0.6rem',
-    lineHeight: 1,
-    transition: 'opacity 0.3s ease',
+  pattern: {
+    color: 'var(--amber)',
+    fontSize: '0.8rem',
+    lineHeight: 1.2,
+    textAlign: 'center',
+    margin: 0,
+    textShadow: '0 0 15px rgba(255, 176, 0, 0.5)',
     marginBottom: '2rem',
   },
-  line: {
+  messageContainer: {
     display: 'flex',
-    justifyContent: 'center',
-  },
-  char: {
-    width: '0.8em',
-    height: '0.8em',
-    display: 'inline-flex',
     alignItems: 'center',
-    justifyContent: 'center',
-    transition: 'opacity 0.1s ease',
+    marginBottom: '1.5rem',
   },
-  loadingText: {
-    fontFamily: 'var(--font-body)',
-    fontStyle: 'italic',
-    color: 'var(--text-dim)',
+  prompt: {
+    color: 'var(--amber-dim)',
+    fontSize: '1rem',
+  },
+  message: {
+    color: 'var(--amber)',
+    fontSize: '0.9rem',
+  },
+  dots: {
+    color: 'var(--amber)',
+    fontSize: '0.9rem',
+    width: '1.5em',
+    display: 'inline-block',
+  },
+  progressBar: {
+    marginBottom: '2rem',
+  },
+  progressTrack: {
+    color: 'var(--amber-dim)',
     fontSize: '0.9rem',
     letterSpacing: '0.05em',
+  },
+  progressFill: {
+    color: 'var(--amber)',
+  },
+  statusLine: {
+    color: 'var(--text-dim)',
+    fontSize: '0.7rem',
+    textAlign: 'center',
+    letterSpacing: '0.1em',
+    lineHeight: 1.6,
   },
 };

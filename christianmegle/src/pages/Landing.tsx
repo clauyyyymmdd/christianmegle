@@ -1,62 +1,98 @@
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
+const bootSequence = [
+  'LITURGICAL TERMINAL v2.0.26',
+  '═══════════════════════════════════════════',
+  '',
+  'INITIALIZING CONFESSION PROTOCOL...',
+  'LOADING SACRAMENTAL MODULES... OK',
+  'ESTABLISHING SECURE CHANNEL TO HEAVEN... OK',
+  'GRACE BUFFER: UNLIMITED',
+  '',
+  '═══════════════════════════════════════════',
+];
 
 export default function Landing() {
   const navigate = useNavigate();
-  const [hoveredRole, setHoveredRole] = useState<'priest' | 'sinner' | null>(null);
+  const [bootLines, setBootLines] = useState<string[]>([]);
+  const [bootComplete, setBootComplete] = useState(false);
+
+  useEffect(() => {
+    let lineIndex = 0;
+    const interval = setInterval(() => {
+      if (lineIndex < bootSequence.length) {
+        setBootLines(prev => [...prev, bootSequence[lineIndex]]);
+        lineIndex++;
+      } else {
+        clearInterval(interval);
+        setTimeout(() => setBootComplete(true), 300);
+      }
+    }, 120);
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="page-enter" style={styles.container}>
-      {/* Background texture */}
-      <div style={styles.bgTexture} />
-
-      {/* Header */}
-      <div style={styles.header}>
-        <div className="cross" style={styles.crossTop}>✝</div>
-        <h1 style={styles.title}>ChristianMegle</h1>
-        <p style={styles.subtitle}>confess your sins to strangers</p>
+      {/* Boot Sequence */}
+      <div style={styles.bootContainer}>
+        {bootLines.map((line, i) => (
+          <div key={i} style={styles.bootLine} className="boot-line">
+            {line}
+          </div>
+        ))}
       </div>
 
-      {/* Divider */}
-      <div className="divider">
-        <span className="cross">✦</span>
-      </div>
+      {/* Main Content */}
+      {bootComplete && (
+        <div style={styles.mainContent}>
+          {/* ASCII Art Header */}
+          <pre style={styles.asciiArt}>{`
+    ╔═══════════════════════════════════════╗
+    ║                  ✝                    ║
+    ║         CHRISTIANMEGLE                ║
+    ║    confess your sins to strangers     ║
+    ╚═══════════════════════════════════════╝
+          `}</pre>
 
-      {/* Role selection */}
-      <div style={styles.roleContainer}>
-        <button
-          style={{
-            ...styles.roleButton,
-            ...(hoveredRole === 'priest' ? styles.roleButtonHovered : {}),
-          }}
-          onMouseEnter={() => setHoveredRole('priest')}
-          onMouseLeave={() => setHoveredRole(null)}
-          onClick={() => navigate('/confess?role=priest')}
-        >
-          <span style={styles.roleIcon}>☦</span>
-          <span style={styles.roleLabel}>I am a Priest</span>
-          <span style={styles.roleDesc}>Hear the confessions of sinners</span>
-        </button>
+          {/* Prompt */}
+          <div style={styles.prompt}>
+            <span style={styles.promptSymbol}>&gt;</span>
+            <span style={styles.promptText}>SELECT YOUR ROLE:</span>
+            <span className="cursor" />
+          </div>
 
-        <div style={styles.orDivider}>
-          <span style={styles.orText}>or</span>
+          {/* Role selection */}
+          <div style={styles.roleContainer}>
+            <button
+              style={styles.roleButton}
+              onClick={() => navigate('/confess?role=priest')}
+            >
+              <span style={styles.roleKey}>[1]</span>
+              <span style={styles.roleLabel}>I HEAR CONFESSIONS</span>
+              <span style={styles.roleDesc}>// priest mode</span>
+            </button>
+
+            <button
+              style={styles.roleButton}
+              onClick={() => navigate('/confess?role=sinner')}
+            >
+              <span style={styles.roleKey}>[2]</span>
+              <span style={styles.roleLabel}>I SEEK FORGIVENESS</span>
+              <span style={styles.roleDesc}>// sinner mode</span>
+            </button>
+          </div>
+
+          <div style={styles.statusBar}>
+            ╔══════════════════════════════════════════════════════╗
+            <br />
+            ║ STATUS: READY │ PRIESTS ONLINE: ∞ │ GRACE: AVAILABLE ║
+            <br />
+            ╚══════════════════════════════════════════════════════╝
+          </div>
         </div>
-
-        <button
-          style={{
-            ...styles.roleButton,
-            ...(hoveredRole === 'sinner' ? styles.roleButtonHovered : {}),
-          }}
-          onMouseEnter={() => setHoveredRole('sinner')}
-          onMouseLeave={() => setHoveredRole(null)}
-          onClick={() => navigate('/confess?role=sinner')}
-        >
-          <span style={styles.roleIcon}>🕯</span>
-          <span style={styles.roleLabel}>I am a Sinner</span>
-          <span style={styles.roleDesc}>Confess and be saved</span>
-        </button>
-      </div>
-
+      )}
     </div>
   );
 }
@@ -69,98 +105,92 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'center',
     padding: '2rem',
-    position: 'relative',
+    background: 'var(--bg-primary)',
   },
-  bgTexture: {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    background: `
-      radial-gradient(ellipse at 50% 0%, rgba(107, 28, 35, 0.15) 0%, transparent 60%),
-      radial-gradient(ellipse at 50% 100%, rgba(201, 168, 76, 0.05) 0%, transparent 40%),
-      var(--bg-primary)
-    `,
-    zIndex: -1,
-  },
-  header: {
-    textAlign: 'center',
-    marginBottom: '1rem',
+  bootContainer: {
+    fontFamily: 'var(--font-terminal)',
+    fontSize: '0.85rem',
+    color: 'var(--amber)',
+    textAlign: 'left',
     width: '100%',
+    maxWidth: '500px',
+    marginBottom: '2rem',
+  },
+  bootLine: {
+    marginBottom: '0.25rem',
+    opacity: 0,
+    animation: 'bootLine 0.2s ease forwards',
+  },
+  mainContent: {
     display: 'flex',
-    flexDirection: 'column' as const,
+    flexDirection: 'column',
     alignItems: 'center',
+    animation: 'fadeIn 0.5s ease forwards',
   },
-  crossTop: {
-    fontSize: '2rem',
-    marginBottom: '1rem',
-    display: 'block',
-  },
-  title: {
-    fontSize: '3.5rem',
-    letterSpacing: '0.12em',
-    marginBottom: '0.5rem',
-  },
-  subtitle: {
-    fontFamily: 'var(--font-body)',
-    fontStyle: 'italic',
-    color: 'var(--text-secondary)',
-    fontSize: '1.1rem',
-    letterSpacing: '0.05em',
-    textTransform: 'none' as const,
+  asciiArt: {
+    fontFamily: 'var(--font-terminal)',
+    fontSize: '0.75rem',
+    color: 'var(--amber)',
     textAlign: 'center',
+    lineHeight: 1.4,
+    margin: 0,
+    textShadow: '0 0 20px rgba(255, 176, 0, 0.5)',
+  },
+  prompt: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    marginTop: '2rem',
+    marginBottom: '1.5rem',
+    fontFamily: 'var(--font-terminal)',
+    fontSize: '1rem',
+  },
+  promptSymbol: {
+    color: 'var(--amber-dim)',
+  },
+  promptText: {
+    color: 'var(--amber)',
   },
   roleContainer: {
     display: 'flex',
-    alignItems: 'center',
-    gap: '2rem',
-    marginTop: '2rem',
-    flexWrap: 'wrap' as const,
-    justifyContent: 'center',
+    flexDirection: 'column',
+    gap: '0.75rem',
+    width: '100%',
+    maxWidth: '400px',
   },
   roleButton: {
     display: 'flex',
-    flexDirection: 'column' as const,
     alignItems: 'center',
-    gap: '0.75rem',
-    padding: '2.5rem 3rem',
+    gap: '1rem',
+    padding: '1rem 1.5rem',
     background: 'var(--bg-secondary)',
-    border: '1px solid var(--gold-dim)',
+    border: '1px solid var(--amber-dim)',
     cursor: 'pointer',
-    transition: 'all 0.5s ease',
-    minWidth: '220px',
+    textAlign: 'left',
+    transition: 'all 0.2s ease',
   },
-  roleButtonHovered: {
-    borderColor: 'var(--gold)',
-    boxShadow: '0 0 40px rgba(201, 168, 76, 0.08), inset 0 0 40px rgba(201, 168, 76, 0.03)',
-  },
-  roleIcon: {
-    fontSize: '2rem',
+  roleKey: {
+    fontFamily: 'var(--font-terminal)',
+    fontSize: '0.9rem',
+    color: 'var(--amber-bright)',
   },
   roleLabel: {
-    fontFamily: 'var(--font-display)',
-    fontSize: '1rem',
-    letterSpacing: '0.1em',
-    textTransform: 'uppercase' as const,
-    color: 'var(--gold)',
+    fontFamily: 'var(--font-terminal)',
+    fontSize: '0.9rem',
+    color: 'var(--amber)',
+    flex: 1,
   },
   roleDesc: {
-    fontFamily: 'var(--font-body)',
-    fontStyle: 'italic',
-    fontSize: '0.85rem',
-    color: 'var(--text-secondary)',
-    textTransform: 'none' as const,
-    letterSpacing: 'normal',
-  },
-  orDivider: {
-    display: 'flex',
-    alignItems: 'center',
-  },
-  orText: {
-    fontFamily: 'var(--font-body)',
-    fontStyle: 'italic',
+    fontFamily: 'var(--font-terminal)',
+    fontSize: '0.75rem',
     color: 'var(--text-dim)',
-    fontSize: '1rem',
+  },
+  statusBar: {
+    marginTop: '3rem',
+    fontFamily: 'var(--font-terminal)',
+    fontSize: '0.7rem',
+    color: 'var(--amber-dim)',
+    textAlign: 'center',
+    lineHeight: 1.4,
   },
 };
