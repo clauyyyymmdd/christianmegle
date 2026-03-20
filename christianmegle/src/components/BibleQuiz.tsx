@@ -505,12 +505,13 @@ const styles: Record<string, React.CSSProperties> = {
     fontFamily: 'var(--font-display)',
     fontSize: '0.75rem',
     letterSpacing: '0.1em',
-    color: 'var(--gold-dim)',
+    color: '#666',
     flexShrink: 0,
     width: '1.5rem',
   },
   optionText: {
-    color: 'var(--text-primary)',
+    color: '#222',
+    fontStyle: 'italic',
   },
   nav: {
     display: 'flex',

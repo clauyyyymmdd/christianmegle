@@ -91,18 +91,29 @@ export default function Landing() {
 
   return (
     <div className="page-enter" style={styles.container}>
+      {/* Y2K Sparkle decorations */}
+      <div style={styles.sparkleContainer}>
+        <span style={{ ...styles.sparkle, top: '10%', left: '15%', animationDelay: '0s' }}>✦</span>
+        <span style={{ ...styles.sparkle, top: '20%', right: '20%', animationDelay: '0.5s' }}>✧</span>
+        <span style={{ ...styles.sparkle, top: '60%', left: '10%', animationDelay: '1s' }}>✦</span>
+        <span style={{ ...styles.sparkle, top: '70%', right: '15%', animationDelay: '1.5s' }}>✧</span>
+        <span style={{ ...styles.sparkle, top: '40%', left: '5%', animationDelay: '0.3s' }}>+</span>
+        <span style={{ ...styles.sparkle, top: '30%', right: '8%', animationDelay: '0.8s' }}>+</span>
+      </div>
+
       {/* Wordmark */}
       <img
         src="/assets/images/wordmark.png"
         alt="ChristianMegle"
         style={styles.wordmark}
+        className="y2k-float"
       />
 
-      <p style={styles.tagline}>Confess your sins to strangers.</p>
+      <p style={styles.tagline}>✧ Confess your sins to strangers ✧</p>
 
       {/* Divider */}
       <div className="divider" style={{ width: '300px' }}>
-        <span className="cross">✝</span>
+        <span className="cross" style={{ fontSize: '1.5rem' }}>✝</span>
       </div>
 
       {/* Role selection */}
@@ -111,16 +122,16 @@ export default function Landing() {
           style={styles.roleButton}
           onClick={() => navigate('/confess?role=priest')}
         >
-          <span style={styles.roleTitle}>I Hear Confessions</span>
-          <span style={styles.roleSubtitle}>Enter as Priest</span>
+          <span style={styles.roleTitle}>I AM A PRIEST</span>
+          <span style={styles.roleSubtitle}>hear the confessions of sinners</span>
         </button>
 
         <button
           style={styles.roleButton}
           onClick={() => navigate('/confess?role=sinner')}
         >
-          <span style={styles.roleTitle}>I Seek Forgiveness</span>
-          <span style={styles.roleSubtitle}>Enter as Sinner</span>
+          <span style={styles.roleTitle}>I AM A SINNER</span>
+          <span style={styles.roleSubtitle}>confess to a stranger</span>
         </button>
       </div>
 
@@ -142,49 +153,59 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'center',
     padding: '2rem',
-    background: 'var(--bg-primary)',
+    background: `
+      radial-gradient(ellipse at 50% 50%, rgba(40, 30, 60, 0.3) 0%, transparent 50%),
+      linear-gradient(180deg, #08080c 0%, #0a0a0f 50%, #080808 100%)
+    `,
   },
   bootInner: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'flex-start',
-    padding: '2rem',
-    border: '1px solid var(--blood-dim)',
-    background: 'rgba(0,0,0,0.3)',
+    padding: '2rem 2.5rem',
+    border: '2px solid',
+    borderColor: 'rgba(255,255,255,0.2) rgba(100,100,100,0.3) rgba(80,80,80,0.3) rgba(200,200,200,0.2)',
+    background: 'linear-gradient(135deg, rgba(30,30,40,0.8) 0%, rgba(20,20,25,0.9) 100%)',
     minWidth: '320px',
+    boxShadow: '0 0 30px rgba(100, 80, 150, 0.2), inset 0 1px 0 rgba(255,255,255,0.1)',
+    borderRadius: '4px',
   },
   bootLabel: {
-    fontFamily: 'var(--font-terminal)',
-    fontSize: '0.7rem',
-    color: 'var(--blood)',
-    letterSpacing: '0.15em',
+    fontFamily: 'var(--font-title)',
+    fontSize: '0.75rem',
+    fontWeight: 700,
+    color: 'var(--ivory-dim)',
+    letterSpacing: '0.2em',
     textTransform: 'uppercase',
-    marginBottom: '1rem',
+    marginBottom: '1.5rem',
   },
   bootItems: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'flex-start',
-    gap: '0.25rem',
+    gap: '0.4rem',
     maxWidth: '400px',
     width: '100%',
   },
   bootItem: {
-    fontFamily: 'var(--font-terminal)',
-    fontSize: '0.85rem',
-    color: 'var(--ivory-dim)',
-    letterSpacing: '0.02em',
+    fontFamily: 'var(--font-body)',
+    fontStyle: 'italic',
+    fontSize: '1rem',
+    color: 'var(--ivory)',
+    letterSpacing: '0.01em',
   },
   revealContainer: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'relative',
   },
   wordmarkReveal: {
     maxWidth: '450px',
     width: '85%',
     height: 'auto',
     animation: 'wordmarkReveal 1.2s ease-out forwards, wordmarkGlow 3s ease-in-out infinite 1.2s',
+    filter: 'drop-shadow(0 0 40px rgba(255, 255, 255, 0.3)) drop-shadow(0 0 80px rgba(139, 0, 0, 0.4))',
   },
   container: {
     minHeight: '100vh',
@@ -193,64 +214,96 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'center',
     padding: '2rem',
+    position: 'relative',
+    overflow: 'hidden',
     background: `
-      radial-gradient(ellipse at 50% 0%, rgba(139, 0, 0, 0.15) 0%, transparent 50%),
-      var(--bg-primary)
+      radial-gradient(ellipse at 30% 20%, rgba(80, 60, 120, 0.15) 0%, transparent 40%),
+      radial-gradient(ellipse at 70% 80%, rgba(139, 0, 0, 0.12) 0%, transparent 40%),
+      radial-gradient(ellipse at 50% 50%, rgba(60, 60, 80, 0.1) 0%, transparent 60%),
+      linear-gradient(180deg, #0a0a0f 0%, #0d0a0a 50%, #0a0808 100%)
     `,
+  },
+  sparkleContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    pointerEvents: 'none',
+    zIndex: 0,
+  },
+  sparkle: {
+    position: 'absolute',
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontSize: '1.2rem',
+    animation: 'twinkle 2s ease-in-out infinite',
+    textShadow: '0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(200, 180, 255, 0.5)',
   },
   wordmark: {
     maxWidth: '450px',
     width: '85%',
     height: 'auto',
     marginBottom: '0.5rem',
+    position: 'relative',
+    zIndex: 1,
+    filter: 'drop-shadow(0 0 30px rgba(139, 0, 0, 0.4)) drop-shadow(0 0 60px rgba(100, 50, 150, 0.2))',
   },
   tagline: {
     fontFamily: 'var(--font-body)',
     fontStyle: 'italic',
-    fontSize: '1.1rem',
-    color: 'var(--ivory-dim)',
-    letterSpacing: '0.05em',
+    fontSize: '1.3rem',
+    color: 'var(--ivory)',
+    letterSpacing: '0.02em',
     marginTop: '0.5rem',
   },
   roleContainer: {
     display: 'flex',
-    gap: '1.5rem',
-    marginTop: '1rem',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
+    flexDirection: 'column',
+    gap: '1rem',
+    marginTop: '1.5rem',
+    width: '100%',
+    maxWidth: '500px',
   },
   roleButton: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: '0.5rem',
-    padding: '1.5rem 2.5rem',
-    minWidth: '200px',
+    gap: '0.4rem',
+    padding: '1.25rem 3rem',
+    width: '100%',
+    borderRadius: '12px',
   },
   roleTitle: {
-    fontFamily: 'var(--font-display)',
-    fontSize: '0.95rem',
-    letterSpacing: '0.1em',
+    fontFamily: 'var(--font-title)',
+    fontSize: '1.1rem',
+    fontWeight: 700,
+    letterSpacing: '0.2em',
     textTransform: 'uppercase',
+    color: '#333',
+    textShadow: '0 1px 0 rgba(255, 255, 255, 0.6)',
   },
   roleSubtitle: {
     fontFamily: 'var(--font-body)',
     fontStyle: 'italic',
-    fontSize: '0.85rem',
-    color: 'var(--ivory-dim)',
+    fontSize: '1rem',
+    color: '#555',
     textTransform: 'none',
-    letterSpacing: 'normal',
+    letterSpacing: '0.02em',
+    textShadow: '0 1px 0 rgba(255, 255, 255, 0.4)',
   },
   leaderboardLink: {
-    marginTop: '2rem',
+    marginTop: '2.5rem',
     background: 'transparent',
-    border: 'none',
+    border: '2px solid var(--ivory-dim)',
     fontFamily: 'var(--font-body)',
     fontStyle: 'italic',
-    fontSize: '0.9rem',
-    color: 'var(--blood-bright)',
+    fontSize: '1rem',
+    color: 'var(--ivory)',
     cursor: 'pointer',
-    textDecoration: 'underline',
-    textUnderlineOffset: '3px',
+    padding: '0.75rem 2rem',
+    boxShadow: 'none',
+    textShadow: 'none',
+    letterSpacing: '0.02em',
+    textTransform: 'none',
   },
 };
