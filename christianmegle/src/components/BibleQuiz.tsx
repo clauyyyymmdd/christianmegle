@@ -322,7 +322,7 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
           {(['a', 'b', 'c', 'd'] as const).map((key) => {
             const isSelected = answers[question.id] === key;
             return (
-              <button
+              <div
                 key={key}
                 onClick={() => handleAnswer(question.id, key)}
                 style={{
@@ -330,11 +330,11 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
                   ...(isSelected ? styles.optionSelected : {}),
                 }}
               >
-                <span style={styles.optionKey}>{key.toUpperCase()}</span>
+                <span style={styles.optionKey}>[{key.toUpperCase()}]</span>
                 <span style={styles.optionText}>
                   {question.options[key]}
                 </span>
-              </button>
+              </div>
             );
           })}
         </div>
@@ -470,12 +470,15 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: '1rem',
   },
   question: {
-    fontSize: '1.4rem',
+    fontFamily: 'var(--font-body)',
+    fontSize: '1.2rem',
     maxWidth: '600px',
-    lineHeight: 1.5,
+    lineHeight: 1.6,
     textTransform: 'none',
     letterSpacing: 'normal',
     fontWeight: 400,
+    fontStyle: 'italic',
+    color: 'var(--ivory)',
   },
   options: {
     display: 'flex',
@@ -488,29 +491,31 @@ const styles: Record<string, React.CSSProperties> = {
   option: {
     display: 'flex',
     alignItems: 'center',
-    gap: '1rem',
-    padding: '1rem 1.5rem',
+    gap: '0.75rem',
+    padding: '0.75rem 1rem',
     textAlign: 'left',
     width: '100%',
     textTransform: 'none',
     letterSpacing: 'normal',
     fontFamily: 'var(--font-body)',
-    fontSize: '1rem',
+    fontSize: '0.95rem',
+    border: '1px solid var(--ivory-dim)',
+    background: 'rgba(0, 0, 0, 0.5)',
+    color: 'var(--ivory)',
   },
   optionSelected: {
-    borderColor: 'var(--gold)',
-    background: 'rgba(201, 168, 76, 0.05)',
+    borderColor: 'var(--ivory)',
+    background: 'rgba(255, 255, 255, 0.1)',
   },
   optionKey: {
-    fontFamily: 'var(--font-display)',
-    fontSize: '0.75rem',
-    letterSpacing: '0.1em',
-    color: '#666',
+    fontFamily: 'var(--font-terminal)',
+    fontSize: '0.8rem',
+    letterSpacing: '0.05em',
+    color: 'var(--ivory-dim)',
     flexShrink: 0,
-    width: '1.5rem',
   },
   optionText: {
-    color: '#222',
+    color: 'var(--ivory)',
     fontStyle: 'italic',
   },
   nav: {

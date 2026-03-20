@@ -27,11 +27,11 @@
   --text-secondary: #c9c0b0;
   --text-dim: #6a6258;
 
-  /* Typography - Brutalist contrast */
+  /* Typography - SimSun titles, Charter body */
   --font-title: 'SimSun', 'STSong', 'Songti SC', serif;
   --font-display: 'SimSun', 'STSong', 'Songti SC', serif;
   --font-body: 'Charter', 'Spectral', Georgia, serif;
-  --font-terminal: 'SimSun', 'STSong', monospace;
+  --font-terminal: 'SimSun', 'STSong', 'Songti SC', monospace;
 
   /* Spacing */
   --space-xs: 0.25rem;
@@ -63,36 +63,37 @@ html, body {
   flex-direction: column;
 }
 
-/* === Typography - Brutalist Contrast === */
+/* === Typography - SimSun Titles, Charter Body === */
 
 h1, h2, h3, h4 {
   font-family: var(--font-title);
-  font-weight: 700;
+  font-weight: 400;
   color: var(--ivory);
-  letter-spacing: 0.12em;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
 }
 
 h1 {
-  font-size: 2.8rem;
-  line-height: 1.1;
-}
-
-h2 {
-  font-size: 1.8rem;
+  font-size: 2.4rem;
   line-height: 1.2;
 }
 
+h2 {
+  font-size: 1.6rem;
+  line-height: 1.3;
+}
+
 h3 {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
 }
 
 p {
+  font-family: var(--font-body);
   max-width: 60ch;
   font-style: italic;
 }
 
-/* Body text is mostly italic */
+/* Body text is Charter italic */
 .body-text, .tagline, .description {
   font-family: var(--font-body);
   font-style: italic;
@@ -108,40 +109,44 @@ a:hover {
   color: var(--ivory);
 }
 
-/* === Buttons - Terminal ASCII Style === */
+/* === Buttons - ASCII Terminal Style === */
 
 button {
   font-family: var(--font-terminal);
   font-size: 0.85rem;
   letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: 0.75rem 1.5rem;
-  border: 1px solid var(--ivory-dim);
+  padding: 0;
+  border: none;
   border-radius: 0;
-  background: rgba(0, 0, 0, 0.8);
-  color: var(--ivory);
+  background: transparent;
+  color: var(--ivory-dim);
   cursor: pointer;
   transition: all 0.15s ease;
   position: relative;
-  box-shadow:
-    inset 0 0 20px rgba(0, 0, 0, 0.5),
-    0 0 10px rgba(0, 0, 0, 0.5);
-  text-shadow: 0 0 10px currentColor;
+}
+
+button::before {
+  content: '[ ';
+  color: var(--ivory-dim);
+}
+
+button::after {
+  content: ' ]';
+  color: var(--ivory-dim);
 }
 
 button:hover {
-  background: rgba(20, 20, 20, 0.9);
-  border-color: var(--ivory);
-  color: #fff;
-  box-shadow:
-    inset 0 0 30px rgba(50, 50, 50, 0.5),
-    0 0 15px rgba(255, 255, 255, 0.1);
-  text-shadow: 0 0 15px currentColor;
+  color: var(--ivory);
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+button:hover::before,
+button:hover::after {
+  color: var(--ivory);
 }
 
 button:active {
-  background: rgba(40, 40, 40, 0.9);
-  transform: translateY(1px);
+  color: var(--blood-bright);
 }
 
 button:disabled {
@@ -150,24 +155,32 @@ button:disabled {
 }
 
 button.primary {
-  border-color: var(--blood);
-  color: var(--blood-bright);
-}
-
-button.primary:hover {
-  border-color: var(--blood-bright);
-  background: rgba(139, 0, 0, 0.2);
-}
-
-button.secondary {
-  background: transparent;
-  border: 1px solid var(--ivory-dim);
-  color: var(--ivory-dim);
-}
-
-button.secondary:hover {
-  border-color: var(--ivory);
   color: var(--ivory);
+}
+
+button.primary::before {
+  content: '>> ';
+}
+
+button.primary::after {
+  content: ' <<';
+}
+
+button.boxed {
+  display: block;
+  padding: 1rem 2rem;
+  border: 1px solid var(--ivory-dim);
+  background: rgba(0, 0, 0, 0.5);
+}
+
+button.boxed::before,
+button.boxed::after {
+  content: '';
+}
+
+button.boxed:hover {
+  border-color: var(--ivory);
+  background: rgba(20, 20, 20, 0.7);
 }
 
 /* === Form elements === */
@@ -222,33 +235,25 @@ input::placeholder, textarea::placeholder {
 .divider {
   display: flex;
   align-items: center;
-  gap: var(--space-md);
+  justify-content: center;
   margin: var(--space-lg) 0;
-  color: var(--blood-dim);
+  font-family: var(--font-terminal);
+  color: var(--ivory-dim);
+  font-size: 0.9rem;
+  letter-spacing: 0.1em;
 }
 
-.divider::before,
+.divider::before {
+  content: '════════════';
+}
+
 .divider::after {
-  content: '';
-  flex: 1;
-  height: 2px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(180, 180, 200, 0.3),
-    rgba(255, 255, 255, 0.5),
-    rgba(180, 180, 200, 0.3),
-    transparent
-  );
+  content: '════════════';
 }
 
 .cross {
-  font-size: 1.2rem;
+  margin: 0 1rem;
   color: var(--ivory);
-  text-shadow:
-    0 0 10px rgba(255, 255, 255, 0.5),
-    0 0 20px rgba(139, 0, 0, 0.5);
-  animation: twinkle 3s ease-in-out infinite;
 }
 
 /* === Y2K Effects === */

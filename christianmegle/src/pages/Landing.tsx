@@ -64,17 +64,21 @@ export default function Landing() {
       <div style={styles.bootContainer}>
         {phase === 'loading' && (
           <div style={styles.bootInner}>
+            <pre style={styles.bootHeader}>{`
+┌─────────────────────────────────────┐
+│  C H R I S T I A N M E G L E        │
+│  ═══════════════════════════════    │`}</pre>
             {currentLabel && (
-              <p style={styles.bootLabel}>{currentLabel}</p>
+              <p style={styles.bootLabel}>│  {currentLabel}</p>
             )}
             <div style={styles.bootItems}>
               {visibleItems.map((item, i) => (
                 <span key={i} style={styles.bootItem} className="boot-line">
-                  <span style={{ color: 'var(--blood)', marginRight: '0.5rem' }}>›</span>
-                  {item}
+                  │  › {item}
                 </span>
               ))}
             </div>
+            <pre style={styles.bootFooter}>{`└─────────────────────────────────────┘`}</pre>
           </div>
         )}
         {phase === 'reveal' && (
@@ -190,37 +194,40 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'flex-start',
-    padding: '2rem 2.5rem',
-    border: '2px solid',
-    borderColor: 'rgba(255,255,255,0.2) rgba(100,100,100,0.3) rgba(80,80,80,0.3) rgba(200,200,200,0.2)',
-    background: 'linear-gradient(135deg, rgba(30,30,40,0.8) 0%, rgba(20,20,25,0.9) 100%)',
-    minWidth: '320px',
-    boxShadow: '0 0 30px rgba(100, 80, 150, 0.2), inset 0 1px 0 rgba(255,255,255,0.1)',
-    borderRadius: '4px',
+    background: 'rgba(0, 0, 0, 0.7)',
+    minWidth: '380px',
+  },
+  bootHeader: {
+    fontFamily: 'var(--font-terminal)',
+    fontSize: '0.8rem',
+    lineHeight: 1.3,
+    color: 'var(--ivory-dim)',
+    margin: 0,
+  },
+  bootFooter: {
+    fontFamily: 'var(--font-terminal)',
+    fontSize: '0.8rem',
+    lineHeight: 1.3,
+    color: 'var(--ivory-dim)',
+    margin: 0,
   },
   bootLabel: {
-    fontFamily: 'var(--font-title)',
-    fontSize: '0.75rem',
-    fontWeight: 700,
+    fontFamily: 'var(--font-terminal)',
+    fontSize: '0.8rem',
     color: 'var(--ivory-dim)',
-    letterSpacing: '0.2em',
-    textTransform: 'uppercase',
-    marginBottom: '1.5rem',
+    margin: '0.25rem 0',
   },
   bootItems: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'flex-start',
-    gap: '0.4rem',
-    maxWidth: '400px',
+    gap: '0.2rem',
     width: '100%',
   },
   bootItem: {
-    fontFamily: 'var(--font-body)',
-    fontStyle: 'italic',
-    fontSize: '1rem',
+    fontFamily: 'var(--font-terminal)',
+    fontSize: '0.8rem',
     color: 'var(--ivory)',
-    letterSpacing: '0.01em',
   },
   revealContainer: {
     display: 'flex',

@@ -56,49 +56,42 @@ export default function Leaderboard() {
 
   return (
     <div className="page-enter" style={styles.container}>
-      <h1 style={styles.title}>Book of Life</h1>
-      <p style={styles.subtitle}>Those who have pardoned the most sinners</p>
-
-      <div className="divider" style={{ width: '300px' }}>
-        <span className="cross">✝</span>
-      </div>
+      <pre style={styles.asciiTitle}>{`
+╔═══════════════════════════════════════════╗
+║                                           ║
+║          B O O K   O F   L I F E          ║
+║                                           ║
+║   Those who have pardoned the most sinners║
+║                                           ║
+╠═══════════════════════════════════════════╣`}</pre>
 
       {loading ? (
-        <p style={styles.loading}>Loading...</p>
+        <pre style={styles.loading}>{`║  Loading...                               ║`}</pre>
       ) : (
         <div style={styles.leaderboard}>
           {entries.map((entry) => (
-            <div
+            <pre
               key={entry.rank}
               style={{
                 ...styles.row,
                 ...(entry.isJesus ? styles.jesusRow : {}),
               }}
             >
-              <span style={styles.rank}>
-                {entry.isJesus ? '👑' : entry.rank}
-              </span>
-              <span style={{
-                ...styles.name,
-                ...(entry.isJesus ? styles.jesusName : {}),
-              }}>
-                {entry.displayName}
-              </span>
-              <span style={styles.pardons}>
-                {entry.isJesus ? '∞' : entry.pardons}
-              </span>
-            </div>
+{`║  ${entry.isJesus ? '★' : entry.rank.toString().padStart(2, ' ')}  │  ${entry.displayName.padEnd(25, ' ')}  │  ${entry.isJesus ? ' ∞' : entry.pardons.toString().padStart(3, ' ')}  ║`}
+            </pre>
           ))}
 
           {entries.length === 1 && (
-            <p style={styles.empty}>No priests have pardoned sinners yet.</p>
+            <pre style={styles.empty}>{`║  No priests have pardoned sinners yet.    ║`}</pre>
           )}
         </div>
       )}
 
-      <button style={styles.backButton} onClick={() => navigate('/')}>
-        Return Home
-      </button>
+      <pre style={styles.asciiFooter}>{`╚═══════════════════════════════════════════╝`}</pre>
+
+      <div style={styles.backButton} onClick={() => navigate('/')}>
+        {'>'} Return Home _
+      </div>
     </div>
   );
 }
@@ -109,84 +102,58 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    padding: '3rem 2rem',
-    background: `
-      radial-gradient(ellipse at 50% 0%, rgba(139, 0, 0, 0.15) 0%, transparent 50%),
-      var(--bg-primary)
-    `,
+    justifyContent: 'center',
+    padding: '2rem',
+    background: 'var(--bg-primary)',
   },
-  title: {
-    fontFamily: 'var(--font-title)',
-    fontSize: '2.2rem',
-    fontWeight: 700,
-    color: 'var(--ivory)',
-    letterSpacing: '0.2em',
-    marginBottom: '0.5rem',
-    textTransform: 'uppercase',
+  asciiTitle: {
+    fontFamily: 'var(--font-terminal)',
+    fontSize: '0.8rem',
+    lineHeight: 1.3,
+    color: 'var(--ivory-dim)',
+    margin: 0,
+    textAlign: 'left',
   },
-  subtitle: {
-    fontFamily: 'var(--font-body)',
-    fontStyle: 'italic',
-    fontSize: '1.1rem',
-    color: 'var(--ivory)',
+  asciiFooter: {
+    fontFamily: 'var(--font-terminal)',
+    fontSize: '0.8rem',
+    lineHeight: 1.3,
+    color: 'var(--ivory-dim)',
+    margin: 0,
   },
   loading: {
     fontFamily: 'var(--font-terminal)',
-    color: 'var(--text-dim)',
-    marginTop: '2rem',
+    fontSize: '0.8rem',
+    color: 'var(--ivory-dim)',
+    margin: 0,
   },
   leaderboard: {
-    width: '100%',
-    maxWidth: '500px',
     display: 'flex',
     flexDirection: 'column',
-    gap: '0.5rem',
   },
   row: {
-    display: 'flex',
-    alignItems: 'center',
-    padding: '1rem 1.5rem',
-    background: 'var(--bg-secondary)',
-    border: '1px solid var(--blood-dim)',
+    fontFamily: 'var(--font-terminal)',
+    fontSize: '0.8rem',
+    color: 'var(--ivory-dim)',
+    margin: 0,
+    lineHeight: 1.5,
   },
   jesusRow: {
-    background: 'linear-gradient(135deg, var(--bg-elevated) 0%, var(--bg-secondary) 100%)',
-    border: '1px solid var(--gold-dim)',
-    boxShadow: '0 0 20px rgba(201, 168, 76, 0.15)',
-  },
-  rank: {
-    fontFamily: 'var(--font-terminal)',
-    fontSize: '1rem',
-    color: 'var(--blood)',
-    width: '3rem',
-    textAlign: 'center',
-  },
-  name: {
-    fontFamily: 'var(--font-display)',
-    fontSize: '1rem',
     color: 'var(--ivory)',
-    flex: 1,
-    letterSpacing: '0.05em',
-  },
-  jesusName: {
-    color: 'var(--gold)',
-    fontFamily: 'var(--font-gothic)',
-  },
-  pardons: {
-    fontFamily: 'var(--font-terminal)',
-    fontSize: '1rem',
-    color: 'var(--ivory-dim)',
-    textAlign: 'right',
-    minWidth: '3rem',
+    textShadow: '0 0 10px rgba(255, 255, 255, 0.3)',
   },
   empty: {
-    fontFamily: 'var(--font-body)',
-    fontStyle: 'italic',
-    color: 'var(--text-dim)',
-    textAlign: 'center',
-    padding: '2rem',
+    fontFamily: 'var(--font-terminal)',
+    fontSize: '0.8rem',
+    color: 'var(--ivory-dim)',
+    margin: 0,
   },
   backButton: {
     marginTop: '2rem',
+    fontFamily: 'var(--font-terminal)',
+    fontSize: '0.85rem',
+    color: 'var(--ivory-dim)',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
   },
 };
