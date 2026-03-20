@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, CSSProperties } from 'react';
 
 const bootCategories = [
   {
@@ -31,6 +31,7 @@ export default function Landing() {
   const [visibleItems, setVisibleItems] = useState<string[]>([]);
   const [currentLabel] = useState(bootSequence.label);
   const timeoutRef = useRef<number | null>(null);
+  const [hoveredButton, setHoveredButton] = useState<'priest' | 'sinner' | 'leaderboard' | null>(null);
 
   useEffect(() => {
     if (phase !== 'loading') return;
@@ -116,31 +117,58 @@ export default function Landing() {
         <span className="cross" style={{ fontSize: '1.5rem' }}>✝</span>
       </div>
 
-      {/* Role selection */}
+      {/* Role selection - Terminal Style */}
       <div style={styles.roleContainer}>
-        <button
-          style={styles.roleButton}
+        <div
+          style={styles.terminalButton}
           onClick={() => navigate('/confess?role=priest')}
+          onMouseEnter={() => setHoveredButton('priest')}
+          onMouseLeave={() => setHoveredButton(null)}
         >
-          <span style={styles.roleTitle}>I AM A PRIEST</span>
-          <span style={styles.roleSubtitle}>hear the confessions of sinners</span>
-        </button>
+          <pre style={{
+            ...styles.asciiFrame,
+            ...(hoveredButton === 'priest' ? styles.asciiFrameHover : {}),
+          } as CSSProperties}>{`
+┌──────────────────────────────────────┐
+│                                      │
+│       ☦  I  A M  A  P R I E S T  ☦   │
+│                                      │
+│     hear the confessions of sinners  │
+│                                      │
+└──────────────────────────────────────┘`}</pre>
+        </div>
 
-        <button
-          style={styles.roleButton}
+        <div
+          style={styles.terminalButton}
           onClick={() => navigate('/confess?role=sinner')}
+          onMouseEnter={() => setHoveredButton('sinner')}
+          onMouseLeave={() => setHoveredButton(null)}
         >
-          <span style={styles.roleTitle}>I AM A SINNER</span>
-          <span style={styles.roleSubtitle}>confess to a stranger</span>
-        </button>
+          <pre style={{
+            ...styles.asciiFrame,
+            ...(hoveredButton === 'sinner' ? styles.asciiFrameHover : {}),
+          } as CSSProperties}>{`
+┌──────────────────────────────────────┐
+│                                      │
+│       ✝  I  A M  A  S I N N E R  ✝   │
+│                                      │
+│        confess to a stranger         │
+│                                      │
+└──────────────────────────────────────┘`}</pre>
+        </div>
       </div>
 
-      <button
-        style={styles.leaderboardLink}
+      <div
+        style={{
+          ...styles.terminalLink,
+          ...(hoveredButton === 'leaderboard' ? styles.terminalLinkHover : {}),
+        } as CSSProperties}
         onClick={() => navigate('/leaderboard')}
+        onMouseEnter={() => setHoveredButton('leaderboard')}
+        onMouseLeave={() => setHoveredButton(null)}
       >
-        View the Book of Life
-      </button>
+        {'>'} View the Book of Life _
+      </div>
     </div>
   );
 }
@@ -259,10 +287,36 @@ const styles: Record<string, React.CSSProperties> = {
   roleContainer: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '1rem',
+    gap: '1.5rem',
     marginTop: '1.5rem',
     width: '100%',
     maxWidth: '500px',
+    zIndex: 1,
+  },
+  terminalButton: {
+    cursor: 'pointer',
+    transition: 'all 0.2s ease',
+    position: 'relative',
+  },
+  asciiFrame: {
+    fontFamily: 'var(--font-terminal)',
+    fontSize: '0.8rem',
+    lineHeight: 1.3,
+    color: 'var(--ivory-dim)',
+    margin: 0,
+    padding: '0.5rem',
+    background: 'rgba(0, 0, 0, 0.6)',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    textAlign: 'center',
+    textShadow: '0 0 10px rgba(255, 255, 255, 0.3)',
+    transition: 'all 0.2s ease',
+  },
+  asciiFrameHover: {
+    color: 'var(--ivory)',
+    background: 'rgba(20, 15, 25, 0.8)',
+    border: '1px solid rgba(255, 255, 255, 0.3)',
+    textShadow: '0 0 15px rgba(255, 255, 255, 0.5), 0 0 30px rgba(139, 0, 0, 0.3)',
+    boxShadow: '0 0 30px rgba(139, 0, 0, 0.2), inset 0 0 20px rgba(255, 255, 255, 0.05)',
   },
   roleButton: {
     display: 'flex',
@@ -271,25 +325,21 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '0.4rem',
     padding: '1.25rem 3rem',
     width: '100%',
-    borderRadius: '12px',
   },
   roleTitle: {
-    fontFamily: 'var(--font-title)',
-    fontSize: '1.1rem',
-    fontWeight: 700,
-    letterSpacing: '0.2em',
+    fontFamily: 'var(--font-terminal)',
+    fontSize: '1rem',
+    letterSpacing: '0.3em',
     textTransform: 'uppercase',
-    color: '#333',
-    textShadow: '0 1px 0 rgba(255, 255, 255, 0.6)',
+    color: 'var(--ivory)',
   },
   roleSubtitle: {
     fontFamily: 'var(--font-body)',
     fontStyle: 'italic',
-    fontSize: '1rem',
-    color: '#555',
+    fontSize: '0.9rem',
+    color: 'var(--ivory-dim)',
     textTransform: 'none',
     letterSpacing: '0.02em',
-    textShadow: '0 1px 0 rgba(255, 255, 255, 0.4)',
   },
   leaderboardLink: {
     marginTop: '2.5rem',
@@ -305,5 +355,19 @@ const styles: Record<string, React.CSSProperties> = {
     textShadow: 'none',
     letterSpacing: '0.02em',
     textTransform: 'none',
+  },
+  terminalLink: {
+    marginTop: '2rem',
+    fontFamily: 'var(--font-terminal)',
+    fontSize: '0.85rem',
+    color: 'var(--ivory-dim)',
+    cursor: 'pointer',
+    padding: '0.5rem 1rem',
+    transition: 'all 0.2s ease',
+    zIndex: 1,
+  },
+  terminalLinkHover: {
+    color: 'var(--ivory)',
+    textShadow: '0 0 10px rgba(255, 255, 255, 0.5)',
   },
 };
