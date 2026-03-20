@@ -47,14 +47,19 @@ export default function Landing() {
       {/* Main Content */}
       {bootComplete && (
         <div style={styles.mainContent}>
-          {/* ASCII Art Header */}
-          <pre style={styles.asciiArt}>{`
-    ╔═══════════════════════════════════════╗
-    ║                  ✝                    ║
-    ║         CHRISTIANMEGLE                ║
-    ║    confess your sins to strangers     ║
-    ╚═══════════════════════════════════════╝
-          `}</pre>
+          {/* Logo */}
+          <img
+            src="/assets/images/logo.png"
+            alt=""
+            style={styles.logo}
+          />
+          {/* Wordmark */}
+          <img
+            src="/assets/images/wordmark.png"
+            alt="ChristianMegle"
+            style={styles.wordmark}
+          />
+          <p style={styles.tagline}>confess your sins to strangers</p>
 
           {/* Prompt */}
           <div style={styles.prompt}>
@@ -127,14 +132,26 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     animation: 'fadeIn 0.5s ease forwards',
   },
-  asciiArt: {
+  logo: {
+    width: '80px',
+    height: 'auto',
+    filter: 'drop-shadow(0 0 15px rgba(255, 176, 0, 0.4))',
+    marginBottom: '1rem',
+  },
+  wordmark: {
+    maxWidth: '400px',
+    width: '100%',
+    height: 'auto',
+    filter: 'drop-shadow(0 0 20px rgba(255, 176, 0, 0.3))',
+    marginBottom: '0.5rem',
+  },
+  tagline: {
     fontFamily: 'var(--font-terminal)',
-    fontSize: '0.75rem',
-    color: 'var(--amber)',
-    textAlign: 'center',
-    lineHeight: 1.4,
+    fontSize: '0.9rem',
+    color: 'var(--amber-dim)',
+    letterSpacing: '0.15em',
+    textTransform: 'lowercase',
     margin: 0,
-    textShadow: '0 0 20px rgba(255, 176, 0, 0.5)',
   },
   prompt: {
     display: 'flex',
