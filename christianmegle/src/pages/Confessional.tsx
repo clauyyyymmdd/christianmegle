@@ -12,6 +12,7 @@ interface ConfessionalProps {
 
 type Phase =
   | 'loading'
+  | 'welcome-back'   // Returning priest recognized
   | 'quiz'           // Priest taking quiz
   | 'not-saved'      // Priest answered "No" to "Are you saved?"
   | 'applied'        // Priest passed quiz, awaiting approval
@@ -28,6 +29,9 @@ export default function Confessional({ apiUrl }: ConfessionalProps) {
   const [phase, setPhase] = useState<Phase>('loading');
   const [priestId, setPriestId] = useState<string | null>(
     localStorage.getItem('christianmegle_priest_id')
+  );
+  const [priestName, setPriestName] = useState<string | null>(
+    localStorage.getItem('christianmegle_priest_name')
   );
   const [waitingPosition, setWaitingPosition] = useState<number>(0);
   const signalingRef = useRef<SignalingClient | null>(null);
@@ -56,8 +60,18 @@ export default function Confessional({ apiUrl }: ConfessionalProps) {
       const data = await res.json();
 
       if (data.status === 'approved') {
-        connectToMatchmaker(id);
+        // Save the display name
+        if (data.displayName) {
+          setPriestName(data.displayName);
+          localStorage.setItem('christianmegle_priest_name', data.displayName);
+        }
+        // Show welcome back screen for returning priests
+        setPhase('welcome-back');
       } else if (data.status === 'pending') {
+        if (data.displayName) {
+          setPriestName(data.displayName);
+          localStorage.setItem('christianmegle_priest_name', data.displayName);
+        }
         setPhase('applied');
         // Poll every 10 seconds
         const interval = setInterval(async () => {
@@ -65,18 +79,22 @@ export default function Confessional({ apiUrl }: ConfessionalProps) {
           const checkData = await check.json();
           if (checkData.status === 'approved') {
             clearInterval(interval);
-            connectToMatchmaker(id);
+            setPhase('welcome-back');
           } else if (checkData.status === 'rejected') {
             clearInterval(interval);
             localStorage.removeItem('christianmegle_priest_id');
+            localStorage.removeItem('christianmegle_priest_name');
             setPriestId(null);
+            setPriestName(null);
             setPhase('still-a-sinner');
           }
         }, 10000);
         return () => clearInterval(interval);
       } else {
         localStorage.removeItem('christianmegle_priest_id');
+        localStorage.removeItem('christianmegle_priest_name');
         setPriestId(null);
+        setPriestName(null);
         setPhase('quiz');
       }
     } catch {
@@ -132,7 +150,9 @@ export default function Confessional({ apiUrl }: ConfessionalProps) {
   const handleStartOver = () => {
     // Clear priest status and retake quiz
     localStorage.removeItem('christianmegle_priest_id');
+    localStorage.removeItem('christianmegle_priest_name');
     setPriestId(null);
+    setPriestName(null);
     setPhase('quiz');
   };
 
@@ -144,10 +164,51 @@ export default function Confessional({ apiUrl }: ConfessionalProps) {
     connectToMatchmaker(priestId || undefined);
   };
 
+  const handleEnterConfessional = () => {
+    connectToMatchmaker(priestId || undefined);
+  };
+
   // === Render based on phase ===
 
   if (phase === 'loading') {
     return <LoadingScreen />;
+  }
+
+  if (phase === 'welcome-back') {
+    return (
+      <div style={styles.centered} className="page-enter">
+        <pre style={styles.asciiWelcome}>{`
+╔══════════════════════════════════════╗
+║                                      ║
+║          CREDENTIALS VALID           ║
+║                                      ║
+╚══════════════════════════════════════╝
+        `}</pre>
+        <div style={styles.welcomePrompt}>
+          <span style={styles.promptSymbol}>&gt; </span>
+          <span>WELCOME BACK, </span>
+          <span style={styles.priestNameHighlight}>{priestName || 'FATHER'}</span>
+        </div>
+        <p style={styles.statusText}>
+          Your ordination remains valid. You may hear confessions.
+        </p>
+        <pre style={styles.statusBox}>{`
+┌─────────────────────────────────┐
+│ STATUS: APPROVED                │
+│ ROLE: PRIEST                    │
+│ GRACE: ACTIVE                   │
+└─────────────────────────────────┘
+        `}</pre>
+        <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+          <button onClick={handleEnterConfessional}>
+            Enter Confessional
+          </button>
+          <button onClick={handleStartOver} style={{ opacity: 0.6 }}>
+            New Identity
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (phase === 'quiz') {
@@ -157,16 +218,18 @@ export default function Confessional({ apiUrl }: ConfessionalProps) {
   if (phase === 'not-saved') {
     return (
       <div style={styles.centered} className="page-enter">
-        <span style={styles.notSavedIcon}>⚠</span>
-        <h2 style={styles.notSavedTitle}>You Are in the Wrong Place</h2>
+        <pre style={styles.asciiError}>{`
+╔══════════════════════════════════════╗
+║            ⚠ ERROR ⚠                 ║
+║      SALVATION NOT DETECTED          ║
+╚══════════════════════════════════════╝
+        `}</pre>
         <p style={styles.statusText}>
           To prevent going to the TRUE wrong place, repent for your sins.
         </p>
-        <div className="divider" style={{ width: '200px', margin: '2rem 0' }}>
-          <span className="cross">✦</span>
-        </div>
+        <div style={styles.terminalDivider}>════════════════════════════</div>
         <p style={styles.transitionText}>
-          Enter the confessional and seek forgiveness.
+          &gt; REDIRECTING TO CONFESSION MODE...
         </p>
         <button
           onClick={handleBecomeSinner}
@@ -181,16 +244,24 @@ export default function Confessional({ apiUrl }: ConfessionalProps) {
   if (phase === 'applied') {
     return (
       <div style={styles.centered} className="page-enter">
-        <span style={styles.icon}>☦</span>
-        <h2>Application Submitted</h2>
+        <pre style={styles.asciiPending}>{`
+╔══════════════════════════════════════╗
+║       APPLICATION SUBMITTED          ║
+║                                      ║
+║     ▓▓▓▓▓▓▓▓░░░░░░░░  50%           ║
+╚══════════════════════════════════════╝
+        `}</pre>
         <p style={styles.statusText}>
           Your application to serve as a priest is being reviewed.
-          Please wait for approval. This page will update automatically.
+          <br />
+          Auto-approval in progress...
         </p>
-        <div className="flicker" style={{ fontSize: '1.5rem', marginTop: '2rem' }}>🕯</div>
+        <div className="flicker" style={{ marginTop: '1.5rem', color: 'var(--amber)' }}>
+          ▓▓▓░░░
+        </div>
         <button
           onClick={handleStartOver}
-          style={{ marginTop: '2rem', opacity: 0.7 }}
+          style={{ marginTop: '2rem', opacity: 0.5 }}
         >
           Start Over
         </button>
@@ -201,17 +272,19 @@ export default function Confessional({ apiUrl }: ConfessionalProps) {
   if (phase === 'still-a-sinner') {
     return (
       <div style={styles.centered} className="page-enter">
-        <span style={styles.sinnerIcon}>🕯</span>
-        <h2 style={styles.sinnerTitle}>You Are Still a Sinner</h2>
+        <pre style={styles.asciiError}>{`
+╔══════════════════════════════════════╗
+║         ACCESS DENIED                ║
+║   INSUFFICIENT SCRIPTURE KNOWLEDGE   ║
+╚══════════════════════════════════════╝
+        `}</pre>
         <p style={styles.statusText}>
           You have not demonstrated sufficient knowledge of scripture
-          to serve as a priest. Perhaps confession will help illuminate your path.
+          to serve as a priest.
         </p>
-        <div className="divider" style={{ width: '200px', margin: '2rem 0' }}>
-          <span className="cross">✦</span>
-        </div>
+        <div style={styles.terminalDivider}>════════════════════════════</div>
         <p style={styles.transitionText}>
-          You shall enter the confessional as a penitent instead.
+          &gt; REASSIGNING ROLE: SINNER
         </p>
         <button
           onClick={handleBecomeSinner}
@@ -226,9 +299,15 @@ export default function Confessional({ apiUrl }: ConfessionalProps) {
   if (phase === 'waiting') {
     return (
       <div style={styles.centered} className="page-enter">
-        <div className="flicker" style={{ fontSize: '3rem' }}>🕯</div>
-        <h2 style={{ marginTop: '1.5rem' }}>
-          {role === 'priest' ? 'Awaiting a Penitent' : 'Awaiting a Priest'}
+        <pre style={styles.asciiWaiting}>{`
+     ║
+     ║
+ ════╬════
+     ║
+     ║
+        `}</pre>
+        <h2 style={{ marginTop: '1rem' }}>
+          {role === 'priest' ? '> AWAITING PENITENT...' : '> AWAITING PRIEST...'}
         </h2>
         <p style={styles.statusText}>
           {role === 'priest'
@@ -237,7 +316,7 @@ export default function Confessional({ apiUrl }: ConfessionalProps) {
         </p>
         {waitingPosition > 0 && (
           <p style={styles.positionText}>
-            Position in queue: {waitingPosition}
+            QUEUE POSITION: {waitingPosition}
           </p>
         )}
         <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem' }}>
@@ -267,8 +346,13 @@ export default function Confessional({ apiUrl }: ConfessionalProps) {
   if (phase === 'ended') {
     return (
       <div style={styles.centered} className="page-enter">
-        <span style={styles.icon}>✝</span>
-        <h2>The Confession Has Ended</h2>
+        <pre style={styles.asciiComplete}>{`
+╔══════════════════════════════════════╗
+║       SESSION TERMINATED             ║
+║                                      ║
+║       GRACE: DISPENSED               ║
+╚══════════════════════════════════════╝
+        `}</pre>
         <p style={styles.statusText}>
           {role === 'priest'
             ? 'May you continue to serve with grace.'
@@ -276,7 +360,7 @@ export default function Confessional({ apiUrl }: ConfessionalProps) {
         </p>
         <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
           <button onClick={handleRejoin}>
-            {role === 'priest' ? 'Hear Another Confession' : 'Confess Again'}
+            {role === 'priest' ? 'Hear Another' : 'Confess Again'}
           </button>
           <button onClick={() => navigate('/')}>Return Home</button>
         </div>
@@ -296,53 +380,83 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: 'center',
     padding: '2rem',
     textAlign: 'center',
-    background: `
-      radial-gradient(ellipse at 50% 50%, rgba(201, 168, 76, 0.03) 0%, transparent 60%),
-      var(--bg-primary)
-    `,
+    background: 'var(--bg-primary)',
+    fontFamily: 'var(--font-terminal)',
   },
-  icon: {
-    fontSize: '2.5rem',
-    color: 'var(--gold-dim)',
-    marginBottom: '1.5rem',
+  asciiWelcome: {
+    color: 'var(--amber)',
+    fontSize: '0.7rem',
+    lineHeight: 1.3,
+    margin: 0,
+    textShadow: '0 0 15px rgba(255, 176, 0, 0.5)',
   },
-  sinnerIcon: {
-    fontSize: '4rem',
-    marginBottom: '1.5rem',
-    display: 'block',
+  asciiPending: {
+    color: 'var(--amber-dim)',
+    fontSize: '0.7rem',
+    lineHeight: 1.3,
+    margin: 0,
   },
-  sinnerTitle: {
+  asciiError: {
     color: 'var(--crimson)',
-    fontSize: '2rem',
+    fontSize: '0.7rem',
+    lineHeight: 1.3,
+    margin: 0,
+    textShadow: '0 0 15px rgba(139, 30, 38, 0.5)',
   },
-  notSavedIcon: {
-    fontSize: '4rem',
-    marginBottom: '1.5rem',
-    display: 'block',
+  asciiWaiting: {
+    color: 'var(--amber)',
+    fontSize: '0.9rem',
+    lineHeight: 1.2,
+    margin: 0,
+    textShadow: '0 0 15px rgba(255, 176, 0, 0.5)',
   },
-  notSavedTitle: {
-    color: 'var(--crimson)',
-    fontSize: '1.8rem',
+  asciiComplete: {
+    color: 'var(--amber)',
+    fontSize: '0.7rem',
+    lineHeight: 1.3,
+    margin: 0,
+  },
+  welcomePrompt: {
+    marginTop: '1.5rem',
+    fontSize: '1.1rem',
+    color: 'var(--amber)',
+  },
+  promptSymbol: {
+    color: 'var(--amber-dim)',
+  },
+  priestNameHighlight: {
+    color: 'var(--amber-bright)',
+    textShadow: '0 0 20px rgba(255, 176, 0, 0.8)',
+  },
+  statusBox: {
+    color: 'var(--amber-dim)',
+    fontSize: '0.65rem',
+    lineHeight: 1.4,
+    margin: '1.5rem 0 0 0',
+  },
+  terminalDivider: {
+    color: 'var(--amber-dim)',
+    fontSize: '0.7rem',
+    margin: '1.5rem 0',
+    letterSpacing: '-0.1em',
   },
   transitionText: {
-    fontFamily: 'var(--font-display)',
+    fontFamily: 'var(--font-terminal)',
     fontSize: '0.85rem',
-    letterSpacing: '0.1em',
-    color: 'var(--gold-dim)',
-    textTransform: 'uppercase',
+    color: 'var(--amber)',
   },
   statusText: {
-    fontStyle: 'italic',
     color: 'var(--text-secondary)',
     maxWidth: '400px',
     marginTop: '1rem',
     lineHeight: 1.8,
+    fontSize: '0.9rem',
   },
   positionText: {
-    fontFamily: 'var(--font-display)',
+    fontFamily: 'var(--font-terminal)',
     fontSize: '0.8rem',
     letterSpacing: '0.1em',
-    color: 'var(--gold-dim)',
+    color: 'var(--amber-dim)',
     marginTop: '1.5rem',
   },
 };
