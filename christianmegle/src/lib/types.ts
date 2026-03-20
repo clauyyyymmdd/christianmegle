@@ -64,7 +64,10 @@ export type SignalMessage =
   | { type: 'priest-excommunicate' }
   | { type: 'priest-silence'; active: boolean }
   | { type: 'priest-inscribe'; text: string }
-  | { type: 'priest-bells' };
+  | { type: 'priest-bells' }
+  // Chat messages
+  | { type: 'chat-message'; text: string; sender: UserRole }
+  | { type: 'chat-typing'; isTyping: boolean };
 
 // === Priest ===
 export interface PriestApplication {

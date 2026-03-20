@@ -1,6 +1,6 @@
 import { SignalMessage, UserRole } from '../src/lib/types';
 
-// Priest action message types that should be relayed
+// Priest action message types that should be relayed (priest only)
 const PRIEST_ACTION_TYPES = [
   'priest-penance',
   'priest-absolution',
@@ -12,10 +12,21 @@ const PRIEST_ACTION_TYPES = [
   'priest-bells',
 ] as const;
 
+// Chat message types that can be sent by either user
+const CHAT_MESSAGE_TYPES = [
+  'chat-message',
+  'chat-typing',
+] as const;
+
 type PriestActionType = typeof PRIEST_ACTION_TYPES[number];
+type ChatMessageType = typeof CHAT_MESSAGE_TYPES[number];
 
 function isPriestAction(type: string): type is PriestActionType {
   return PRIEST_ACTION_TYPES.includes(type as PriestActionType);
+}
+
+function isChatMessage(type: string): type is ChatMessageType {
+  return CHAT_MESSAGE_TYPES.includes(type as ChatMessageType);
 }
 
 interface WaitingUser {
@@ -25,24 +36,38 @@ interface WaitingUser {
   joinedAt: number;
 }
 
+interface SessionInfo {
+  priest: string;
+  sinner: string;
+  priestId?: string; // Database priest ID
+  dbSessionId?: string; // Database session ID
+  startedAt: number;
+}
+
+interface Env {
+  DB: D1Database;
+}
+
 /**
  * Matchmaker Durable Object
- * 
+ *
  * Manages the waiting queue and pairs priests with sinners.
  * Once paired, both users communicate through this object
  * which relays WebRTC signaling messages between them.
  */
 export class Matchmaker {
   private state: DurableObjectState;
+  private env: Env;
   private waitingPriests: Map<string, WaitingUser> = new Map();
   private waitingSinners: Map<string, WaitingUser> = new Map();
-  private sessions: Map<string, { priest: string; sinner: string }> = new Map();
+  private sessions: Map<string, SessionInfo> = new Map();
   private userToSession: Map<string, string> = new Map();
   private userConnections: Map<string, WebSocket> = new Map();
   private userRoles: Map<string, UserRole> = new Map();
 
-  constructor(state: DurableObjectState) {
+  constructor(state: DurableObjectState, env: Env) {
     this.state = state;
+    this.env = env;
   }
 
   async fetch(request: Request): Promise<Response> {
@@ -101,6 +126,10 @@ export class Matchmaker {
         if (isPriestAction(msg.type)) {
           this.handlePriestAction(userId, msg);
         }
+        // Handle chat messages (can be sent by either user)
+        else if (isChatMessage(msg.type)) {
+          this.relayToPartner(userId, msg);
+        }
         break;
     }
   }
@@ -137,7 +166,7 @@ export class Matchmaker {
       if (sinnerEntry) {
         const [sinnerId, sinner] = sinnerEntry;
         this.waitingSinners.delete(sinnerId);
-        this.createSession(userId, ws, sinnerId, sinner.ws);
+        this.createSession(userId, ws, sinnerId, sinner.ws, priestId);
       } else {
         this.waitingPriests.set(userId, user);
         this.sendTo(ws, { type: 'waiting', position: this.waitingPriests.size });
@@ -148,7 +177,7 @@ export class Matchmaker {
       if (priestEntry) {
         const [pId, priest] = priestEntry;
         this.waitingPriests.delete(pId);
-        this.createSession(pId, priest.ws, userId, ws);
+        this.createSession(pId, priest.ws, userId, ws, priest.priestId);
       } else {
         this.waitingSinners.set(userId, user);
         this.sendTo(ws, { type: 'waiting', position: this.waitingSinners.size });
@@ -156,16 +185,40 @@ export class Matchmaker {
     }
   }
 
-  private createSession(priestId: string, priestWs: WebSocket, sinnerId: string, sinnerWs: WebSocket): void {
+  private async createSession(
+    priestUserId: string,
+    priestWs: WebSocket,
+    sinnerUserId: string,
+    sinnerWs: WebSocket,
+    dbPriestId?: string
+  ): Promise<void> {
     const sessionId = crypto.randomUUID();
+    const dbSessionId = crypto.randomUUID().slice(0, 16);
 
-    this.sessions.set(sessionId, { priest: priestId, sinner: sinnerId });
-    this.userToSession.set(priestId, sessionId);
-    this.userToSession.set(sinnerId, sessionId);
+    this.sessions.set(sessionId, {
+      priest: priestUserId,
+      sinner: sinnerUserId,
+      priestId: dbPriestId,
+      dbSessionId,
+      startedAt: Date.now(),
+    });
+    this.userToSession.set(priestUserId, sessionId);
+    this.userToSession.set(sinnerUserId, sessionId);
+
+    // Save session to database
+    if (dbPriestId) {
+      try {
+        await this.env.DB.prepare(
+          `INSERT INTO sessions (id, priest_id, started_at) VALUES (?, ?, datetime('now'))`
+        ).bind(dbSessionId, dbPriestId).run();
+      } catch (e) {
+        console.error('[Matchmaker] Failed to create session record:', e);
+      }
+    }
 
     // Priest is the initiator (creates the WebRTC offer)
-    this.sendTo(priestWs, { type: 'matched', partnerId: sinnerId, initiator: true });
-    this.sendTo(sinnerWs, { type: 'matched', partnerId: priestId, initiator: false });
+    this.sendTo(priestWs, { type: 'matched', partnerId: sinnerUserId, initiator: true });
+    this.sendTo(sinnerWs, { type: 'matched', partnerId: priestUserId, initiator: false });
   }
 
   private relayToPartner(userId: string, msg: SignalMessage): void {
@@ -183,7 +236,7 @@ export class Matchmaker {
     }
   }
 
-  private handleEndSession(userId: string): void {
+  private async handleEndSession(userId: string, endedBy?: 'priest' | 'sinner' | 'disconnect'): Promise<void> {
     const sessionId = this.userToSession.get(userId);
     if (!sessionId) return;
 
@@ -195,6 +248,20 @@ export class Matchmaker {
 
     if (partnerWs) {
       this.sendTo(partnerWs, { type: 'partner-left' });
+    }
+
+    // Update session in database
+    if (session.dbSessionId) {
+      const durationSeconds = Math.floor((Date.now() - session.startedAt) / 1000);
+      const endReason = endedBy || (userId === session.priest ? 'priest' : 'sinner');
+
+      try {
+        await this.env.DB.prepare(
+          `UPDATE sessions SET ended_at = datetime('now'), ended_by = ?, duration_seconds = ? WHERE id = ?`
+        ).bind(endReason, durationSeconds, session.dbSessionId).run();
+      } catch (e) {
+        console.error('[Matchmaker] Failed to update session record:', e);
+      }
     }
 
     // Clean up session
@@ -209,7 +276,7 @@ export class Matchmaker {
     this.waitingSinners.delete(userId);
 
     // End any active session
-    this.handleEndSession(userId);
+    this.handleEndSession(userId, 'disconnect');
 
     // Remove connection and role
     this.userConnections.delete(userId);

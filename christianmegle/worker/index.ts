@@ -229,6 +229,22 @@ export default {
         }
       }
 
+      // === Leaderboard ===
+      if (path === '/api/leaderboard' && request.method === 'GET') {
+        const results = await env.DB.prepare(`
+          SELECT p.display_name, COUNT(s.id) as pardons
+          FROM priests p
+          LEFT JOIN sessions s ON s.priest_id = p.id AND s.ended_at IS NOT NULL
+          WHERE p.status = 'approved'
+          GROUP BY p.id
+          HAVING pardons > 0
+          ORDER BY pardons DESC
+          LIMIT 50
+        `).all();
+
+        return Response.json(results.results, { headers: corsHeaders });
+      }
+
       // === ICE server config (returns TURN credentials) ===
       if (path === '/api/ice-config' && request.method === 'GET') {
         const config = {

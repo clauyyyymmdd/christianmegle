@@ -12,6 +12,13 @@ import {
 import { getAudioManager } from '../lib/audio';
 import { PriestToolbar, EffectsOverlay, BookOfLife } from './priest-toolkit';
 
+interface ChatMessage {
+  id: string;
+  text: string;
+  sender: UserRole;
+  timestamp: number;
+}
+
 interface VideoChatProps {
   signaling: SignalingClient;
   role: UserRole;
@@ -36,6 +43,14 @@ export default function VideoChat({ signaling, role, onSessionEnd }: VideoChatPr
   const [currentPenance, setCurrentPenance] = useState<PenanceAssignment | null>(null);
   const [currentScripture, setCurrentScripture] = useState<ScriptureVerse | null>(null);
   const [bookEntries, setBookEntries] = useState<BookEntry[]>([]);
+
+  // Chat state
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [strangerTyping, setStrangerTyping] = useState(false);
+  const [chatOpen, setChatOpen] = useState(true);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+  const typingTimeoutRef = useRef<number | null>(null);
 
   const audioManager = getAudioManager();
 
@@ -104,6 +119,22 @@ export default function VideoChat({ signaling, role, onSessionEnd }: VideoChatPr
         setExcommunicateActive(true);
         // Session will end via partner-left message from server
         break;
+
+      case 'chat-message':
+        setChatMessages(prev => [...prev, {
+          id: crypto.randomUUID(),
+          text: msg.text,
+          sender: msg.sender,
+          timestamp: Date.now(),
+        }]);
+        setStrangerTyping(false);
+        // Play notification sound for incoming messages
+        audioManager.play('chat-message');
+        break;
+
+      case 'chat-typing':
+        setStrangerTyping(msg.isTyping);
+        break;
     }
   }, [audioManager]);
 
@@ -144,11 +175,11 @@ export default function VideoChat({ signaling, role, onSessionEnd }: VideoChatPr
       }
     });
 
-    // Listen for match and priest messages
+    // Listen for match, priest, and chat messages
     const cleanup = signaling.onMessage(async (msg) => {
       if (msg.type === 'matched') {
         await rtc.initialize(msg.initiator);
-      } else if (msg.type.startsWith('priest-')) {
+      } else if (msg.type.startsWith('priest-') || msg.type.startsWith('chat-')) {
         handlePriestMessage(msg);
       }
     });
@@ -243,6 +274,54 @@ export default function VideoChat({ signaling, role, onSessionEnd }: VideoChatPr
     ]);
   };
 
+  // Chat handlers
+  const handleSendMessage = () => {
+    if (!chatInput.trim()) return;
+
+    const message: ChatMessage = {
+      id: crypto.randomUUID(),
+      text: chatInput.trim(),
+      sender: role,
+      timestamp: Date.now(),
+    };
+
+    setChatMessages(prev => [...prev, message]);
+    signaling.send({ type: 'chat-message', text: message.text, sender: role });
+    setChatInput('');
+
+    // Clear typing indicator
+    signaling.send({ type: 'chat-typing', isTyping: false });
+  };
+
+  const handleChatInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setChatInput(e.target.value);
+
+    // Send typing indicator
+    signaling.send({ type: 'chat-typing', isTyping: true });
+
+    // Clear previous timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Stop typing indicator after 2 seconds of no input
+    typingTimeoutRef.current = window.setTimeout(() => {
+      signaling.send({ type: 'chat-typing', isTyping: false });
+    }, 2000);
+  };
+
+  const handleChatKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  // Auto-scroll chat
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatMessages]);
+
   return (
     <div style={styles.container}>
       {/* Remote video (full screen) */}
@@ -312,6 +391,61 @@ export default function VideoChat({ signaling, role, onSessionEnd }: VideoChatPr
       {/* Book of Life */}
       {bookEntries.length > 0 && (
         <BookOfLife entries={bookEntries} />
+      )}
+
+      {/* Chat Panel */}
+      {sessionActive && (
+        <div style={{
+          ...styles.chatPanel,
+          transform: chatOpen ? 'translateX(0)' : 'translateX(calc(100% - 40px))',
+        }}>
+          <button
+            style={styles.chatToggle}
+            onClick={() => setChatOpen(!chatOpen)}
+          >
+            {chatOpen ? '›' : '‹'} Chat
+          </button>
+
+          <div style={styles.chatMessages}>
+            {chatMessages.length === 0 && (
+              <p style={styles.chatEmpty}>No messages yet...</p>
+            )}
+            {chatMessages.map((msg) => (
+              <div
+                key={msg.id}
+                style={{
+                  ...styles.chatMessage,
+                  ...(msg.sender === role ? styles.chatMessageSelf : styles.chatMessageOther),
+                }}
+              >
+                <span style={styles.chatSender}>
+                  {msg.sender === 'priest' ? '☦ Priest' : '🕯 Stranger'}
+                </span>
+                <span style={styles.chatText}>{msg.text}</span>
+              </div>
+            ))}
+            {strangerTyping && (
+              <div style={styles.typingIndicator}>
+                {role === 'priest' ? 'Penitent' : 'Priest'} is typing...
+              </div>
+            )}
+            <div ref={chatEndRef} />
+          </div>
+
+          <div style={styles.chatInputContainer}>
+            <input
+              type="text"
+              value={chatInput}
+              onChange={handleChatInputChange}
+              onKeyDown={handleChatKeyDown}
+              placeholder="Type a message..."
+              style={styles.chatInput}
+            />
+            <button onClick={handleSendMessage} style={styles.chatSendButton}>
+              Send
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Controls bar */}
@@ -464,5 +598,102 @@ const styles: Record<string, React.CSSProperties> = {
     zIndex: 30,
     color: 'var(--parchment)',
     fontStyle: 'italic',
+  },
+  // Chat styles
+  chatPanel: {
+    position: 'absolute',
+    top: '1rem',
+    right: 0,
+    width: '320px',
+    height: 'calc(100% - 6rem)',
+    background: 'rgba(13, 10, 10, 0.9)',
+    border: '1px solid var(--blood-dim)',
+    borderRight: 'none',
+    display: 'flex',
+    flexDirection: 'column',
+    zIndex: 25,
+    transition: 'transform 0.3s ease',
+  },
+  chatToggle: {
+    position: 'absolute',
+    left: '-40px',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    background: 'rgba(13, 10, 10, 0.9)',
+    border: '1px solid var(--blood-dim)',
+    borderRight: 'none',
+    padding: '1rem 0.5rem',
+    fontSize: '0.7rem',
+    writingMode: 'vertical-rl',
+    textOrientation: 'mixed',
+    cursor: 'pointer',
+  },
+  chatMessages: {
+    flex: 1,
+    overflowY: 'auto',
+    padding: '1rem',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.5rem',
+  },
+  chatEmpty: {
+    color: 'var(--text-dim)',
+    fontStyle: 'italic',
+    fontSize: '0.85rem',
+    textAlign: 'center',
+    marginTop: '2rem',
+  },
+  chatMessage: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.2rem',
+    padding: '0.5rem 0.75rem',
+    borderRadius: '4px',
+    maxWidth: '85%',
+  },
+  chatMessageSelf: {
+    alignSelf: 'flex-end',
+    background: 'var(--blood-dim)',
+    borderColor: 'var(--blood)',
+  },
+  chatMessageOther: {
+    alignSelf: 'flex-start',
+    background: 'var(--bg-elevated)',
+    border: '1px solid var(--blood-dim)',
+  },
+  chatSender: {
+    fontSize: '0.65rem',
+    color: 'var(--ivory-dim)',
+    letterSpacing: '0.05em',
+  },
+  chatText: {
+    fontSize: '0.9rem',
+    color: 'var(--ivory)',
+    lineHeight: 1.4,
+    wordBreak: 'break-word',
+  },
+  typingIndicator: {
+    fontSize: '0.75rem',
+    color: 'var(--text-dim)',
+    fontStyle: 'italic',
+    padding: '0.25rem 0.5rem',
+  },
+  chatInputContainer: {
+    display: 'flex',
+    gap: '0.5rem',
+    padding: '0.75rem',
+    borderTop: '1px solid var(--blood-dim)',
+  },
+  chatInput: {
+    flex: 1,
+    padding: '0.5rem 0.75rem',
+    fontSize: '0.85rem',
+    background: 'var(--bg-secondary)',
+    border: '1px solid var(--blood-dim)',
+    color: 'var(--ivory)',
+  },
+  chatSendButton: {
+    padding: '0.5rem 1rem',
+    fontSize: '0.75rem',
   },
 };
