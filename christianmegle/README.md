@@ -30,42 +30,6 @@ An Omegle-style video confession booth. Two user types: **Priests** and **Sinner
 - **TURN**: Metered.ca free tier (or Cloudflare Calls)
 - **Styling**: CSS with gothic/church aesthetic
 
-## Project Structure
-
-```
-christianmegle/
-├── src/
-│   ├── components/       # Reusable UI components
-│   │   ├── VideoChat.tsx  # WebRTC video component
-│   │   ├── WaitingRoom.tsx
-│   │   ├── BibleQuiz.tsx
-│   │   ├── PriestApplication.tsx
-│   │   └── AdminPanel.tsx
-│   ├── pages/
-│   │   ├── Landing.tsx    # Role selection
-│   │   ├── Confessional.tsx
-│   │   └── Admin.tsx
-│   ├── lib/
-│   │   ├── webrtc.ts      # WebRTC connection logic
-│   │   ├── signaling.ts   # WebSocket signaling client
-│   │   └── types.ts       # Shared types
-│   ├── styles/
-│   │   └── global.css
-│   ├── App.tsx
-│   └── main.tsx
-├── worker/
-│   ├── index.ts           # Cloudflare Worker entry
-│   ├── signaling.ts       # Durable Object for signaling
-│   ├── matchmaker.ts      # Durable Object for matching
-│   └── api.ts             # REST endpoints (priest mgmt)
-├── db/
-│   └── schema.sql         # D1 database schema
-├── wrangler.toml          # Cloudflare config
-├── package.json
-├── tsconfig.json
-├── vite.config.ts
-└── README.md
-```
 
 ## Setup
 
