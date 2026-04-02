@@ -1,33 +1,11 @@
-import { SignalMessage, UserRole } from '../src/lib/types';
-
-// Priest action message types that should be relayed (priest only)
-const PRIEST_ACTION_TYPES = [
-  'priest-penance',
-  'priest-absolution',
-  'priest-scripture',
-  'priest-effect',
-  'priest-excommunicate',
-  'priest-silence',
-  'priest-inscribe',
-  'priest-bells',
-] as const;
-
-// Chat message types that can be sent by either user
-const CHAT_MESSAGE_TYPES = [
-  'chat-message',
-  'chat-typing',
-] as const;
-
-type PriestActionType = typeof PRIEST_ACTION_TYPES[number];
-type ChatMessageType = typeof CHAT_MESSAGE_TYPES[number];
-
-function isPriestAction(type: string): type is PriestActionType {
-  return PRIEST_ACTION_TYPES.includes(type as PriestActionType);
-}
-
-function isChatMessage(type: string): type is ChatMessageType {
-  return CHAT_MESSAGE_TYPES.includes(type as ChatMessageType);
-}
+import { UserRole } from '../src/lib/types';
+import type {
+  ClientMessage,
+  PriestActionMessage,
+  ServerMessage,
+} from '../shared/types/messages';
+import { isPriestAction, isChatMessage } from '../shared/types/messages';
+import type { Env } from './lib/types';
 
 interface WaitingUser {
   ws: WebSocket;
@@ -39,13 +17,9 @@ interface WaitingUser {
 interface SessionInfo {
   priest: string;
   sinner: string;
-  priestId?: string; // Database priest ID
-  dbSessionId?: string; // Database session ID
+  priestId?: string;
+  dbSessionId?: string;
   startedAt: number;
-}
-
-interface Env {
-  DB: D1Database;
 }
 
 /**
@@ -85,7 +59,7 @@ export class Matchmaker {
 
     server.addEventListener('message', (event) => {
       try {
-        const msg: SignalMessage = JSON.parse(event.data as string);
+        const msg: ClientMessage = JSON.parse(event.data as string);
         this.handleMessage(userId, msg, server);
       } catch (e) {
         console.error('Failed to parse message:', e);
@@ -105,7 +79,7 @@ export class Matchmaker {
     return new Response(null, { status: 101, webSocket: client });
   }
 
-  private handleMessage(userId: string, msg: SignalMessage, ws: WebSocket): void {
+  private handleMessage(userId: string, msg: ClientMessage, ws: WebSocket): void {
     switch (msg.type) {
       case 'join':
         this.handleJoin(userId, msg.role, ws, msg.priestId);
@@ -122,19 +96,16 @@ export class Matchmaker {
         break;
 
       default:
-        // Handle priest action messages
-        if (isPriestAction(msg.type)) {
+        if (isPriestAction(msg)) {
           this.handlePriestAction(userId, msg);
-        }
-        // Handle chat messages (can be sent by either user)
-        else if (isChatMessage(msg.type)) {
+        } else if (isChatMessage(msg)) {
           this.relayToPartner(userId, msg);
         }
         break;
     }
   }
 
-  private handlePriestAction(userId: string, msg: SignalMessage): void {
+  private handlePriestAction(userId: string, msg: PriestActionMessage): void {
     // Validate that the sender is a priest
     const userRole = this.userRoles.get(userId);
     if (userRole !== 'priest') {
@@ -221,7 +192,7 @@ export class Matchmaker {
     this.sendTo(sinnerWs, { type: 'matched', partnerId: priestUserId, initiator: false });
   }
 
-  private relayToPartner(userId: string, msg: SignalMessage): void {
+  private relayToPartner(userId: string, msg: ClientMessage): void {
     const sessionId = this.userToSession.get(userId);
     if (!sessionId) return;
 
@@ -302,7 +273,7 @@ export class Matchmaker {
     return first.done ? undefined : first.value;
   }
 
-  private sendTo(ws: WebSocket, msg: SignalMessage): void {
+  private sendTo(ws: WebSocket, msg: ServerMessage | ClientMessage): void {
     try {
       ws.send(JSON.stringify(msg));
     } catch (e) {

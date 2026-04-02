@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { QuizQuestion } from '../lib/types';
+import { fetchQuizQuestions, submitQuiz } from '../features/priest-onboarding/api/quizApi';
 
 interface BibleQuizProps {
   apiUrl: string;
@@ -54,14 +55,7 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${apiUrl}/api/quiz`);
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
-      }
-      const data = await res.json();
-      if (!data || data.length === 0) {
-        throw new Error('No questions returned');
-      }
+      const data = await fetchQuizQuestions(apiUrl);
       setQuestions(data);
     } catch (e) {
       console.error('Failed to fetch quiz:', e);
@@ -86,12 +80,7 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
     setPhase('submitting');
 
     try {
-      const res = await fetch(`${apiUrl}/api/quiz/submit`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ answers, displayName, heavenResponse }),
-      });
-      const data = await res.json();
+      const data = await submitQuiz(apiUrl, { answers, displayName, heavenResponse });
       setResult(data);
       setPhase('result');
     } catch (e) {
@@ -311,9 +300,6 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
           </div>
         </div>
 
-        {/* Category tag */}
-        <span style={styles.categoryTag}>{question.category}</span>
-
         {/* Question */}
         <h2 style={styles.question}>{question.question}</h2>
 
@@ -460,14 +446,6 @@ const styles: Record<string, React.CSSProperties> = {
     height: '100%',
     background: 'var(--gold-dim)',
     transition: 'width 0.4s ease',
-  },
-  categoryTag: {
-    fontFamily: 'var(--font-display)',
-    fontSize: '0.65rem',
-    letterSpacing: '0.2em',
-    textTransform: 'uppercase',
-    color: 'var(--crimson)',
-    marginBottom: '1rem',
   },
   question: {
     fontFamily: 'var(--font-body)',

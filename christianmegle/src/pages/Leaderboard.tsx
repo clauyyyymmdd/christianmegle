@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { fetchLeaderboard as fetchLeaderboardApi } from '../features/leaderboard/api/leaderboardApi';
 
 interface LeaderboardEntry {
   rank: number;
@@ -10,48 +11,33 @@ interface LeaderboardEntry {
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8787';
 
+const JESUS: LeaderboardEntry = {
+  rank: 1,
+  displayName: 'Jesus Christ',
+  pardons: Infinity,
+  isJesus: true,
+};
+
 export default function Leaderboard() {
   const navigate = useNavigate();
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchLeaderboard = async () => {
-      try {
-        const res = await fetch(`${API_URL}/api/leaderboard`);
-        const data = await res.json();
-
-        // Jesus is always #1
-        const jesus: LeaderboardEntry = {
-          rank: 1,
-          displayName: 'Jesus Christ',
-          pardons: Infinity,
-          isJesus: true,
-        };
-
-        // Shift other ranks down
-        const priests = data.map((entry: any, i: number) => ({
+    fetchLeaderboardApi(API_URL)
+      .then((data) => {
+        const priests = data.map((entry, i) => ({
           rank: i + 2,
           displayName: entry.display_name,
           pardons: entry.pardons,
         }));
-
-        setEntries([jesus, ...priests]);
-      } catch (err) {
+        setEntries([JESUS, ...priests]);
+      })
+      .catch((err) => {
         console.error('Failed to fetch leaderboard:', err);
-        // Still show Jesus even if API fails
-        setEntries([{
-          rank: 1,
-          displayName: 'Jesus Christ',
-          pardons: Infinity,
-          isJesus: true,
-        }]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchLeaderboard();
+        setEntries([JESUS]);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   return (
