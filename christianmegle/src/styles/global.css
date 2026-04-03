@@ -27,10 +27,10 @@
   --text-secondary: #c9c0b0;
   --text-dim: #6a6258;
 
-  /* Typography - SimSun titles, Charter body */
+  /* Typography - SimSun throughout */
   --font-title: 'SimSun', 'STSong', 'Songti SC', serif;
   --font-display: 'SimSun', 'STSong', 'Songti SC', serif;
-  --font-body: 'Charter', 'Spectral', Georgia, serif;
+  --font-body: 'SimSun', 'STSong', 'Songti SC', serif;
   --font-terminal: 'SimSun', 'STSong', 'Songti SC', monospace;
 
   /* Spacing */
@@ -55,6 +55,9 @@ html, body {
   font-size: 18px;
   line-height: 1.6;
   overflow-x: hidden;
+  transform: scaleX(1.33);
+  transform-origin: left top;
+  width: 75.19%; /* 100% / 1.33 — prevents horizontal overflow */
 }
 
 #root {
@@ -63,7 +66,7 @@ html, body {
   flex-direction: column;
 }
 
-/* === Typography - SimSun Titles, Charter Body === */
+/* === Typography - SimSun === */
 
 h1, h2, h3, h4 {
   font-family: var(--font-title);
@@ -93,7 +96,7 @@ p {
   font-style: italic;
 }
 
-/* Body text is Charter italic */
+/* Body text classes */
 .body-text, .tagline, .description {
   font-family: var(--font-body);
   font-style: italic;
