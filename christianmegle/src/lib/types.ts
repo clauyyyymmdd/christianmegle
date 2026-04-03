@@ -46,28 +46,16 @@ export interface BookEntry {
 }
 
 // === Signaling ===
-export type SignalMessage =
-  | { type: 'join'; role: UserRole; priestId?: string }
-  | { type: 'matched'; partnerId: string; initiator: boolean }
-  | { type: 'offer'; sdp: RTCSessionDescriptionInit }
-  | { type: 'answer'; sdp: RTCSessionDescriptionInit }
-  | { type: 'ice-candidate'; candidate: RTCIceCandidateInit }
-  | { type: 'end-session' }
-  | { type: 'partner-left' }
-  | { type: 'waiting'; position: number }
-  | { type: 'error'; message: string }
-  // Priest toolkit messages
-  | { type: 'priest-penance'; penance: PenanceAssignment }
-  | { type: 'priest-absolution' }
-  | { type: 'priest-scripture'; verse: ScriptureVerse }
-  | { type: 'priest-effect'; effect: VisualEffectType }
-  | { type: 'priest-excommunicate' }
-  | { type: 'priest-silence'; active: boolean }
-  | { type: 'priest-inscribe'; text: string }
-  | { type: 'priest-bells' }
-  // Chat messages
-  | { type: 'chat-message'; text: string; sender: UserRole }
-  | { type: 'chat-typing'; isTyping: boolean };
+// Canonical message types live in shared/types/messages.ts.
+// Re-exported here for backward compatibility.
+export type {
+  SignalMessage,
+  ClientMessage,
+  ServerMessage,
+  RelayedMessage,
+  PriestActionMessage,
+} from '../../shared/types/messages';
+export { isPriestAction, isChatMessage } from '../../shared/types/messages';
 
 // === Priest ===
 export interface PriestApplication {

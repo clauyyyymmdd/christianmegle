@@ -1,5 +1,6 @@
 import { SignalingClient } from './signaling';
-import { DEFAULT_RTC_CONFIG, SignalMessage } from './types';
+import { DEFAULT_RTC_CONFIG } from './types';
+import type { ServerMessage } from '../../shared/types/messages';
 
 interface WebRTCCallbacks {
   onRemoteStream: (stream: MediaStream) => void;
@@ -89,7 +90,7 @@ export class WebRTCManager {
     };
 
     // Listen for signaling messages
-    this.cleanupSignaling = this.signaling.onMessage(async (msg: SignalMessage) => {
+    this.cleanupSignaling = this.signaling.onMessage(async (msg: ServerMessage) => {
       try {
         switch (msg.type) {
           case 'offer':

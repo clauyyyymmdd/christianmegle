@@ -1,6 +1,7 @@
-import { SignalMessage, UserRole } from './types';
+import type { ClientMessage, ServerMessage } from '../../shared/types/messages';
+import { UserRole } from './types';
 
-type MessageHandler = (msg: SignalMessage) => void;
+type MessageHandler = (msg: ServerMessage) => void;
 
 export class SignalingClient {
   private ws: WebSocket | null = null;
@@ -28,7 +29,7 @@ export class SignalingClient {
 
         this.ws.onmessage = (event) => {
           try {
-            const msg: SignalMessage = JSON.parse(event.data);
+            const msg: ServerMessage = JSON.parse(event.data);
             this.handlers.forEach((handler) => handler(msg));
           } catch (e) {
             console.error('[Signaling] Failed to parse message:', e);
@@ -55,7 +56,7 @@ export class SignalingClient {
     });
   }
 
-  send(msg: SignalMessage): void {
+  send(msg: ClientMessage): void {
     if (this.ws?.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify(msg));
     } else {
