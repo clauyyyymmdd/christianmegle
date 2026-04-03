@@ -27,11 +27,11 @@
   --text-secondary: #c9c0b0;
   --text-dim: #6a6258;
 
-  /* Typography - SimSun throughout */
-  --font-title: 'SimSun', 'STSong', 'Songti SC', serif;
-  --font-display: 'SimSun', 'STSong', 'Songti SC', serif;
-  --font-body: 'SimSun', 'STSong', 'Songti SC', serif;
-  --font-terminal: 'SimSun', 'STSong', 'Songti SC', monospace;
+  /* Typography - Noto Serif SC (web-safe SimSun equivalent) */
+  --font-title: 'Noto Serif SC', 'SimSun', 'STSong', 'Songti SC', serif;
+  --font-display: 'Noto Serif SC', 'SimSun', 'STSong', 'Songti SC', serif;
+  --font-body: 'Noto Serif SC', 'SimSun', 'STSong', 'Songti SC', serif;
+  --font-terminal: 'Noto Serif SC', 'SimSun', 'STSong', 'Songti SC', monospace;
 
   /* Spacing */
   --space-xs: 0.25rem;
