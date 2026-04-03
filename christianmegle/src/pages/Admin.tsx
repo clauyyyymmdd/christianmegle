@@ -1,4 +1,9 @@
 import { useState, useEffect } from 'react';
+import {
+  fetchPriests as fetchPriestsApi,
+  updatePriestStatus,
+  type Priest,
+} from '../features/admin/api/adminApi';
 
 interface AdminProps {
   apiUrl: string;
@@ -7,25 +12,19 @@ interface AdminProps {
 export default function Admin({ apiUrl }: AdminProps) {
   const [secret, setSecret] = useState('');
   const [authenticated, setAuthenticated] = useState(false);
-  const [priests, setPriests] = useState<any[]>([]);
+  const [priests, setPriests] = useState<Priest[]>([]);
   const [filter, setFilter] = useState<'pending' | 'approved' | 'rejected'>('pending');
   const [loading, setLoading] = useState(false);
-
-  const headers = {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${secret}`,
-  };
 
   const fetchPriests = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${apiUrl}/api/admin/priests?status=${filter}`, { headers });
-      if (res.status === 401) {
+      const result = await fetchPriestsApi(apiUrl, filter, secret);
+      if (!result.authenticated) {
         setAuthenticated(false);
         return;
       }
-      const data = await res.json();
-      setPriests(data);
+      setPriests(result.priests);
       setAuthenticated(true);
     } catch (e) {
       console.error('Failed to fetch:', e);
@@ -41,11 +40,7 @@ export default function Admin({ apiUrl }: AdminProps) {
 
   const handleAction = async (priestId: string, action: 'approve' | 'reject') => {
     try {
-      await fetch(`${apiUrl}/api/admin/priests/${priestId}/${action}`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({}),
-      });
+      await updatePriestStatus(apiUrl, priestId, action, secret);
       fetchPriests();
     } catch (e) {
       console.error(`Failed to ${action}:`, e);
