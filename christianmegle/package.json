@@ -9,6 +9,10 @@
     "preview": "vite preview",
     "worker:dev": "wrangler dev worker/index.ts",
     "worker:deploy": "wrangler deploy worker/index.ts",
+    "test": "vitest run && vitest run -c vitest.worker.config.ts",
+    "test:unit": "vitest run",
+    "test:worker": "vitest run -c vitest.worker.config.ts",
+    "test:watch": "vitest",
     "db:create": "wrangler d1 create christianmegle-db",
     "db:migrate": "wrangler d1 execute christianmegle-db --file=./db/schema.sql"
   },
@@ -24,6 +28,7 @@
     "@vitejs/plugin-react": "^4.2.1",
     "typescript": "^5.3.3",
     "vite": "^5.0.8",
+    "vitest": "^4.1.2",
     "wrangler": "^4.72.0"
   }
 }
