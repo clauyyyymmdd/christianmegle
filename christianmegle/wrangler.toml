@@ -22,6 +22,10 @@ TURN_SERVER_URL = ""
 TURN_USERNAME = ""
 TURN_CREDENTIAL = ""
 ADMIN_SECRET = "change-this-to-a-real-secret"
+NOTIFICATION_EMAIL = "clauyyyymmdd@gmail.com"
+
+# RESEND_API_KEY is stored as a secret (not here).
+# Set it with: npx wrangler secret put RESEND_API_KEY
 
 # For local dev, serve the Vite frontend too
 [dev]

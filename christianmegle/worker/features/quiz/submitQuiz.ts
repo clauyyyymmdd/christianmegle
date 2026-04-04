@@ -1,6 +1,6 @@
 import type { Env } from '../../lib/types';
 import { json } from '../../lib/types';
-import { sendEmailNotification } from '../../lib/email';
+import { sendNotification } from '../email/send';
 
 interface SubmitBody {
   answers: Record<string, string>;
@@ -47,16 +47,17 @@ export async function submitQuiz(request: Request, env: Env): Promise<Response> 
     .bind(priestId, body.displayName, body.email || null, score, total, body.heavenResponse || null)
     .run();
 
-  if (body.heavenResponse && env.NOTIFICATION_EMAIL) {
-    try {
-      await sendEmailNotification(env, {
-        to: env.NOTIFICATION_EMAIL,
-        subject: `Priest Application: ${body.displayName}`,
-        body: `New priest application received.\n\nName: ${body.displayName}\nQuiz Score: ${score}/${total}\nPassed: ${passed ? 'Yes' : 'No'}\n\n"Will you go to heaven? Why?"\n${body.heavenResponse}`,
-      });
-    } catch (e) {
-      console.error('Failed to send email notification:', e);
-    }
+  try {
+    await sendNotification(env, {
+      type: 'priest-application',
+      displayName: body.displayName,
+      quizScore: score,
+      quizTotal: total,
+      passed,
+      heavenResponse: body.heavenResponse,
+    });
+  } catch (e) {
+    console.error('Failed to send priest application email:', e);
   }
 
   return json({

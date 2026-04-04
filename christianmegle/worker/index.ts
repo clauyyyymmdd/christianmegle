@@ -12,6 +12,7 @@ import { updatePriestStatus } from './features/admin/updatePriestStatus';
 import { getLeaderboard } from './features/leaderboard/getLeaderboard';
 import { handleWebSocket } from './features/matchmaking/handler';
 import { getIceConfig } from './features/ice/getIceConfig';
+import { reportBug } from './features/email/reportBug';
 
 export { SignalingRoom, Matchmaker };
 
@@ -25,6 +26,7 @@ router.get('/api/admin/priests', listPriests);
 router.post('/api/admin/priests/:id/:action', updatePriestStatus);
 router.get('/api/leaderboard', getLeaderboard);
 router.get('/api/ice-config', getIceConfig);
+router.post('/api/report-bug', reportBug);
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
