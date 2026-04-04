@@ -12,6 +12,9 @@ export function useMatchmaking(apiUrl: string) {
     priestId: string | undefined,
     onMatched: (initiator: boolean) => void
   ) => {
+    // Disconnect previous connection if any
+    signalingRef.current?.disconnect();
+
     const signaling = new SignalingClient(apiUrl);
     signalingRef.current = signaling;
 

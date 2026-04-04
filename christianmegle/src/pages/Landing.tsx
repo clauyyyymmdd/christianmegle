@@ -96,6 +96,14 @@ export default function Landing() {
 
   return (
     <div className="page-enter" style={styles.container}>
+      {/* Whitepaper link — top right */}
+      <div
+        style={styles.whitepaperLink}
+        onClick={() => navigate('/whitepaper')}
+      >
+        whitepaper
+      </div>
+
       {/* Y2K Sparkle decorations */}
       <div style={styles.sparkleContainer}>
         <span style={{ ...styles.sparkle, top: '10%', left: '15%', animationDelay: '0s' }}>✦</span>
@@ -178,6 +186,18 @@ export default function Landing() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
+  whitepaperLink: {
+    position: 'absolute',
+    top: '1.2rem',
+    right: '1.5rem',
+    fontFamily: 'var(--font-terminal)',
+    fontSize: '0.7rem',
+    letterSpacing: '0.1em',
+    color: 'var(--ivory-dim)',
+    cursor: 'pointer',
+    zIndex: 10,
+    transition: 'color 0.2s ease',
+  },
   bootContainer: {
     minHeight: '100vh',
     display: 'flex',

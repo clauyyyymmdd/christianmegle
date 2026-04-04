@@ -3,30 +3,26 @@ type SoundEffect = 'organ-swell' | 'sanctus-bells' | 'ambient-silence' | 'chat-m
 export class AudioManager {
   private audioContext: AudioContext | null = null;
   private activeLoops: Map<SoundEffect, { oscillator: OscillatorNode; gain: GainNode }> = new Map();
-  private initialized = false;
 
-  private getContext(): AudioContext {
+  private getContext(): AudioContext | null {
     if (!this.audioContext) {
-      this.audioContext = new AudioContext();
+      try {
+        this.audioContext = new AudioContext();
+      } catch {
+        return null;
+      }
+    }
+    if (this.audioContext.state === 'suspended') {
+      this.audioContext.resume();
     }
     return this.audioContext;
   }
 
   /**
-   * Initialize audio context (must be called after user interaction)
+   * No-op — context is lazily created on first play() after user gesture.
    */
   async preload(): Promise<void> {
-    if (this.initialized) return;
-
-    try {
-      const ctx = this.getContext();
-      if (ctx.state === 'suspended') {
-        await ctx.resume();
-      }
-      this.initialized = true;
-    } catch (e) {
-      console.warn('[AudioManager] Failed to initialize:', e);
-    }
+    // Intentionally empty. AudioContext is created on demand.
   }
 
   /**
@@ -35,9 +31,7 @@ export class AudioManager {
   play(sound: SoundEffect): void {
     try {
       const ctx = this.getContext();
-      if (ctx.state === 'suspended') {
-        ctx.resume();
-      }
+      if (!ctx) return;
 
       switch (sound) {
         case 'organ-swell':
@@ -144,9 +138,7 @@ export class AudioManager {
 
     try {
       const ctx = this.getContext();
-      if (ctx.state === 'suspended') {
-        ctx.resume();
-      }
+      if (!ctx) return;
 
       if (sound === 'ambient-silence') {
         this.startAmbientSilence(ctx, sound);
@@ -186,7 +178,8 @@ export class AudioManager {
     const loop = this.activeLoops.get(sound);
     if (loop) {
       try {
-        loop.gain.gain.linearRampToValueAtTime(0, this.getContext().currentTime + 0.5);
+        const ctx = this.getContext();
+        if (ctx) loop.gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.5);
         setTimeout(() => {
           loop.oscillator.stop();
         }, 500);
@@ -215,7 +208,6 @@ export class AudioManager {
       this.audioContext.close();
       this.audioContext = null;
     }
-    this.initialized = false;
   }
 }
 

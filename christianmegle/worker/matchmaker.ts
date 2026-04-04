@@ -140,23 +140,25 @@ export class Matchmaker {
     // Store user's role for validation
     this.userRoles.set(userId, role);
 
+    console.log(`[Matchmaker] JOIN: ${role} (${userId.slice(0, 8)}), priests waiting: ${this.waitingPriests.size}, sinners waiting: ${this.waitingSinners.size}`);
+
     if (role === 'priest') {
-      // Check if there's a waiting sinner
       const sinnerEntry = this.getFirstWaiting(this.waitingSinners);
       if (sinnerEntry) {
         const [sinnerId, sinner] = sinnerEntry;
         this.waitingSinners.delete(sinnerId);
+        console.log(`[Matchmaker] MATCH: priest ${userId.slice(0, 8)} <-> sinner ${sinnerId.slice(0, 8)}`);
         this.createSession(userId, ws, sinnerId, sinner.ws, priestId);
       } else {
         this.waitingPriests.set(userId, user);
         this.sendTo(ws, { type: 'waiting', position: this.waitingPriests.size });
       }
     } else {
-      // Sinner — check if there's a waiting priest
       const priestEntry = this.getFirstWaiting(this.waitingPriests);
       if (priestEntry) {
         const [pId, priest] = priestEntry;
         this.waitingPriests.delete(pId);
+        console.log(`[Matchmaker] MATCH: priest ${pId.slice(0, 8)} <-> sinner ${userId.slice(0, 8)}`);
         this.createSession(pId, priest.ws, userId, ws, priest.priestId);
       } else {
         this.waitingSinners.set(userId, user);

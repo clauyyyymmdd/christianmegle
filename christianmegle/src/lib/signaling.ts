@@ -8,6 +8,7 @@ export class SignalingClient {
   private handlers: Set<MessageHandler> = new Set();
   private reconnectAttempts = 0;
   private maxReconnects = 5;
+  private shouldReconnect = true;
   private url: string;
 
   constructor(baseUrl: string) {
@@ -30,6 +31,10 @@ export class SignalingClient {
         this.ws.onmessage = (event) => {
           try {
             const msg: ServerMessage = JSON.parse(event.data);
+            // Stop reconnecting once matched — session is live
+            if (msg.type === 'matched') {
+              this.shouldReconnect = false;
+            }
             this.handlers.forEach((handler) => handler(msg));
           } catch (e) {
             console.error('[Signaling] Failed to parse message:', e);
@@ -38,7 +43,7 @@ export class SignalingClient {
 
         this.ws.onclose = (event) => {
           console.log('[Signaling] Connection closed:', event.code, event.reason);
-          if (this.reconnectAttempts < this.maxReconnects) {
+          if (this.shouldReconnect && this.reconnectAttempts < this.maxReconnects) {
             this.reconnectAttempts++;
             const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 10000);
             console.log(`[Signaling] Reconnecting in ${delay}ms...`);
@@ -70,7 +75,7 @@ export class SignalingClient {
   }
 
   disconnect(): void {
-    this.maxReconnects = 0; // Prevent reconnection
+    this.shouldReconnect = false;
     this.ws?.close();
     this.ws = null;
     this.handlers.clear();
