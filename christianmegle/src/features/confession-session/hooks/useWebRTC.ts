@@ -3,7 +3,7 @@ import { WebRTCManager } from '../../../lib/webrtc';
 import { SignalingClient } from '../../../lib/signaling';
 import { getAudioManager } from '../../../lib/audio';
 
-export function useWebRTC(signaling: SignalingClient, isInitiator: boolean) {
+export function useWebRTC(signaling: SignalingClient, isInitiator: boolean, apiUrl: string) {
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const rtcRef = useRef<WebRTCManager | null>(null);
@@ -33,7 +33,7 @@ export function useWebRTC(signaling: SignalingClient, isInitiator: boolean) {
         audioManager.stopAllLoops();
       },
       onError: setError,
-    });
+    }, apiUrl);
 
     rtcRef.current = rtc;
 

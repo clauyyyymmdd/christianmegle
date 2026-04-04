@@ -15,10 +15,12 @@ export class WebRTCManager {
   private signaling: SignalingClient;
   private callbacks: WebRTCCallbacks;
   private cleanupSignaling: (() => void) | null = null;
+  private apiUrl: string;
 
-  constructor(signaling: SignalingClient, callbacks: WebRTCCallbacks) {
+  constructor(signaling: SignalingClient, callbacks: WebRTCCallbacks, apiUrl: string) {
     this.signaling = signaling;
     this.callbacks = callbacks;
+    this.apiUrl = apiUrl;
   }
 
   /**
@@ -52,8 +54,20 @@ export class WebRTCManager {
    * Call this after being matched with a partner.
    */
   async initialize(isInitiator: boolean): Promise<void> {
+    // Fetch TURN credentials from the server, fall back to STUN-only
+    let config: RTCConfiguration = DEFAULT_RTC_CONFIG;
+    try {
+      const res = await fetch(`${this.apiUrl}/api/ice-config`);
+      if (res.ok) {
+        const data = await res.json() as { iceServers: RTCIceServer[] };
+        config = { iceServers: data.iceServers };
+      }
+    } catch (e) {
+      console.warn('[WebRTC] Failed to fetch ICE config, using defaults:', e);
+    }
+
     // Create peer connection
-    this.pc = new RTCPeerConnection(DEFAULT_RTC_CONFIG);
+    this.pc = new RTCPeerConnection(config);
 
     // Add local tracks to connection
     const stream = await this.getLocalStream();

@@ -72,6 +72,7 @@ export default function ConfessionalRoute({ apiUrl }: Props) {
           signaling={signalingRef.current}
           role={role}
           isInitiator={isInitiator}
+          apiUrl={apiUrl}
           onSessionEnd={handleSessionEnd}
         />
       );

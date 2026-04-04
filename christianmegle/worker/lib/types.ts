@@ -3,9 +3,8 @@ export interface Env {
   MATCHMAKER: DurableObjectNamespace;
   DB: D1Database;
   ADMIN_SECRET: string;
-  TURN_SERVER_URL: string;
-  TURN_USERNAME: string;
-  TURN_CREDENTIAL: string;
+  CF_TURN_KEY_ID?: string;
+  CF_TURN_KEY_SECRET?: string;
   NOTIFICATION_EMAIL: string;
   RESEND_API_KEY?: string;
 }

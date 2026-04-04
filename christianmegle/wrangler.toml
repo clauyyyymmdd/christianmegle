@@ -18,14 +18,13 @@ database_name = "christianmegle-db"
 database_id = "6cf57254-c6ac-475e-be85-42d07544e9af"
 
 [vars]
-TURN_SERVER_URL = ""
-TURN_USERNAME = ""
-TURN_CREDENTIAL = ""
 ADMIN_SECRET = "change-this-to-a-real-secret"
 NOTIFICATION_EMAIL = "clauyyyymmdd@gmail.com"
 
-# RESEND_API_KEY is stored as a secret (not here).
-# Set it with: npx wrangler secret put RESEND_API_KEY
+# Secrets (set with `npx wrangler secret put <NAME>`):
+#   RESEND_API_KEY
+#   CF_TURN_KEY_ID
+#   CF_TURN_KEY_SECRET
 
 # For local dev, serve the Vite frontend too
 [dev]

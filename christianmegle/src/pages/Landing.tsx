@@ -114,7 +114,7 @@ export default function Landing() {
         className="y2k-float"
       />
 
-      <p style={styles.tagline}>✧ Confess your sins to strangers ✧</p>
+      <p style={styles.tagline}>Confess your sins to strangers</p>
 
       {/* Divider */}
       <div className="divider" style={{ width: '300px' }}>
@@ -284,11 +284,12 @@ const styles: Record<string, React.CSSProperties> = {
     filter: 'drop-shadow(0 0 30px rgba(139, 0, 0, 0.4)) drop-shadow(0 0 60px rgba(100, 50, 150, 0.2))',
   },
   tagline: {
-    fontFamily: 'var(--font-body)',
-    fontStyle: 'italic',
-    fontSize: '1.3rem',
-    color: 'var(--ivory)',
-    letterSpacing: '0.02em',
+    fontFamily: 'var(--font-title)',
+    fontStyle: 'normal',
+    fontSize: '0.75rem',
+    color: 'var(--ivory-dim)',
+    letterSpacing: '0.15em',
+    textTransform: 'uppercase',
     marginTop: '0.5rem',
   },
   roleContainer: {

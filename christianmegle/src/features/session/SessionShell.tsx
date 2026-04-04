@@ -19,12 +19,13 @@ interface SessionShellProps {
   signaling: SignalingClient;
   role: UserRole;
   isInitiator: boolean;
+  apiUrl: string;
   onSessionEnd: () => void;
 }
 
-export default function SessionShell({ signaling, role, isInitiator, onSessionEnd }: SessionShellProps) {
+export default function SessionShell({ signaling, role, isInitiator, apiUrl, onSessionEnd }: SessionShellProps) {
   // --- Feature hooks ---
-  const session = useWebRTC(signaling, isInitiator);
+  const session = useWebRTC(signaling, isInitiator, apiUrl);
   const priest = usePriestActions(signaling);
   const chat = useChat(signaling, role);
 

@@ -14,15 +14,21 @@ export function useMatchmaking(apiUrl: string) {
   ) => {
     const signaling = new SignalingClient(apiUrl);
     signalingRef.current = signaling;
+
+    // Attach listener BEFORE opening the socket
+    signaling.onMessage((msg) => {
+      if (msg.type === 'waiting') {
+        setWaitingPosition(msg.position);
+      }
+
+      if (msg.type === 'matched') {
+        setIsInitiator(msg.initiator);
+        onMatched(msg.initiator);
+      }
+    });
+
     try {
       await signaling.connect(role, priestId);
-      signaling.onMessage((msg) => {
-        if (msg.type === 'waiting') setWaitingPosition(msg.position);
-        if (msg.type === 'matched') {
-          setIsInitiator(msg.initiator);
-          onMatched(msg.initiator);
-        }
-      });
     } catch (e) {
       console.error('Failed to connect to matchmaker:', e);
     }

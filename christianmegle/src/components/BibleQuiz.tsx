@@ -355,12 +355,36 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
     );
   }
 
+  // Auto-advance to pending approval when quiz is passed
+  useEffect(() => {
+    if (phase === 'result' && result?.passed) {
+      const timer = setTimeout(() => onComplete(result.priestId, true), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [phase, result]);
+
   // === Result phase ===
   if (phase === 'result' && result) {
+    if (result.passed) {
+      return (
+        <div style={styles.container} className="page-enter">
+          <span style={styles.icon}>☦</span>
+          <h2>You Have Passed</h2>
+          <p style={styles.score}>
+            {result.score} of {result.total} correct
+          </p>
+          <p style={styles.description}>{result.message}</p>
+          <div className="flicker" style={{ marginTop: '1.5rem', color: 'var(--gold)' }}>
+            ▓▓▓░░░
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div style={styles.container} className="page-enter">
-        <span style={styles.icon}>{result.passed ? '☦' : '✝'}</span>
-        <h2>{result.passed ? 'You Have Passed' : 'You Have Not Passed'}</h2>
+        <span style={styles.icon}>✝</span>
+        <h2>You Have Not Passed</h2>
         <p style={styles.score}>
           {result.score} of {result.total} correct
         </p>
@@ -369,7 +393,7 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
           onClick={() => onComplete(result.priestId, result.passed)}
           style={{ marginTop: '2rem' }}
         >
-          {result.passed ? 'Await Approval' : 'Return'}
+          Return
         </button>
       </div>
     );
