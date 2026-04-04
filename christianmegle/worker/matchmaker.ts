@@ -59,10 +59,13 @@ export class Matchmaker {
 
     server.addEventListener('message', (event) => {
       try {
-        const msg: ClientMessage = JSON.parse(event.data as string);
+        const raw = event.data as string;
+        // Reject oversized messages (64KB max)
+        if (raw.length > 65536) return;
+        const msg: ClientMessage = JSON.parse(raw);
         this.handleMessage(userId, msg, server);
-      } catch (e) {
-        console.error('Failed to parse message:', e);
+      } catch {
+        // Silently drop unparseable messages
       }
     });
 
@@ -95,13 +98,19 @@ export class Matchmaker {
         this.handleEndSession(userId);
         break;
 
-      default:
+      default: {
+        // Block sinners from sending priest-prefixed messages
+        const userRole = this.userRoles.get(userId);
         if (isPriestAction(msg)) {
+          if (userRole !== 'priest') return;
           this.handlePriestAction(userId, msg);
         } else if (isChatMessage(msg)) {
+          // Enforce chat message length limit
+          if ('text' in msg && typeof msg.text === 'string' && msg.text.length > 5000) return;
           this.relayToPartner(userId, msg);
         }
         break;
+      }
     }
   }
 

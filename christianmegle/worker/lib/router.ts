@@ -38,7 +38,7 @@ export class Router {
 
   async handle(request: Request, env: Env): Promise<Response> {
     if (request.method === 'OPTIONS') {
-      return new Response(null, { headers: corsHeaders });
+      return new Response(null, { headers: corsHeaders(request, env) });
     }
 
     const url = new URL(request.url);
@@ -52,6 +52,6 @@ export class Router {
       }
     }
 
-    return new Response('Not found', { status: 404, headers: corsHeaders });
+    return new Response('Not found', { status: 404, headers: corsHeaders(request, env) });
   }
 }

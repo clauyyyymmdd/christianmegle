@@ -1,5 +1,6 @@
 import type { Env } from '../../lib/types';
 import { json } from '../../lib/types';
+import { isValidPriestId } from '../../lib/validate';
 
 export async function getPriestStatus(
   _request: Request,
@@ -7,6 +8,9 @@ export async function getPriestStatus(
   params: Record<string, string>
 ): Promise<Response> {
   const priestId = params.id;
+  if (!isValidPriestId(priestId)) {
+    return json({ error: 'Invalid priest ID' }, { status: 400 });
+  }
   const priest = await env.DB.prepare('SELECT * FROM priests WHERE id = ?')
     .bind(priestId)
     .first() as any;

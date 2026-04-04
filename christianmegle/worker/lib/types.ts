@@ -7,14 +7,20 @@ export interface Env {
   CF_TURN_KEY_SECRET?: string;
   NOTIFICATION_EMAIL: string;
   RESEND_API_KEY?: string;
+  ALLOWED_ORIGIN?: string;
 }
 
-export const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};
+export function corsHeaders(request?: Request, env?: Env): Record<string, string> {
+  const origin = request?.headers.get('Origin') || '*';
+  const allowed = env?.ALLOWED_ORIGIN || '*';
+  return {
+    'Access-Control-Allow-Origin': allowed === '*' ? origin : allowed,
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Vary': 'Origin',
+  };
+}
 
-export function json(data: unknown, init?: { status?: number }): Response {
-  return Response.json(data, { status: init?.status, headers: corsHeaders });
+export function json(data: unknown, init?: { status?: number }, request?: Request, env?: Env): Response {
+  return Response.json(data, { status: init?.status, headers: corsHeaders(request, env) });
 }

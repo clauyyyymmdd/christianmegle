@@ -18,13 +18,13 @@ database_name = "christianmegle-db"
 database_id = "6cf57254-c6ac-475e-be85-42d07544e9af"
 
 [vars]
-ADMIN_SECRET = "change-this-to-a-real-secret"
-NOTIFICATION_EMAIL = "clauyyyymmdd@gmail.com"
-
-# Secrets (set with `npx wrangler secret put <NAME>`):
+# No sensitive values here — all secrets use `npx wrangler secret put`:
+#   ADMIN_SECRET
+#   NOTIFICATION_EMAIL
 #   RESEND_API_KEY
 #   CF_TURN_KEY_ID
 #   CF_TURN_KEY_SECRET
+#   ALLOWED_ORIGIN (e.g. "https://christianmegle.com")
 
 # For local dev, serve the Vite frontend too
 [dev]

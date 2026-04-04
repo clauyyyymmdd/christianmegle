@@ -1,18 +1,23 @@
 import type { Env } from '../../lib/types';
 import { json } from '../../lib/types';
+import { rateLimit, clientIp } from '../../lib/rateLimit';
 
-export async function getIceConfig(_request: Request, env: Env): Promise<Response> {
-  // Keep the fallback STUNs
-  const fallback = {
-    iceServers: [
-      { urls: 'stun:stun.l.google.com:19302' },
-      { urls: 'stun:stun1.l.google.com:19302' },
-    ],
-  };
+const FALLBACK = {
+  iceServers: [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+  ],
+};
 
-  // If Cloudflare TURN is not configured yet, return fallback only
+export async function getIceConfig(request: Request, env: Env): Promise<Response> {
+  // Rate limit: 10 per IP per 5 minutes
+  const rl = rateLimit(`ice:${clientIp(request)}`, 10, 5 * 60 * 1000);
+  if (!rl.allowed) {
+    return json(FALLBACK);
+  }
+
   if (!env.CF_TURN_KEY_ID || !env.CF_TURN_KEY_SECRET) {
-    return json(fallback);
+    return json(FALLBACK);
   }
 
   const resp = await fetch(
@@ -28,14 +33,13 @@ export async function getIceConfig(_request: Request, env: Env): Promise<Respons
   );
 
   if (!resp.ok) {
-    const text = await resp.text();
-    console.error('Cloudflare TURN credential generation failed:', text);
-    return json(fallback, { status: 200 });
+    console.error('Cloudflare TURN failed:', resp.status);
+    return json(FALLBACK);
   }
 
   const data = await resp.json() as { iceServers?: RTCIceServer[] };
 
   return json({
-    iceServers: data.iceServers ?? fallback.iceServers,
+    iceServers: data.iceServers ?? FALLBACK.iceServers,
   });
 }
