@@ -96,12 +96,12 @@ export default function Landing() {
 
   return (
     <div className="page-enter" style={styles.container}>
-      {/* Whitepaper link — top right */}
-      <div
-        style={styles.whitepaperLink}
-        onClick={() => navigate('/whitepaper')}
-      >
-        whitepaper
+      {/* Nav links — top right */}
+      <div style={styles.navRow}>
+        <span style={styles.navLink} onClick={() => navigate('/leaderboard')}>leaderboard</span>
+        <span style={styles.navLink} onClick={() => navigate('/whitepaper')}>whitepaper</span>
+        <span style={styles.navLink} onClick={() => navigate('/offering')}>offering</span>
+        <span style={styles.navLink} onClick={() => navigate('/careers')}>careers</span>
       </div>
 
       {/* Y2K Sparkle decorations */}
@@ -170,32 +170,25 @@ export default function Landing() {
         </div>
       </div>
 
-      <div
-        style={{
-          ...styles.terminalLink,
-          ...(hoveredButton === 'leaderboard' ? styles.terminalLinkHover : {}),
-        } as CSSProperties}
-        onClick={() => navigate('/leaderboard')}
-        onMouseEnter={() => setHoveredButton('leaderboard')}
-        onMouseLeave={() => setHoveredButton(null)}
-      >
-        {'>'} View the Book of Life _
-      </div>
     </div>
   );
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  whitepaperLink: {
+  navRow: {
     position: 'absolute',
     top: '1.2rem',
     right: '1.5rem',
+    display: 'flex',
+    gap: '1.5rem',
+    zIndex: 10,
+  },
+  navLink: {
     fontFamily: 'var(--font-terminal)',
-    fontSize: '0.7rem',
+    fontSize: '0.65rem',
     letterSpacing: '0.1em',
     color: 'var(--ivory-dim)',
     cursor: 'pointer',
-    zIndex: 10,
     transition: 'color 0.2s ease',
   },
   bootContainer: {
