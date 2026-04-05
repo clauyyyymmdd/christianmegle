@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, CSSProperties } from 'react';
+import CrossLogo from '../components/CrossLogo';
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -97,7 +98,7 @@ export default function Landing() {
 
       {/* Divider */}
       <div className="divider" style={{ width: '300px' }}>
-        <span className="cross" style={{ fontSize: '1.5rem' }}>✝</span>
+        <CrossLogo size={40} style={{ zIndex: 1 }} />
       </div>
 
       {/* Role selection - Terminal Style */}
