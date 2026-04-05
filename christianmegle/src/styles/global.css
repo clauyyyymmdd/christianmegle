@@ -60,6 +60,12 @@ html, body {
   width: 153.85%; /* 100% / 0.65 — fills viewport after squeeze */
 }
 
+/* Counter-scale images and videos back to normal proportions */
+img, video, canvas, svg {
+  transform: scaleX(1.538); /* 1 / 0.65 — undoes body squeeze */
+  transform-origin: center;
+}
+
 #root {
   min-height: 100%;
   display: flex;
