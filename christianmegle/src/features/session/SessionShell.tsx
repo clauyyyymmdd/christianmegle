@@ -11,8 +11,9 @@ import { useChat } from '../chat/hooks/useChat';
 
 // Feature UI
 import { VideoPanel } from '../confession-session/ui/VideoPanel';
-import { PriestOverlay } from '../priest-toolkit/ui/PriestOverlay';
-import { PriestControls } from '../priest-toolkit/ui/PriestControls';
+import EffectsOverlay from '../priest-toolkit/ui/EffectsOverlay';
+import PriestToolbar from '../priest-toolkit/ui/PriestToolbar';
+import BookOfLife from '../priest-toolkit/ui/BookOfLife';
 import { ChatPanel } from '../chat/ui/ChatPanel';
 
 interface SessionShellProps {
@@ -66,7 +67,7 @@ export default function SessionShell({ signaling, role, isInitiator, apiUrl, onS
         onEndSession={handleEndSession}
         onNext={onSessionEnd}
         effectsOverlay={
-          <PriestOverlay
+          <EffectsOverlay
             activeEffects={priest.activeEffects}
             absolutionActive={priest.absolutionActive}
             silenceActive={priest.silenceActive}
@@ -79,23 +80,26 @@ export default function SessionShell({ signaling, role, isInitiator, apiUrl, onS
         }
       >
         {role === 'priest' && (
-          <PriestControls
-            sessionActive={session.sessionActive}
-            activeEffects={priest.activeEffects}
-            silenceActive={priest.silenceActive}
-            bookEntries={priest.bookEntries}
-            onSendPenance={priest.sendPenance}
-            onGrantAbsolution={priest.grantAbsolution}
-            onSendScripture={priest.sendScripture}
-            onToggleEffect={priest.sendToggleEffect}
-            onRingBells={priest.ringBells}
-            onToggleSilence={priest.toggleSilence}
-            onExcommunicate={() => priest.excommunicate(() => {
-              session.endSession();
-              (onExcommunicate || onSessionEnd)();
-            })}
-            onInscribe={priest.inscribe}
-          />
+          <>
+            {session.sessionActive && (
+              <PriestToolbar
+                activeEffects={priest.activeEffects}
+                silenceActive={priest.silenceActive}
+                onSendPenance={priest.sendPenance}
+                onGrantAbsolution={priest.grantAbsolution}
+                onSendScripture={priest.sendScripture}
+                onToggleEffect={priest.sendToggleEffect}
+                onRingBells={priest.ringBells}
+                onToggleSilence={priest.toggleSilence}
+                onExcommunicate={() => priest.excommunicate(() => {
+                  session.endSession();
+                  (onExcommunicate || onSessionEnd)();
+                })}
+                onInscribe={priest.inscribe}
+              />
+            )}
+            {priest.bookEntries.length > 0 && <BookOfLife entries={priest.bookEntries} />}
+          </>
         )}
       </VideoPanel>
 

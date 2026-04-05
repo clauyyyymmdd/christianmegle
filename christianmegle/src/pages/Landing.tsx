@@ -96,9 +96,9 @@ export default function Landing() {
 
       <p style={styles.tagline}>Confess your sins to strangers</p>
 
-      {/* Divider */}
-      <div className="divider" style={{ width: '300px' }}>
-        <CrossLogo size={40} style={{ zIndex: 1 }} />
+      {/* Cross Logo */}
+      <div style={{ margin: '1.5rem 0', zIndex: 1 }}>
+        <CrossLogo size={60} />
       </div>
 
       {/* Role selection - Terminal Style */}

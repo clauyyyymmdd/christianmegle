@@ -93,16 +93,6 @@ html, body {
   font-size: 18px;
   line-height: 1.6;
   overflow-x: hidden;
-  transform: scaleX(0.65);
-  transform-origin: left top;
-  width: 153.85%; /* 100% / 0.65 — fills viewport after squeeze */
-}
-
-/* Counter-scale video/canvas/svg back to normal proportions.
-   Images (wordmark etc.) are left condensed with the text. */
-video, canvas, svg {
-  transform: scaleX(1.538); /* 1 / 0.65 — undoes body squeeze */
-  transform-origin: center;
 }
 
 #root {
@@ -119,6 +109,14 @@ h1, h2, h3, h4 {
   color: var(--ivory);
   letter-spacing: 0.15em;
   text-transform: uppercase;
+  transform: scaleX(0.65);
+  transform-origin: left;
+}
+
+/* Condense terminal/display text and ASCII art */
+pre, button, .divider {
+  transform: scaleX(0.65);
+  transform-origin: left;
 }
 
 h1 {

@@ -1,4 +1,4 @@
-import BibleQuiz from '../../../components/BibleQuiz';
+import BibleQuiz from '../../priest-onboarding/ui/BibleQuiz';
 
 interface Props {
   apiUrl: string;

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { QuizQuestion } from '../lib/types';
-import { fetchQuizQuestions, submitQuiz } from '../features/priest-onboarding/api/quizApi';
+import { QuizQuestion } from '../../../lib/types';
+import { fetchQuizQuestions, submitQuiz } from '../api/quizApi';
 
 interface BibleQuizProps {
   apiUrl: string;

@@ -3,7 +3,7 @@ import {
   VisualEffectType,
   PenanceAssignment,
   ScriptureVerse,
-} from '../../lib/types';
+} from '../../../lib/types';
 
 interface EffectsOverlayProps {
   activeEffects: Set<VisualEffectType>;

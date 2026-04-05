@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { PenanceType, PenanceAssignment } from '../../lib/types';
+import { PenanceType, PenanceAssignment } from '../../../lib/types';
 
 interface PenanceDropdownProps {
   onSelect: (penance: PenanceAssignment) => void;

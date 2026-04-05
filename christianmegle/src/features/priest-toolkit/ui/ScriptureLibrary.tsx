@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { ScriptureVerse, SinCategory } from '../../lib/types';
-import { SCRIPTURE_BY_SIN, SIN_LABELS, SIN_ICONS } from '../../lib/scripture-data';
+import { ScriptureVerse, SinCategory } from '../../../lib/types';
+import { SCRIPTURE_BY_SIN, SIN_LABELS, SIN_ICONS } from '../../../lib/scripture-data';
 
 interface ScriptureLibraryProps {
   onSelect: (verse: ScriptureVerse) => void;

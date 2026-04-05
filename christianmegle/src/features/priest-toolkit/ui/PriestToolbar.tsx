@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { VisualEffectType, PenanceAssignment, ScriptureVerse } from '../../lib/types';
+import { VisualEffectType, PenanceAssignment, ScriptureVerse } from '../../../lib/types';
 import PenanceDropdown from './PenanceDropdown';
 import ScriptureLibrary from './ScriptureLibrary';
 

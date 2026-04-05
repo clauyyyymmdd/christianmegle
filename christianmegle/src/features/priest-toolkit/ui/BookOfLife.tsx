@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { BookEntry } from '../../lib/types';
+import { BookEntry } from '../../../lib/types';
 
 interface BookOfLifeProps {
   entries: BookEntry[];
