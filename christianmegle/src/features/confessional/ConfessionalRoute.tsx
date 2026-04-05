@@ -1,5 +1,5 @@
 import LoadingScreen from '../../components/LoadingScreen';
-import VideoChat from '../session/VideoChat';
+import VideoChat from '../session/SessionShell';
 import { useConfessionalFlow } from './hooks/useConfessionalFlow';
 import { WelcomeBackScreen } from './screens/WelcomeBackScreen';
 import { PriestQuizScreen } from './screens/PriestQuizScreen';

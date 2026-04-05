@@ -195,7 +195,7 @@ const styles: Record<string, React.CSSProperties> = {
     left: 0,
     right: 0,
     bottom: 0,
-    background: 'rgba(0, 0, 0, 0.9)',
+    background: 'var(--bg-overlay)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -211,7 +211,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '0.7rem',
     lineHeight: 1.3,
     margin: 0,
-    textShadow: '0 0 15px rgba(139, 30, 38, 0.5)',
+    textShadow: '0 0 15px var(--crimson-glow)',
   },
   denialText: {
     fontFamily: 'var(--font-body)',
@@ -230,12 +230,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '2rem',
     position: 'relative',
     overflow: 'hidden',
-    background: `
-      radial-gradient(ellipse at 30% 20%, rgba(80, 60, 120, 0.15) 0%, transparent 40%),
-      radial-gradient(ellipse at 70% 80%, rgba(139, 0, 0, 0.12) 0%, transparent 40%),
-      radial-gradient(ellipse at 50% 50%, rgba(60, 60, 80, 0.1) 0%, transparent 60%),
-      linear-gradient(180deg, #0a0a0f 0%, #0d0a0a 50%, #0a0808 100%)
-    `,
+    background: 'var(--bg-primary)',
   },
   sparkleContainer: {
     position: 'absolute',
@@ -248,10 +243,9 @@ const styles: Record<string, React.CSSProperties> = {
   },
   sparkle: {
     position: 'absolute',
-    color: 'rgba(255, 255, 255, 0.6)',
+    color: 'var(--ivory-dim)',
     fontSize: '1.2rem',
     animation: 'twinkle 2s ease-in-out infinite',
-    textShadow: '0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(200, 180, 255, 0.5)',
   },
   wordmark: {
     maxWidth: '450px',
@@ -260,7 +254,7 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: '0.5rem',
     position: 'relative',
     zIndex: 1,
-    filter: 'drop-shadow(0 0 30px rgba(139, 0, 0, 0.4)) drop-shadow(0 0 60px rgba(100, 50, 150, 0.2))',
+    filter: 'drop-shadow(0 0 30px var(--blood-glow))',
   },
   tagline: {
     fontFamily: 'var(--font-title)',
@@ -292,17 +286,15 @@ const styles: Record<string, React.CSSProperties> = {
     color: 'var(--ivory-dim)',
     margin: 0,
     padding: '0.5rem',
-    background: 'rgba(0, 0, 0, 0.6)',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
+    background: 'var(--bg-overlay-light)',
+    border: '1px solid var(--border-subtle)',
     textAlign: 'center',
-    textShadow: '0 0 10px rgba(255, 255, 255, 0.3)',
     transition: 'all 0.2s ease',
   },
   asciiFrameHover: {
     color: 'var(--ivory)',
-    background: 'rgba(20, 15, 25, 0.8)',
-    border: '1px solid rgba(255, 255, 255, 0.3)',
-    textShadow: '0 0 15px rgba(255, 255, 255, 0.5), 0 0 30px rgba(139, 0, 0, 0.3)',
-    boxShadow: '0 0 30px rgba(139, 0, 0, 0.2), inset 0 0 20px rgba(255, 255, 255, 0.05)',
+    background: 'var(--bg-elevated)',
+    border: '1px solid var(--border-hover)',
+    boxShadow: '0 0 30px var(--blood-glow)',
   },
 };

@@ -37,7 +37,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '0.7rem',
     lineHeight: 1.3,
     margin: 0,
-    textShadow: '0 0 15px rgba(255, 176, 0, 0.5)',
+    textShadow: '0 0 15px var(--amber-glow)',
   },
   text: {
     color: 'var(--text-secondary)',

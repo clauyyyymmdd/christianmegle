@@ -126,7 +126,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   jesusRow: {
     color: 'var(--ivory)',
-    textShadow: '0 0 10px rgba(255, 255, 255, 0.3)',
+    textShadow: '0 0 10px var(--blood-glow)',
   },
   empty: {
     fontFamily: 'var(--font-terminal)',

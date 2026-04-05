@@ -82,14 +82,14 @@ export function VideoPanel({
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  videoColumn: { display: 'flex', flexDirection: 'column', flex: '1 1 0', minWidth: 0, borderRight: '1px solid rgba(255,255,255,0.08)', position: 'relative' },
-  videoPanel: { flex: 1, position: 'relative', overflow: 'hidden', borderBottom: '1px solid rgba(255,255,255,0.08)', background: '#0a0808' },
+  videoColumn: { display: 'flex', flexDirection: 'column', flex: '1 1 0', minWidth: 0, borderRight: '1px solid var(--border-subtle)', position: 'relative' },
+  videoPanel: { flex: 1, position: 'relative', overflow: 'hidden', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-video)' },
   video: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
-  videoLabel: { position: 'absolute', bottom: '0.5rem', left: '0.75rem', fontFamily: 'var(--font-terminal)', fontSize: '0.6rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ivory-dim)', background: 'rgba(10, 8, 8, 0.75)', padding: '0.2rem 0.5rem', zIndex: 5 },
-  videoOverlay: { position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#0a0808', gap: '1rem', zIndex: 4 },
+  videoLabel: { position: 'absolute', bottom: '0.5rem', left: '0.75rem', fontFamily: 'var(--font-terminal)', fontSize: '0.6rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ivory-dim)', background: 'var(--bg-overlay-light)', padding: '0.2rem 0.5rem', zIndex: 5 },
+  videoOverlay: { position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-video)', gap: '1rem', zIndex: 4 },
   waitingIcon: { fontSize: '2.5rem' },
   waitingText: { fontFamily: 'var(--font-terminal)', fontSize: '0.75rem', color: 'var(--ivory-dim)', letterSpacing: '0.08em' },
-  actionBar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.6rem 1rem', background: 'rgba(10,8,8,0.95)', borderTop: '1px solid rgba(255,255,255,0.08)', gap: '1rem', flexShrink: 0 },
+  actionBar: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.6rem 1rem', background: 'var(--bg-video)', borderTop: '1px solid var(--border-subtle)', gap: '1rem', flexShrink: 0 },
   endButton: { background: 'var(--crimson-dim)', borderColor: 'var(--crimson)', fontFamily: 'var(--font-terminal)', fontSize: '0.7rem', padding: '0.4rem 1.2rem', letterSpacing: '0.05em', flexShrink: 0 },
   nextButton: { fontFamily: 'var(--font-terminal)', fontSize: '0.7rem', padding: '0.4rem 1.2rem', letterSpacing: '0.05em', flexShrink: 0 },
   roleTag: { fontFamily: 'var(--font-terminal)', fontSize: '0.65rem', letterSpacing: '0.12em', color: 'var(--ivory-dim)', textTransform: 'uppercase' },

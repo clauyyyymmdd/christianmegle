@@ -154,9 +154,9 @@ export default function Whitepaper() {
 const styles: Record<string, React.CSSProperties> = {
   page: {
     minHeight: '100vh',
-    background: '#fff',
-    color: '#000',
-    fontFamily: "'Noto Serif SC', 'SimSun', serif",
+    background: 'var(--wp-bg)',
+    color: 'var(--wp-text)',
+    fontFamily: 'var(--font-body)',
   },
   container: {
     maxWidth: '720px',
@@ -172,26 +172,26 @@ const styles: Record<string, React.CSSProperties> = {
   headerLeft: {
     fontSize: '0.95rem',
     fontWeight: 700,
-    color: '#900',
+    color: 'var(--wp-accent)',
     cursor: 'pointer',
     letterSpacing: '0.02em',
   },
   headerRight: {
     fontSize: '0.75rem',
-    color: '#666',
+    color: 'var(--wp-text-dim)',
     fontStyle: 'italic',
   },
   separator: {
-    borderTop: '1px solid #ccc',
+    borderTop: '1px solid var(--wp-border)',
     margin: '1rem 0',
   },
   title: {
     fontSize: '1.45rem',
     fontWeight: 700,
     lineHeight: 1.35,
-    color: '#000',
+    color: 'var(--wp-text)',
     margin: '0.75rem 0 0.5rem',
-    fontFamily: "'Noto Serif SC', 'SimSun', serif",
+    fontFamily: 'var(--font-body)',
     textTransform: 'none',
     letterSpacing: 'normal',
   },
@@ -200,20 +200,20 @@ const styles: Record<string, React.CSSProperties> = {
   },
   author: {
     fontSize: '0.95rem',
-    color: '#333',
+    color: 'var(--wp-text-secondary)',
     fontStyle: 'italic',
   },
   dates: {
     fontSize: '0.8rem',
-    color: '#666',
+    color: 'var(--wp-text-dim)',
     margin: '0.25rem 0 0.75rem',
   },
   sectionTitle: {
     fontSize: '1.1rem',
     fontWeight: 700,
-    color: '#000',
+    color: 'var(--wp-text)',
     margin: '0 0 0.5rem',
-    fontFamily: "'Noto Serif SC', 'SimSun', serif",
+    fontFamily: 'var(--font-body)',
     textTransform: 'none',
     letterSpacing: 'normal',
   },
@@ -223,7 +223,7 @@ const styles: Record<string, React.CSSProperties> = {
   abstract: {
     fontSize: '0.9rem',
     lineHeight: 1.65,
-    color: '#222',
+    color: 'var(--wp-text)',
     fontStyle: 'normal',
     maxWidth: 'none',
     textAlign: 'justify' as const,
@@ -231,7 +231,7 @@ const styles: Record<string, React.CSSProperties> = {
   body: {
     fontSize: '0.9rem',
     lineHeight: 1.65,
-    color: '#333',
+    color: 'var(--wp-text-secondary)',
     fontStyle: 'normal',
     maxWidth: 'none',
     margin: '0.5rem 0',
@@ -251,7 +251,7 @@ const styles: Record<string, React.CSSProperties> = {
     marginRight: '0.4rem',
   },
   metaValue: {
-    color: '#444',
+    color: 'var(--wp-text-dim)',
   },
   downloadSection: {
     fontSize: '0.85rem',
@@ -264,25 +264,25 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 700,
   },
   downloadLink: {
-    color: '#900',
+    color: 'var(--wp-accent)',
     textDecoration: 'none',
     fontWeight: 700,
   },
   downloadNote: {
-    color: '#888',
+    color: 'var(--wp-text-muted)',
     fontSize: '0.75rem',
   },
   code: {
-    fontFamily: 'monospace',
+    fontFamily: 'var(--font-terminal)',
     fontSize: '0.75rem',
-    background: '#f0f0f0',
+    background: 'var(--wp-code-bg)',
     padding: '0.1rem 0.3rem',
     borderRadius: '2px',
   },
   backLink: {
     fontFamily: 'var(--font-terminal)',
     fontSize: '0.85rem',
-    color: '#666',
+    color: 'var(--wp-text-dim)',
     cursor: 'pointer',
     marginTop: '1rem',
   },

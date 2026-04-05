@@ -411,10 +411,7 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: 'center',
     padding: '2rem',
     textAlign: 'center',
-    background: `
-      radial-gradient(ellipse at 50% 30%, rgba(107, 28, 35, 0.1) 0%, transparent 50%),
-      var(--bg-primary)
-    `,
+    background: 'var(--bg-primary)',
   },
   icon: {
     fontSize: '2.5rem',
@@ -502,12 +499,12 @@ const styles: Record<string, React.CSSProperties> = {
     fontFamily: 'var(--font-body)',
     fontSize: '0.95rem',
     border: '1px solid var(--ivory-dim)',
-    background: 'rgba(0, 0, 0, 0.5)',
+    background: 'var(--bg-overlay-light)',
     color: 'var(--ivory)',
   },
   optionSelected: {
     borderColor: 'var(--ivory)',
-    background: 'rgba(255, 255, 255, 0.1)',
+    background: 'var(--bg-input)',
   },
   optionKey: {
     fontFamily: 'var(--font-terminal)',
@@ -575,7 +572,7 @@ const styles: Record<string, React.CSSProperties> = {
     left: 0,
     right: 0,
     bottom: 0,
-    background: 'rgba(10, 9, 8, 0.95)',
+    background: 'var(--bg-overlay)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',

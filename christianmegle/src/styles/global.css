@@ -33,6 +33,44 @@
   --font-body: 'SimSun', 'STSong', 'Songti SC', 'Noto Serif SC', serif;
   --font-terminal: 'SimSun', 'STSong', 'Songti SC', 'Noto Serif SC', monospace;
 
+  /* Amber (terminal/ASCII accents) */
+  --amber: #ffb000;
+  --amber-dim: #8b6f2e;
+  --amber-bright: #ffc940;
+  --amber-glow: rgba(255, 176, 0, 0.5);
+
+  /* Crimson */
+  --crimson: #8b1e26;
+  --crimson-dim: rgba(139, 30, 38, 0.15);
+  --crimson-glow: rgba(139, 30, 38, 0.5);
+
+  /* Surfaces */
+  --bg-video: #0a0808;
+  --bg-overlay: rgba(0, 0, 0, 0.9);
+  --bg-overlay-light: rgba(0, 0, 0, 0.6);
+  --bg-chat: rgba(10, 8, 8, 0.98);
+  --bg-input: rgba(255, 255, 255, 0.04);
+
+  /* Borders */
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(255, 255, 255, 0.3);
+
+  /* Chat bubbles */
+  --bg-chat-self: rgba(100, 20, 20, 0.4);
+  --border-chat-self: rgba(139, 0, 0, 0.4);
+  --bg-chat-other: rgba(255, 255, 255, 0.04);
+  --border-chat-other: rgba(255, 255, 255, 0.08);
+
+  /* Whitepaper (light surface) */
+  --wp-bg: #fff;
+  --wp-text: #000;
+  --wp-text-secondary: #333;
+  --wp-text-dim: #666;
+  --wp-text-muted: #888;
+  --wp-accent: #900;
+  --wp-border: #ccc;
+  --wp-code-bg: #f0f0f0;
+
   /* Spacing */
   --space-xs: 0.25rem;
   --space-sm: 0.5rem;
@@ -518,8 +556,25 @@ body.light-mode {
 
   --crimson: #8b1e26;
   --crimson-dim: rgba(139, 30, 38, 0.15);
+  --crimson-glow: rgba(139, 30, 38, 0.3);
 
   --parchment: #1a1410;
+
+  --bg-video: #e8e4dc;
+  --bg-overlay: rgba(255, 255, 255, 0.9);
+  --bg-overlay-light: rgba(255, 255, 255, 0.6);
+  --bg-chat: rgba(245, 240, 230, 0.98);
+  --bg-input: rgba(0, 0, 0, 0.04);
+
+  --border-subtle: rgba(0, 0, 0, 0.1);
+  --border-hover: rgba(0, 0, 0, 0.3);
+
+  --bg-chat-self: rgba(139, 69, 19, 0.15);
+  --border-chat-self: rgba(139, 69, 19, 0.3);
+  --bg-chat-other: rgba(0, 0, 0, 0.04);
+  --border-chat-other: rgba(0, 0, 0, 0.1);
+
+  --amber-glow: rgba(139, 105, 20, 0.4);
 }
 
 body.light-mode ::-webkit-scrollbar-track {

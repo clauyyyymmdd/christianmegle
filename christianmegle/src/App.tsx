@@ -1,6 +1,6 @@
 import { Routes, Route } from 'react-router-dom';
 import Landing from './pages/Landing';
-import Confessional from './pages/Confessional';
+import Confessional from './features/confessional/ConfessionalRoute';
 import Admin from './pages/Admin';
 import Leaderboard from './pages/Leaderboard';
 import Whitepaper from './pages/Whitepaper';
