@@ -32,6 +32,21 @@ export default function Landing() {
   const [currentLabel] = useState(bootSequence.label);
   const timeoutRef = useRef<number | null>(null);
   const [hoveredButton, setHoveredButton] = useState<'priest' | 'sinner' | 'leaderboard' | null>(null);
+  const [showLightDenied, setShowLightDenied] = useState(false);
+  const [lightMode, setLightMode] = useState(() =>
+    document.body.classList.contains('light-mode')
+  );
+
+  const handleLightMode = () => {
+    const pardoned = localStorage.getItem('christianmegle_pardoned') === 'true';
+    if (!pardoned) {
+      setShowLightDenied(true);
+      return;
+    }
+    const next = !lightMode;
+    document.body.classList.toggle('light-mode', next);
+    setLightMode(next);
+  };
 
   useEffect(() => {
     if (phase !== 'loading') return;
@@ -102,7 +117,29 @@ export default function Landing() {
         <span style={styles.navLink} onClick={() => navigate('/whitepaper')}>whitepaper</span>
         <span style={styles.navLink} onClick={() => navigate('/offering')}>offering</span>
         <span style={styles.navLink} onClick={() => navigate('/careers')}>careers</span>
+        <span style={styles.navLink} onClick={handleLightMode}>
+          {lightMode ? 'dark mode' : 'light mode'}
+        </span>
       </div>
+
+      {/* Light mode denial */}
+      {showLightDenied && (
+        <div style={styles.denialOverlay} onClick={() => setShowLightDenied(false)}>
+          <div style={styles.denialModal} onClick={(e) => e.stopPropagation()}>
+            <pre style={styles.denialAscii}>{`
+╔══════════════════════════════════════╗
+║           ACCESS DENIED              ║
+╚══════════════════════════════════════╝
+            `}</pre>
+            <p style={styles.denialText}>
+              You must be pardoned by a priest to see Heaven.
+            </p>
+            <button onClick={() => setShowLightDenied(false)} style={{ marginTop: '1.5rem' }}>
+              Remain in Darkness
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Y2K Sparkle decorations */}
       <div style={styles.sparkleContainer}>
@@ -190,6 +227,38 @@ const styles: Record<string, React.CSSProperties> = {
     color: 'var(--ivory-dim)',
     cursor: 'pointer',
     transition: 'color 0.2s ease',
+  },
+  denialOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: 'rgba(0, 0, 0, 0.9)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1000,
+  },
+  denialModal: {
+    textAlign: 'center',
+    padding: '2rem',
+    maxWidth: '420px',
+  },
+  denialAscii: {
+    color: 'var(--crimson)',
+    fontSize: '0.7rem',
+    lineHeight: 1.3,
+    margin: 0,
+    textShadow: '0 0 15px rgba(139, 30, 38, 0.5)',
+  },
+  denialText: {
+    fontFamily: 'var(--font-body)',
+    fontSize: '1rem',
+    color: 'var(--ivory)',
+    fontStyle: 'italic',
+    lineHeight: 1.8,
+    marginTop: '1.5rem',
   },
   bootContainer: {
     minHeight: '100vh',

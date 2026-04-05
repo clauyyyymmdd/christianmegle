@@ -38,6 +38,8 @@ export function usePriestActions(signaling: SignalingClient) {
         setAbsolutionActive(true);
         audioManager.play('organ-swell');
         setTimeout(() => setAbsolutionActive(false), 100);
+        // Grant light mode access — sinner has been pardoned
+        localStorage.setItem('christianmegle_pardoned', 'true');
         break;
       case 'priest-scripture':
         setCurrentScripture(msg.verse);
