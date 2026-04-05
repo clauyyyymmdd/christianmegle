@@ -21,9 +21,10 @@ interface SessionShellProps {
   isInitiator: boolean;
   apiUrl: string;
   onSessionEnd: () => void;
+  onExcommunicate?: () => void;
 }
 
-export default function SessionShell({ signaling, role, isInitiator, apiUrl, onSessionEnd }: SessionShellProps) {
+export default function SessionShell({ signaling, role, isInitiator, apiUrl, onSessionEnd, onExcommunicate }: SessionShellProps) {
   // --- Feature hooks ---
   const session = useWebRTC(signaling, isInitiator, apiUrl);
   const priest = usePriestActions(signaling);
@@ -89,7 +90,10 @@ export default function SessionShell({ signaling, role, isInitiator, apiUrl, onS
             onToggleEffect={priest.sendToggleEffect}
             onRingBells={priest.ringBells}
             onToggleSilence={priest.toggleSilence}
-            onExcommunicate={() => priest.excommunicate(handleEndSession)}
+            onExcommunicate={() => priest.excommunicate(() => {
+              session.endSession();
+              (onExcommunicate || onSessionEnd)();
+            })}
             onInscribe={priest.inscribe}
           />
         )}

@@ -26,6 +26,9 @@ database_id = "6cf57254-c6ac-475e-be85-42d07544e9af"
 #   CF_TURN_KEY_SECRET
 #   ALLOWED_ORIGIN (e.g. "https://christianmegle.com")
 
+# Pages (frontend) — output dir for `npx wrangler pages deploy`
+pages_build_output_dir = "dist"
+
 # For local dev, serve the Vite frontend too
 [dev]
 port = 8787

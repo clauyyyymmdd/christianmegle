@@ -99,6 +99,11 @@ export function useConfessionalFlow(apiUrl: string) {
 
   const handleSessionEnd = () => setPhase('ended');
 
+  const handleExcommunicate = () => {
+    // Skip the ended screen, go straight back to matchmaking
+    connectToMatchmaker(role, priestId || undefined);
+  };
+
   const handleRejoin = () => connectToMatchmaker(role, priestId || undefined);
 
   const handleEnterConfessional = () => connectToMatchmaker(role, priestId || undefined);
@@ -117,6 +122,7 @@ export function useConfessionalFlow(apiUrl: string) {
     handleNotSaved,
     handleStartOver,
     handleSessionEnd,
+    handleExcommunicate,
     handleRejoin,
     handleEnterConfessional,
   };

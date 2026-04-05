@@ -1,4 +1,4 @@
-/* === 
+/* === CHRISTIANMEGLE === */
 @import './priest-effects.css';
 
 :root {
@@ -55,9 +55,9 @@ html, body {
   font-size: 18px;
   line-height: 1.6;
   overflow-x: hidden;
-  transform: scaleX(1.33);
+  transform: scaleX(0.65);
   transform-origin: left top;
-  width: 75.19%; /* 100% / 1.33 — prevents horizontal overflow */
+  width: 153.85%; /* 100% / 0.65 — fills viewport after squeeze */
 }
 
 #root {

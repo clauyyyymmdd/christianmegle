@@ -27,6 +27,7 @@ export default function ConfessionalRoute({ apiUrl }: Props) {
     handleNotSaved,
     handleStartOver,
     handleSessionEnd,
+    handleExcommunicate,
     handleRejoin,
     handleEnterConfessional,
   } = useConfessionalFlow(apiUrl);
@@ -74,6 +75,7 @@ export default function ConfessionalRoute({ apiUrl }: Props) {
           isInitiator={isInitiator}
           apiUrl={apiUrl}
           onSessionEnd={handleSessionEnd}
+          onExcommunicate={handleExcommunicate}
         />
       );
     case 'ended':
