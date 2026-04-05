@@ -1,10 +1,16 @@
 import { useNavigate } from 'react-router-dom';
-import { useState, CSSProperties } from 'react';
+import { useState, useEffect, CSSProperties } from 'react';
 
 export default function Landing() {
   const navigate = useNavigate();
+  const [showSplash, setShowSplash] = useState(true);
   const [hoveredButton, setHoveredButton] = useState<'priest' | 'sinner' | null>(null);
   const [showLightDenied, setShowLightDenied] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowSplash(false), 3000);
+    return () => clearTimeout(timer);
+  }, []);
   const [lightMode, setLightMode] = useState(() =>
     document.body.classList.contains('light-mode')
   );
@@ -19,6 +25,23 @@ export default function Landing() {
     document.body.classList.toggle('light-mode', next);
     setLightMode(next);
   };
+
+  if (showSplash) {
+    return (
+      <div style={styles.splashContainer}>
+        <p style={styles.splashVerse}>
+          But of the tree of the knowledge of good
+          <br />
+          and evil, thou shalt not eat of it:
+          <br />
+          for in the day that thou eatest thereof
+          <br />
+          thou shalt surely die.
+        </p>
+        <p style={styles.splashReference}>Genesis 2:17</p>
+      </div>
+    );
+  }
 
   return (
     <div className="page-enter" style={styles.container}>
@@ -123,6 +146,32 @@ export default function Landing() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
+  splashContainer: {
+    minHeight: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'var(--bg-primary)',
+    padding: '2rem',
+  },
+  splashVerse: {
+    fontFamily: 'var(--font-body)',
+    fontSize: '1.1rem',
+    lineHeight: 1.8,
+    color: 'var(--ivory)',
+    textAlign: 'center',
+    fontStyle: 'italic',
+    maxWidth: '400px',
+  },
+  splashReference: {
+    fontFamily: 'var(--font-terminal)',
+    fontSize: '0.75rem',
+    color: 'var(--ivory-dim)',
+    letterSpacing: '0.1em',
+    marginTop: '1.5rem',
+    fontStyle: 'normal',
+  },
   navRow: {
     position: 'absolute',
     top: '1.2rem',

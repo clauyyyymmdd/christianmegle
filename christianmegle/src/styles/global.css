@@ -60,8 +60,9 @@ html, body {
   width: 153.85%; /* 100% / 0.65 — fills viewport after squeeze */
 }
 
-/* Counter-scale images and videos back to normal proportions */
-img, video, canvas, svg {
+/* Counter-scale video/canvas/svg back to normal proportions.
+   Images (wordmark etc.) are left condensed with the text. */
+video, canvas, svg {
   transform: scaleX(1.538); /* 1 / 0.65 — undoes body squeeze */
   transform-origin: center;
 }
