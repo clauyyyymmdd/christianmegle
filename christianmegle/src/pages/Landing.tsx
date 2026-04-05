@@ -1,37 +1,9 @@
 import { useNavigate } from 'react-router-dom';
-import { useState, useEffect, useRef, CSSProperties } from 'react';
-
-const bootCategories = [
-  {
-    label: 'Loading Fruits of the Spirit...',
-    items: ['Love', 'Joy', 'Peace', 'Patience', 'Kindness', 'Goodness', 'Faithfulness', 'Gentleness', 'Self-Control'],
-  },
-  {
-    label: 'Loading Armor of God...',
-    items: ['Belt of Truth', 'Breastplate of Righteousness', 'Gospel of Peace', 'Shield of Faith', 'Helmet of Salvation', 'Sword of the Spirit'],
-  },
-  {
-    label: 'Loading Beatitudes...',
-    items: ['Poor in Spirit', 'Those Who Mourn', 'The Meek', 'Hunger for Righteousness', 'The Merciful', 'Pure in Heart', 'The Peacemakers', 'The Persecuted'],
-  },
-  {
-    label: 'Loading Seven Deadly Sins...',
-    items: ['Pride', 'Greed', 'Lust', 'Envy', 'Gluttony', 'Wrath', 'Sloth'],
-  },
-];
-
-// Pick one random category
-const bootSequence = bootCategories[Math.floor(Math.random() * bootCategories.length)];
-
-type BootPhase = 'loading' | 'reveal' | 'complete';
+import { useState, CSSProperties } from 'react';
 
 export default function Landing() {
   const navigate = useNavigate();
-  const [phase, setPhase] = useState<BootPhase>('loading');
-  const [visibleItems, setVisibleItems] = useState<string[]>([]);
-  const [currentLabel] = useState(bootSequence.label);
-  const timeoutRef = useRef<number | null>(null);
-  const [hoveredButton, setHoveredButton] = useState<'priest' | 'sinner' | 'leaderboard' | null>(null);
+  const [hoveredButton, setHoveredButton] = useState<'priest' | 'sinner' | null>(null);
   const [showLightDenied, setShowLightDenied] = useState(false);
   const [lightMode, setLightMode] = useState(() =>
     document.body.classList.contains('light-mode')
@@ -47,67 +19,6 @@ export default function Landing() {
     document.body.classList.toggle('light-mode', next);
     setLightMode(next);
   };
-
-  useEffect(() => {
-    if (phase !== 'loading') return;
-
-    let itemIndex = 0;
-
-    const showNextItem = () => {
-      if (itemIndex < bootSequence.items.length) {
-        setVisibleItems(prev => [...prev, bootSequence.items[itemIndex]]);
-        itemIndex++;
-        timeoutRef.current = window.setTimeout(showNextItem, 120);
-      } else {
-        // Pause then reveal wordmark
-        timeoutRef.current = window.setTimeout(() => {
-          setPhase('reveal');
-          setTimeout(() => setPhase('complete'), 1500);
-        }, 600);
-      }
-    };
-
-    timeoutRef.current = window.setTimeout(showNextItem, 300);
-
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
-  }, [phase]);
-
-  if (phase !== 'complete') {
-    return (
-      <div style={styles.bootContainer}>
-        {phase === 'loading' && (
-          <div style={styles.bootInner}>
-            <pre style={styles.bootHeader}>{`
-┌─────────────────────────────────────┐
-│  C H R I S T I A N M E G L E        │
-│  ═══════════════════════════════    │`}</pre>
-            {currentLabel && (
-              <p style={styles.bootLabel}>│  {currentLabel}</p>
-            )}
-            <div style={styles.bootItems}>
-              {visibleItems.map((item, i) => (
-                <span key={i} style={styles.bootItem} className="boot-line">
-                  │  › {item}
-                </span>
-              ))}
-            </div>
-            <pre style={styles.bootFooter}>{`└─────────────────────────────────────┘`}</pre>
-          </div>
-        )}
-        {phase === 'reveal' && (
-          <div style={styles.revealContainer}>
-            <img
-              src="/assets/images/wordmark.png"
-              alt="ChristianMegle"
-              style={styles.wordmarkReveal}
-            />
-          </div>
-        )}
-      </div>
-    );
-  }
 
   return (
     <div className="page-enter" style={styles.container}>
@@ -180,7 +91,7 @@ export default function Landing() {
           } as CSSProperties}>{`
 ┌──────────────────────────────────────┐
 │                                      │
-│       ☦  I  A M  A  P R I E S T  ☦   │
+│            I  AM FORGIVEN            │
 │                                      │
 │     hear the confessions of sinners  │
 │                                      │
@@ -199,7 +110,7 @@ export default function Landing() {
           } as CSSProperties}>{`
 ┌──────────────────────────────────────┐
 │                                      │
-│       ✝  I  A M  A  S I N N E R  ✝   │
+│       ✝  I  HAVE SINNED  ✝          │
 │                                      │
 │        confess to a stranger         │
 │                                      │
@@ -259,70 +170,6 @@ const styles: Record<string, React.CSSProperties> = {
     fontStyle: 'italic',
     lineHeight: 1.8,
     marginTop: '1.5rem',
-  },
-  bootContainer: {
-    minHeight: '100vh',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '2rem',
-    background: `
-      radial-gradient(ellipse at 50% 50%, rgba(40, 30, 60, 0.3) 0%, transparent 50%),
-      linear-gradient(180deg, #08080c 0%, #0a0a0f 50%, #080808 100%)
-    `,
-  },
-  bootInner: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-    background: 'rgba(0, 0, 0, 0.7)',
-    minWidth: '380px',
-  },
-  bootHeader: {
-    fontFamily: 'var(--font-terminal)',
-    fontSize: '0.8rem',
-    lineHeight: 1.3,
-    color: 'var(--ivory-dim)',
-    margin: 0,
-  },
-  bootFooter: {
-    fontFamily: 'var(--font-terminal)',
-    fontSize: '0.8rem',
-    lineHeight: 1.3,
-    color: 'var(--ivory-dim)',
-    margin: 0,
-  },
-  bootLabel: {
-    fontFamily: 'var(--font-terminal)',
-    fontSize: '0.8rem',
-    color: 'var(--ivory-dim)',
-    margin: '0.25rem 0',
-  },
-  bootItems: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-    gap: '0.2rem',
-    width: '100%',
-  },
-  bootItem: {
-    fontFamily: 'var(--font-terminal)',
-    fontSize: '0.8rem',
-    color: 'var(--ivory)',
-  },
-  revealContainer: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  wordmarkReveal: {
-    maxWidth: '450px',
-    width: '85%',
-    height: 'auto',
-    animation: 'wordmarkReveal 1.2s ease-out forwards, wordmarkGlow 3s ease-in-out infinite 1.2s',
-    filter: 'drop-shadow(0 0 40px rgba(255, 255, 255, 0.3)) drop-shadow(0 0 80px rgba(139, 0, 0, 0.4))',
   },
   container: {
     minHeight: '100vh',
@@ -407,57 +254,5 @@ const styles: Record<string, React.CSSProperties> = {
     border: '1px solid rgba(255, 255, 255, 0.3)',
     textShadow: '0 0 15px rgba(255, 255, 255, 0.5), 0 0 30px rgba(139, 0, 0, 0.3)',
     boxShadow: '0 0 30px rgba(139, 0, 0, 0.2), inset 0 0 20px rgba(255, 255, 255, 0.05)',
-  },
-  roleButton: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '0.4rem',
-    padding: '1.25rem 3rem',
-    width: '100%',
-  },
-  roleTitle: {
-    fontFamily: 'var(--font-terminal)',
-    fontSize: '1rem',
-    letterSpacing: '0.3em',
-    textTransform: 'uppercase',
-    color: 'var(--ivory)',
-  },
-  roleSubtitle: {
-    fontFamily: 'var(--font-body)',
-    fontStyle: 'italic',
-    fontSize: '0.9rem',
-    color: 'var(--ivory-dim)',
-    textTransform: 'none',
-    letterSpacing: '0.02em',
-  },
-  leaderboardLink: {
-    marginTop: '2.5rem',
-    background: 'transparent',
-    border: '2px solid var(--ivory-dim)',
-    fontFamily: 'var(--font-body)',
-    fontStyle: 'italic',
-    fontSize: '1rem',
-    color: 'var(--ivory)',
-    cursor: 'pointer',
-    padding: '0.75rem 2rem',
-    boxShadow: 'none',
-    textShadow: 'none',
-    letterSpacing: '0.02em',
-    textTransform: 'none',
-  },
-  terminalLink: {
-    marginTop: '2rem',
-    fontFamily: 'var(--font-terminal)',
-    fontSize: '0.85rem',
-    color: 'var(--ivory-dim)',
-    cursor: 'pointer',
-    padding: '0.5rem 1rem',
-    transition: 'all 0.2s ease',
-    zIndex: 1,
-  },
-  terminalLinkHover: {
-    color: 'var(--ivory)',
-    textShadow: '0 0 10px rgba(255, 255, 255, 0.5)',
   },
 };
