@@ -143,9 +143,9 @@ export class Matchmaker {
     console.log(`[Matchmaker] JOIN: ${role} (${userId.slice(0, 8)}), priests waiting: ${this.waitingPriests.size}, sinners waiting: ${this.waitingSinners.size}`);
 
     if (role === 'priest') {
-      const sinnerEntry = this.getFirstWaiting(this.waitingSinners);
-      if (sinnerEntry) {
-        const [sinnerId, sinner] = sinnerEntry;
+      const partner = this.findLivePartner(this.waitingSinners);
+      if (partner) {
+        const [sinnerId, sinner] = partner;
         this.waitingSinners.delete(sinnerId);
         console.log(`[Matchmaker] MATCH: priest ${userId.slice(0, 8)} <-> sinner ${sinnerId.slice(0, 8)}`);
         this.createSession(userId, ws, sinnerId, sinner.ws, priestId);
@@ -154,9 +154,9 @@ export class Matchmaker {
         this.sendTo(ws, { type: 'waiting', position: this.waitingPriests.size });
       }
     } else {
-      const priestEntry = this.getFirstWaiting(this.waitingPriests);
-      if (priestEntry) {
-        const [pId, priest] = priestEntry;
+      const partner = this.findLivePartner(this.waitingPriests);
+      if (partner) {
+        const [pId, priest] = partner;
         this.waitingPriests.delete(pId);
         console.log(`[Matchmaker] MATCH: priest ${pId.slice(0, 8)} <-> sinner ${userId.slice(0, 8)}`);
         this.createSession(pId, priest.ws, userId, ws, priest.priestId);
@@ -199,8 +199,9 @@ export class Matchmaker {
     }
 
     // Priest is the initiator (creates the WebRTC offer)
-    this.sendTo(priestWs, { type: 'matched', partnerId: sinnerUserId, initiator: true });
-    this.sendTo(sinnerWs, { type: 'matched', partnerId: priestUserId, initiator: false });
+    const priestSent = this.sendTo(priestWs, { type: 'matched', partnerId: sinnerUserId, initiator: true });
+    const sinnerSent = this.sendTo(sinnerWs, { type: 'matched', partnerId: priestUserId, initiator: false });
+    console.log(`[Matchmaker] SESSION ${sessionId.slice(0, 8)}: matched sent priest=${priestSent} sinner=${sinnerSent}`);
   }
 
   private relayToPartner(userId: string, msg: ClientMessage): void {
@@ -252,13 +253,15 @@ export class Matchmaker {
     this.userToSession.delete(partnerId);
   }
 
-  private handleDisconnect(userId: string): void {
+  private async handleDisconnect(userId: string): Promise<void> {
+    console.log(`[Matchmaker] DISCONNECT: ${userId.slice(0, 8)}`);
+
     // Remove from waiting queues
     this.waitingPriests.delete(userId);
     this.waitingSinners.delete(userId);
 
     // End any active session
-    this.handleEndSession(userId, 'disconnect');
+    await this.handleEndSession(userId, 'disconnect');
 
     // Remove connection and role
     this.userConnections.delete(userId);
@@ -279,16 +282,32 @@ export class Matchmaker {
     }
   }
 
-  private getFirstWaiting(map: Map<string, WaitingUser>): [string, WaitingUser] | undefined {
-    const first = map.entries().next();
-    return first.done ? undefined : first.value;
+  /** Find the first waiting user with a live WebSocket, pruning dead ones. */
+  private findLivePartner(map: Map<string, WaitingUser>): [string, WaitingUser] | undefined {
+    for (const [id, user] of map) {
+      const ws = user.ws;
+      // Check if socket is still open (readyState 1 = OPEN)
+      if (ws.readyState === WebSocket.OPEN || ws.readyState === 1) {
+        return [id, user];
+      }
+      // Dead socket — prune it
+      console.log(`[Matchmaker] PRUNE: dead socket ${id.slice(0, 8)}`);
+      map.delete(id);
+      this.userConnections.delete(id);
+      this.userRoles.delete(id);
+    }
+    return undefined;
   }
 
-  private sendTo(ws: WebSocket, msg: ServerMessage | ClientMessage): void {
+  private sendTo(ws: WebSocket, msg: ServerMessage | ClientMessage): boolean {
     try {
-      ws.send(JSON.stringify(msg));
-    } catch (e) {
-      console.error('Failed to send to WebSocket:', e);
+      if (ws.readyState === WebSocket.OPEN || ws.readyState === 1) {
+        ws.send(JSON.stringify(msg));
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
     }
   }
 }
