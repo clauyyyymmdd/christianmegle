@@ -1,11 +1,10 @@
 import { useNavigate } from 'react-router-dom';
-import { useState, useEffect, CSSProperties } from 'react';
+import { useState, useEffect } from 'react';
 import CrossLogo from '../components/CrossLogo';
 
 export default function Landing() {
   const navigate = useNavigate();
   const [showSplash, setShowSplash] = useState(true);
-  const [hoveredButton, setHoveredButton] = useState<'priest' | 'sinner' | null>(null);
   const [showLightDenied, setShowLightDenied] = useState(false);
 
   useEffect(() => {
@@ -101,45 +100,23 @@ export default function Landing() {
         <CrossLogo size={60} />
       </div>
 
-      {/* Role selection - Terminal Style */}
+      {/* Role selection - Chrome Silver */}
       <div style={styles.roleContainer}>
-        <div
-          style={styles.terminalButton}
+        <button
+          style={styles.heroButton}
           onClick={() => navigate('/confess?role=priest')}
-          onMouseEnter={() => setHoveredButton('priest')}
-          onMouseLeave={() => setHoveredButton(null)}
         >
-          <pre style={{
-            ...styles.asciiFrame,
-            ...(hoveredButton === 'priest' ? styles.asciiFrameHover : {}),
-          } as CSSProperties}>{`
-┌──────────────────────────────────────┐
-│                                      │
-│            I  AM FORGIVEN            │
-│                                      │
-│     hear the confessions of sinners  │
-│                                      │
-└──────────────────────────────────────┘`}</pre>
-        </div>
+          <span style={styles.heroTitle}>I AM FORGIVEN</span>
+          <span style={styles.heroSub}>hear the confessions of sinners</span>
+        </button>
 
-        <div
-          style={styles.terminalButton}
+        <button
+          style={styles.heroButton}
           onClick={() => navigate('/confess?role=sinner')}
-          onMouseEnter={() => setHoveredButton('sinner')}
-          onMouseLeave={() => setHoveredButton(null)}
         >
-          <pre style={{
-            ...styles.asciiFrame,
-            ...(hoveredButton === 'sinner' ? styles.asciiFrameHover : {}),
-          } as CSSProperties}>{`
-┌──────────────────────────────────────┐
-│                                      │
-│       ✝  I  HAVE SINNED  ✝          │
-│                                      │
-│        confess to a stranger         │
-│                                      │
-└──────────────────────────────────────┘`}</pre>
-        </div>
+          <span style={styles.heroTitle}>✝ I HAVE SINNED ✝</span>
+          <span style={styles.heroSub}>confess to a stranger</span>
+        </button>
       </div>
 
     </div>
@@ -268,33 +245,32 @@ const styles: Record<string, React.CSSProperties> = {
   roleContainer: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '1.5rem',
+    gap: '1.2rem',
     marginTop: '1.5rem',
     width: '100%',
-    maxWidth: '500px',
+    maxWidth: '400px',
     zIndex: 1,
   },
-  terminalButton: {
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    position: 'relative',
+  heroButton: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '0.3rem',
+    padding: '1.2rem 2rem',
+    width: '100%',
+    borderRadius: '6px',
+    transform: 'none',
   },
-  asciiFrame: {
-    fontFamily: 'var(--font-terminal)',
-    fontSize: '0.8rem',
-    lineHeight: 1.3,
-    color: 'var(--ivory-dim)',
-    margin: 0,
-    padding: '0.5rem',
-    background: 'var(--bg-overlay-light)',
-    border: '1px solid var(--border-subtle)',
-    textAlign: 'center',
-    transition: 'all 0.2s ease',
+  heroTitle: {
+    fontSize: '0.85rem',
+    fontWeight: 700,
+    letterSpacing: '0.2em',
   },
-  asciiFrameHover: {
-    color: 'var(--ivory)',
-    background: 'var(--bg-elevated)',
-    border: '1px solid var(--border-hover)',
-    boxShadow: '0 0 30px var(--blood-glow)',
+  heroSub: {
+    fontSize: '0.65rem',
+    fontWeight: 400,
+    letterSpacing: '0.05em',
+    opacity: 0.7,
+    textTransform: 'none',
   },
 };
