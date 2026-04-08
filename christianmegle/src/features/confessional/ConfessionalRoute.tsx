@@ -15,11 +15,8 @@ interface Props {
 
 export default function ConfessionalRoute({ apiUrl }: Props) {
   const {
-    role,
-    phase,
+    state,
     priestName,
-    waitingPosition,
-    isInitiator,
     signalingRef,
     navigate,
     handleQuizComplete,
@@ -32,9 +29,12 @@ export default function ConfessionalRoute({ apiUrl }: Props) {
     handleEnterConfessional,
   } = useConfessionalFlow(apiUrl);
 
-  switch (phase) {
+  // Exhaustive switch on the discriminated union — TypeScript will error
+  // if a new state kind is added to machine.ts without handling it here.
+  switch (state.kind) {
     case 'loading':
       return <LoadingScreen />;
+
     case 'welcome-back':
       return (
         <WelcomeBackScreen
@@ -43,6 +43,7 @@ export default function ConfessionalRoute({ apiUrl }: Props) {
           onStartOver={handleStartOver}
         />
       );
+
     case 'quiz':
       return (
         <PriestQuizScreen
@@ -51,42 +52,46 @@ export default function ConfessionalRoute({ apiUrl }: Props) {
           onNotSaved={handleNotSaved}
         />
       );
+
     case 'not-saved':
       return <NotSavedScreen onBecomeSinner={handleBecomeSinner} />;
+
     case 'applied':
       return <PendingApprovalScreen onStartOver={handleStartOver} />;
+
     case 'still-a-sinner':
       return <StillASinnerScreen onBecomeSinner={handleBecomeSinner} />;
+
     case 'waiting':
       return (
         <WaitingRoom
-          role={role}
-          waitingPosition={waitingPosition}
+          role={state.role}
+          waitingPosition={state.position}
           onLeave={() => navigate('/')}
           onStartOver={handleStartOver}
         />
       );
+
     case 'connected':
       if (!signalingRef.current) return null;
       return (
         <VideoChat
           signaling={signalingRef.current}
-          role={role}
-          isInitiator={isInitiator}
+          role={state.role}
+          isInitiator={state.isInitiator}
           apiUrl={apiUrl}
           onSessionEnd={handleSessionEnd}
           onExcommunicate={handleExcommunicate}
         />
       );
+
     case 'ended':
       return (
         <SessionEndedScreen
-          role={role}
+          role={state.role}
           onRejoin={handleRejoin}
           onHome={() => navigate('/')}
         />
       );
-    default:
-      return null;
   }
 }

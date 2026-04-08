@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { brand } from '../assets';
 
 interface CrossLogoProps {
   size?: number;
@@ -24,7 +25,7 @@ export default function CrossLogo({ size = 80, onClick, style }: CrossLogoProps)
     >
       {/* Base */}
       <img
-        src="/assets/images/LOGO.png"
+        src={brand.cross.base}
         alt=""
         style={{
           position: 'absolute',
@@ -38,7 +39,7 @@ export default function CrossLogo({ size = 80, onClick, style }: CrossLogoProps)
       />
       {/* Hover state */}
       <img
-        src="/assets/images/LOGO-loading.png"
+        src={brand.cross.hover}
         alt=""
         style={{
           position: 'absolute',
@@ -52,7 +53,7 @@ export default function CrossLogo({ size = 80, onClick, style }: CrossLogoProps)
       />
       {/* Overlay texture — always on top */}
       <img
-        src="/assets/images/LOGO-overlay.png"
+        src={brand.cross.overlay}
         alt=""
         style={{
           position: 'absolute',

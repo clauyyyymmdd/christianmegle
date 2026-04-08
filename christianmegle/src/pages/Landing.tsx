@@ -1,11 +1,10 @@
 import { useNavigate } from 'react-router-dom';
-import { useState, useEffect, CSSProperties } from 'react';
-import CrossLogo from '../components/CrossLogo';
+import { useState, useEffect } from 'react';
+import { brand, CrossLogo } from '../assets';
 
 export default function Landing() {
   const navigate = useNavigate();
   const [showSplash, setShowSplash] = useState(true);
-  const [hoveredButton, setHoveredButton] = useState<'priest' | 'sinner' | null>(null);
   const [showLightDenied, setShowLightDenied] = useState(false);
 
   useEffect(() => {
@@ -86,62 +85,41 @@ export default function Landing() {
         <span style={{ ...styles.sparkle, top: '30%', right: '8%', animationDelay: '0.8s' }}>+</span>
       </div>
 
-      {/* Wordmark */}
-      <img
-        src="/assets/images/wordmark.png"
-        alt="ChristianMegle"
-        style={styles.wordmark}
-        className="y2k-float"
-      />
-
-      <p style={styles.tagline}>Confess your sins to strangers</p>
-
-      {/* Cross Logo */}
-      <div style={{ margin: '1.5rem 0', zIndex: 1 }}>
-        <CrossLogo size={60} />
-      </div>
-
-      {/* Role selection - Terminal Style */}
-      <div style={styles.roleContainer}>
-        <div
-          style={styles.terminalButton}
-          onClick={() => navigate('/confess?role=priest')}
-          onMouseEnter={() => setHoveredButton('priest')}
-          onMouseLeave={() => setHoveredButton(null)}
-        >
-          <pre style={{
-            ...styles.asciiFrame,
-            ...(hoveredButton === 'priest' ? styles.asciiFrameHover : {}),
-          } as CSSProperties}>{`
-┌──────────────────────────────────────┐
-│                                      │
-│            I  AM FORGIVEN            │
-│                                      │
-│     hear the confessions of sinners  │
-│                                      │
-└──────────────────────────────────────┘`}</pre>
+      {/* Hero stack — everything centered in one column */}
+      <div style={styles.hero}>
+        {/* Cross Logo (above wordmark, ~1/3 of wordmark width) */}
+        <div style={styles.crossWrap}>
+          <CrossLogo size={150} />
         </div>
 
-        <div
-          style={styles.terminalButton}
-          onClick={() => navigate('/confess?role=sinner')}
-          onMouseEnter={() => setHoveredButton('sinner')}
-          onMouseLeave={() => setHoveredButton(null)}
-        >
-          <pre style={{
-            ...styles.asciiFrame,
-            ...(hoveredButton === 'sinner' ? styles.asciiFrameHover : {}),
-          } as CSSProperties}>{`
-┌──────────────────────────────────────┐
-│                                      │
-│       ✝  I  HAVE SINNED  ✝          │
-│                                      │
-│        confess to a stranger         │
-│                                      │
-└──────────────────────────────────────┘`}</pre>
+        {/* Wordmark */}
+        <img
+          src={brand.wordmark}
+          alt="ChristianMegle"
+          style={styles.wordmark}
+        />
+
+        <p style={styles.tagline}>Confess your sins to strangers</p>
+
+        {/* Role selection - Chrome Silver */}
+        <div style={styles.roleContainer}>
+          <button
+            style={styles.heroButton}
+            onClick={() => navigate('/confess?role=priest')}
+          >
+            <span style={styles.heroTitle}>I AM FORGIVEN</span>
+            <span style={styles.heroSub}>hear the confessions of sinners</span>
+          </button>
+
+          <button
+            style={styles.heroButton}
+            onClick={() => navigate('/confess?role=sinner')}
+          >
+            <span style={styles.heroTitle}>✝ I HAVE SINNED ✝</span>
+            <span style={styles.heroSub}>confess to a stranger</span>
+          </button>
         </div>
       </div>
-
     </div>
   );
 }
@@ -247,14 +225,29 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '1.2rem',
     animation: 'twinkle 2s ease-in-out infinite',
   },
-  wordmark: {
-    maxWidth: '450px',
-    width: '85%',
-    height: 'auto',
-    marginBottom: '0.5rem',
+  hero: {
     position: 'relative',
     zIndex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    maxWidth: '480px',
+    gap: '1rem',
+  },
+  crossWrap: {
+    width: '150px',
+    marginBottom: '0.25rem',
+    animation: 'crossDescend 1.4s ease-out 0.2s both',
+  },
+  wordmark: {
+    width: '100%',
+    maxWidth: '450px',
+    height: 'auto',
+    display: 'block',
     filter: 'drop-shadow(0 0 30px var(--blood-glow))',
+    animation: 'wordmarkLoad 1.6s ease-out 0.6s both',
   },
   tagline: {
     fontFamily: 'var(--font-title)',
@@ -263,38 +256,36 @@ const styles: Record<string, React.CSSProperties> = {
     color: 'var(--ivory-dim)',
     letterSpacing: '0.15em',
     textTransform: 'uppercase',
-    marginTop: '0.5rem',
+    margin: 0,
+    textAlign: 'center',
   },
   roleContainer: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '1.5rem',
-    marginTop: '1.5rem',
+    gap: '1rem',
+    marginTop: '0.75rem',
     width: '100%',
-    maxWidth: '500px',
-    zIndex: 1,
   },
-  terminalButton: {
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    position: 'relative',
+  heroButton: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '0.3rem',
+    padding: '1.2rem 2rem',
+    width: '100%',
+    borderRadius: '6px',
+    transform: 'none',
   },
-  asciiFrame: {
-    fontFamily: 'var(--font-terminal)',
-    fontSize: '0.8rem',
-    lineHeight: 1.3,
-    color: 'var(--ivory-dim)',
-    margin: 0,
-    padding: '0.5rem',
-    background: 'var(--bg-overlay-light)',
-    border: '1px solid var(--border-subtle)',
-    textAlign: 'center',
-    transition: 'all 0.2s ease',
+  heroTitle: {
+    fontSize: '0.85rem',
+    fontWeight: 700,
+    letterSpacing: '0.2em',
   },
-  asciiFrameHover: {
-    color: 'var(--ivory)',
-    background: 'var(--bg-elevated)',
-    border: '1px solid var(--border-hover)',
-    boxShadow: '0 0 30px var(--blood-glow)',
+  heroSub: {
+    fontSize: '0.65rem',
+    fontWeight: 400,
+    letterSpacing: '0.05em',
+    opacity: 0.7,
+    textTransform: 'none',
   },
 };

@@ -2,10 +2,12 @@ import { describe, it, expect } from 'vitest';
 import { createMockEnv, createMockDB } from './setup';
 import { submitQuiz } from '../../worker/features/quiz/submitQuiz';
 
+let requestCounter = 0;
+
 function makeRequest(body: object) {
   return new Request('http://localhost/api/quiz/submit', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': `10.0.0.${++requestCounter}` },
     body: JSON.stringify(body),
   });
 }
@@ -18,7 +20,20 @@ describe('submitQuiz', () => {
 
     expect(res.status).toBe(400);
     const body = await res.json() as any;
-    expect(body.error).toBe('No answers provided');
+    expect(body.error).toBe('Invalid answers');
+  });
+
+  it('returns 400 for invalid answer options', async () => {
+    const env = createMockEnv();
+
+    const res = await submitQuiz(
+      makeRequest({ answers: { '1': 'x' }, displayName: 'Test' }),
+      env,
+    );
+
+    expect(res.status).toBe(400);
+    const body = await res.json() as any;
+    expect(body.error).toBe('Invalid answer option');
   });
 
   it('grades correct answers and returns passing score', async () => {
@@ -64,7 +79,6 @@ describe('submitQuiz', () => {
 
   it('passes at exactly 60% threshold', async () => {
     const db = createMockDB();
-    // 3 out of 5 = 60%
     db._setResults([
       { id: 1, correct_option: 'a' },
       { id: 2, correct_option: 'b' },
@@ -76,7 +90,7 @@ describe('submitQuiz', () => {
 
     const res = await submitQuiz(
       makeRequest({
-        answers: { '1': 'a', '2': 'b', '3': 'c', '4': 'x', '5': 'x' },
+        answers: { '1': 'a', '2': 'b', '3': 'c', '4': 'a', '5': 'b' },
         displayName: 'Father Borderline',
       }),
       env,

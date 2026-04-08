@@ -32,84 +32,69 @@ describe('listPriests', () => {
 
 describe('updatePriestStatus', () => {
   it('rejects without auth', async () => {
-    const env = createMockEnv();
-    const req = new Request('http://localhost/api/admin/priests/x/approve', {
+    const req = new Request('http://localhost', {
       method: 'POST',
       body: JSON.stringify({}),
     });
-
-    const res = await updatePriestStatus(req, env, { id: 'x', action: 'approve' });
+    const env = createMockEnv();
+    const res = await updatePriestStatus(req, env, { id: 'aabbccdd11223344', action: 'approve' });
 
     expect(res.status).toBe(401);
   });
 
-  it('returns success for approve action', async () => {
+  it('rejects invalid priest ID', async () => {
+    const req = new Request('http://localhost', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer test-secret', 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    const env = createMockEnv();
+    const res = await updatePriestStatus(req, env, { id: 'INVALID!', action: 'approve' });
+
+    expect(res.status).toBe(400);
+  });
+
+  it('rejects invalid action', async () => {
+    const req = new Request('http://localhost', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer test-secret', 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    const env = createMockEnv();
+    const res = await updatePriestStatus(req, env, { id: 'aabbccdd11223344', action: 'delete' });
+
+    expect(res.status).toBe(400);
+  });
+
+  it('approves a priest', async () => {
     const db = createMockDB();
     const env = createMockEnv({ DB: db as any });
 
-    const req = new Request('http://localhost/api/admin/priests/p1/approve', {
+    const req = new Request('http://localhost', {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer test-secret',
-        'Content-Type': 'application/json',
-      },
+      headers: { Authorization: 'Bearer test-secret', 'Content-Type': 'application/json' },
       body: JSON.stringify({}),
     });
-    const res = await updatePriestStatus(req, env, { id: 'p1', action: 'approve' });
+    const res = await updatePriestStatus(req, env, { id: 'aabbccdd11223344', action: 'approve' });
     const body = await res.json() as any;
 
     expect(body).toEqual({ success: true, action: 'approve' });
-  });
-
-  it('returns success for reject action', async () => {
-    const db = createMockDB();
-    const env = createMockEnv({ DB: db as any });
-
-    const req = new Request('http://localhost/api/admin/priests/p2/reject', {
-      method: 'POST',
-      headers: {
-        Authorization: 'Bearer test-secret',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({}),
-    });
-    const res = await updatePriestStatus(req, env, { id: 'p2', action: 'reject' });
-    const body = await res.json() as any;
-
-    expect(body).toEqual({ success: true, action: 'reject' });
-  });
-
-  it('binds approved status for approve action', async () => {
-    const db = createMockDB();
-    const env = createMockEnv({ DB: db as any });
-
-    const req = new Request('http://localhost', {
-      method: 'POST',
-      headers: {
-        Authorization: 'Bearer test-secret',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({}),
-    });
-    await updatePriestStatus(req, env, { id: 'p3', action: 'approve' });
-
     expect(db._lastBindings()[0]).toBe('approved');
   });
 
-  it('binds rejected status for reject action', async () => {
+  it('rejects a priest', async () => {
     const db = createMockDB();
     const env = createMockEnv({ DB: db as any });
 
     const req = new Request('http://localhost', {
       method: 'POST',
-      headers: {
-        Authorization: 'Bearer test-secret',
-        'Content-Type': 'application/json',
-      },
+      headers: { Authorization: 'Bearer test-secret', 'Content-Type': 'application/json' },
       body: JSON.stringify({}),
     });
-    await updatePriestStatus(req, env, { id: 'p4', action: 'reject' });
+    const res = await updatePriestStatus(req, env, { id: 'aabbccdd22334455', action: 'reject' });
+    const body = await res.json() as any;
 
+    expect(body).toEqual({ success: true, action: 'reject' });
     expect(db._lastBindings()[0]).toBe('rejected');
   });
 });

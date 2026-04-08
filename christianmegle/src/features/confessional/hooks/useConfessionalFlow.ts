@@ -1,129 +1,173 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useReducer, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { UserRole } from '../../../lib/types';
 import { usePriestIdentity } from './usePriestIdentity';
 import { usePriestApproval } from './usePriestApproval';
 import { useMatchmaking } from './useMatchmaking';
+import { transition, initialState, type State, type Event } from '../machine';
 
-export type Phase =
-  | 'loading'
-  | 'welcome-back'
-  | 'quiz'
-  | 'not-saved'
-  | 'applied'
-  | 'still-a-sinner'
-  | 'waiting'
-  | 'connected'
-  | 'ended';
+export type { State, StateKind } from '../machine';
+
+const reducer = (state: State, event: Event): State => transition(state, event);
 
 export function useConfessionalFlow(apiUrl: string) {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const initialRole = (searchParams.get('role') as UserRole) || 'sinner';
-  const [role, setRole] = useState<UserRole>(initialRole);
-  const [phase, setPhase] = useState<Phase>('loading');
+
+  const [state, dispatch] = useReducer(reducer, initialRole, initialState);
 
   const { priestId, priestName, savePriest, clearPriest } = usePriestIdentity();
   const { check, startPolling } = usePriestApproval(apiUrl);
-  const { waitingPosition, isInitiator, signalingRef, connect, disconnect } = useMatchmaking(apiUrl);
+  const { waitingPosition, signalingRef, connect, disconnect } = useMatchmaking(apiUrl);
 
-  const connectToMatchmaker = (currentRole: UserRole, pId?: string) => {
-    setPhase('waiting');
-    connect(currentRole, pId, () => setPhase('connected'));
-  };
+  // Sync external matchmaking state into the state machine
+  useEffect(() => {
+    if (state.kind === 'waiting' && waitingPosition !== state.position) {
+      dispatch({ type: 'WAITING', position: waitingPosition });
+    }
+  }, [waitingPosition, state]);
 
-  const checkPriestStatus = async (id: string) => {
-    try {
-      const data = await check(id);
-      if (data.status === 'approved') {
-        if (data.displayName) savePriest(id, data.displayName);
-        setPhase('welcome-back');
-      } else if (data.status === 'pending') {
-        if (data.displayName) savePriest(id, data.displayName);
-        setPhase('applied');
+  // Side effect: kick off matchmaking when entering 'waiting' state
+  const lastConnectKey = useRef<string | null>(null);
+  useEffect(() => {
+    if (state.kind !== 'waiting') {
+      lastConnectKey.current = null;
+      return;
+    }
+    const key = `${state.role}:${priestId ?? ''}`;
+    if (lastConnectKey.current === key) return;
+    lastConnectKey.current = key;
+
+    connect(state.role, priestId || undefined, (initiator) => {
+      dispatch({ type: 'MATCHED', isInitiator: initiator });
+    });
+  }, [state.kind, state.role, priestId]);
+
+  // Side effect: check priest approval status when entering 'applied'
+  const lastPollKey = useRef<string | null>(null);
+  useEffect(() => {
+    if (state.kind !== 'applied' || !priestId) return;
+    if (lastPollKey.current === priestId) return;
+    lastPollKey.current = priestId;
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const data = await check(priestId);
+        if (cancelled) return;
+        if (data.status === 'approved') {
+          if (data.displayName) savePriest(priestId, data.displayName);
+          dispatch({ type: 'PRIEST_APPROVED' });
+          return;
+        }
+        if (data.status === 'pending' && data.displayName) {
+          savePriest(priestId, data.displayName);
+        }
+        // Stay in applied, start polling for approval/rejection
         startPolling(
-          id,
+          priestId,
           (displayName) => {
-            if (displayName) savePriest(id, displayName);
-            setPhase('welcome-back');
+            if (cancelled) return;
+            if (displayName) savePriest(priestId, displayName);
+            dispatch({ type: 'PRIEST_APPROVED' });
           },
           () => {
+            if (cancelled) return;
             clearPriest();
-            setPhase('still-a-sinner');
+            dispatch({ type: 'PRIEST_REJECTED' });
           }
         );
-      } else {
-        clearPriest();
-        setPhase('quiz');
+      } catch {
+        // Network failure during initial check — fall through silently
       }
-    } catch {
-      setPhase('quiz');
-    }
-  };
+    })();
 
+    return () => { cancelled = true; };
+  }, [state.kind, priestId]);
+
+  // Bootstrap: hold loading for 1200ms, then dispatch the right boot event
   useEffect(() => {
-    if (initialRole === 'priest') {
-      if (priestId) {
-        checkPriestStatus(priestId);
+    const timer = setTimeout(() => {
+      if (initialRole === 'priest') {
+        if (priestId) {
+          // Returning priest — check status
+          check(priestId).then((data) => {
+            if (data.status === 'approved') {
+              if (data.displayName) savePriest(priestId, data.displayName);
+              dispatch({ type: 'BOOT_AS_PRIEST_RETURNING' });
+            } else if (data.status === 'pending') {
+              if (data.displayName) savePriest(priestId, data.displayName);
+              dispatch({ type: 'BOOT_AS_PRIEST_PENDING' });
+            } else {
+              clearPriest();
+              dispatch({ type: 'BOOT_AS_PRIEST_NEW' });
+            }
+          }).catch(() => {
+            dispatch({ type: 'BOOT_AS_PRIEST_NEW' });
+          });
+        } else {
+          dispatch({ type: 'BOOT_AS_PRIEST_NEW' });
+        }
       } else {
-        setPhase('quiz');
+        dispatch({ type: 'BOOT_AS_SINNER' });
       }
-    } else {
-      connectToMatchmaker(initialRole);
-    }
-    return () => disconnect();
+    }, 1200);
+
+    return () => {
+      clearTimeout(timer);
+      disconnect();
+    };
   }, []);
+
+  // ── Action dispatchers (called by ConfessionalRoute screens) ──
 
   const handleQuizComplete = (id: string, passed: boolean) => {
     if (passed) {
       savePriest(id);
-      setPhase('applied');
-      checkPriestStatus(id);
+      dispatch({ type: 'QUIZ_PASSED' });
     } else {
-      setPhase('still-a-sinner');
+      dispatch({ type: 'QUIZ_FAILED' });
     }
   };
 
-  const handleBecomeSinner = () => {
-    setRole('sinner');
-    setSearchParams({ role: 'sinner' });
-    connectToMatchmaker('sinner');
-  };
+  const handleNotSaved = () => dispatch({ type: 'QUIZ_NOT_SAVED' });
 
-  const handleNotSaved = () => setPhase('not-saved');
+  const handleBecomeSinner = () => {
+    setSearchParams({ role: 'sinner' });
+    dispatch({ type: 'BECOME_SINNER' });
+  };
 
   const handleStartOver = () => {
     clearPriest();
-    setPhase('quiz');
+    dispatch({ type: 'START_OVER' });
   };
 
-  const handleSessionEnd = () => setPhase('ended');
+  const handleEnterConfessional = () => dispatch({ type: 'ENTER_CONFESSIONAL' });
 
-  const handleExcommunicate = () => {
-    // Skip the ended screen, go straight back to matchmaking
-    connectToMatchmaker(role, priestId || undefined);
-  };
+  const handleSessionEnd = () => dispatch({ type: 'SESSION_ENDED' });
 
-  const handleRejoin = () => connectToMatchmaker(role, priestId || undefined);
+  const handleRejoin = () => dispatch({ type: 'REJOIN' });
 
-  const handleEnterConfessional = () => connectToMatchmaker(role, priestId || undefined);
+  const handleExcommunicate = () => dispatch({ type: 'EXCOMMUNICATE' });
 
   return {
-    role,
-    phase,
+    state,
+    role: state.role,
     priestId,
     priestName,
-    waitingPosition,
-    isInitiator,
+    waitingPosition: state.kind === 'waiting' ? state.position : 0,
+    isInitiator: state.kind === 'connected' ? state.isInitiator : false,
     signalingRef,
     navigate,
     handleQuizComplete,
-    handleBecomeSinner,
     handleNotSaved,
+    handleBecomeSinner,
     handleStartOver,
-    handleSessionEnd,
-    handleExcommunicate,
-    handleRejoin,
     handleEnterConfessional,
+    handleSessionEnd,
+    handleRejoin,
+    handleExcommunicate,
   };
 }

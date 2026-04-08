@@ -82,8 +82,8 @@ export function VideoPanel({
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  videoColumn: { display: 'flex', flexDirection: 'column', flex: '1 1 0', minWidth: 0, borderRight: '1px solid var(--border-subtle)', position: 'relative' },
-  videoPanel: { flex: 1, position: 'relative', overflow: 'hidden', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-video)' },
+  videoColumn: { display: 'flex', flexDirection: 'column', flex: '1 1 0', minWidth: 0, borderRight: '1px solid var(--border-subtle)', position: 'relative', overflow: 'auto' },
+  videoPanel: { position: 'relative', overflow: 'hidden', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-video)', aspectRatio: '1 / 1', maxHeight: '45vh' },
   video: { width: '100%', height: '100%', objectFit: 'cover', display: 'block' },
   videoLabel: { position: 'absolute', bottom: '0.5rem', left: '0.75rem', fontFamily: 'var(--font-terminal)', fontSize: '0.6rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--ivory-dim)', background: 'var(--bg-overlay-light)', padding: '0.2rem 0.5rem', zIndex: 5 },
   videoOverlay: { position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-video)', gap: '1rem', zIndex: 4 },

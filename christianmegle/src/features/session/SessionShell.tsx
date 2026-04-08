@@ -15,6 +15,7 @@ import EffectsOverlay from '../priest-toolkit/ui/EffectsOverlay';
 import PriestToolbar from '../priest-toolkit/ui/PriestToolbar';
 import BookOfLife from '../priest-toolkit/ui/BookOfLife';
 import { ChatPanel } from '../chat/ui/ChatPanel';
+import { LaceFrame, LaceDivider } from '../../lace';
 
 interface SessionShellProps {
   signaling: SignalingClient;
@@ -56,6 +57,7 @@ export default function SessionShell({ signaling, role, isInitiator, apiUrl, onS
   // --- Compose UI ---
   return (
     <div style={styles.container}>
+      <LaceFrame profile="confessional-screen" />
       <VideoPanel
         localVideoRef={session.localVideoRef}
         remoteVideoRef={session.remoteVideoRef}
@@ -102,6 +104,8 @@ export default function SessionShell({ signaling, role, isInitiator, apiUrl, onS
           </>
         )}
       </VideoPanel>
+
+      <LaceDivider profile="grate-divider" orientation="vertical" />
 
       <ChatPanel
         chatMessages={chat.chatMessages}
