@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { brand, CrossLogo } from '../assets';
 import ChromeButton from '../components/ChromeButton';
 import { LaceFrame } from '../lace';
-import EntryOverlay from '../features/entry/EntryOverlay';
+import LoadingScreen from '../features/entry/LoadingScreen';
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -29,8 +29,8 @@ export default function Landing() {
   return (
     <>
       {showEntry && (
-        <EntryOverlay
-          onExit={() => {
+        <LoadingScreen
+          onComplete={() => {
             sessionStorage.setItem('christianmegle_entered', '1');
             setShowEntry(false);
           }}
@@ -79,19 +79,23 @@ export default function Landing() {
         <span style={{ ...styles.sparkle, top: '30%', right: '8%', animationDelay: '0.8s' }}>+</span>
       </div>
 
-      {/* Hero stack — everything centered in one column */}
+      {/* Hero stack — everything centered in one column.
+          Cross + wordmark only mount once the entry overlay is gone,
+          so their CSS animations play visibly instead of behind the overlay. */}
       <div className="hero-glow" style={styles.hero}>
-        {/* Cross Logo (above wordmark, ~1/3 of wordmark width) */}
-        <div style={styles.crossWrap}>
-          <CrossLogo size={150} />
-        </div>
-
-        {/* Wordmark */}
-        <img
-          src={brand.wordmark}
-          alt="ChristianMegle"
-          style={styles.wordmark}
-        />
+        {!showEntry && (
+          <>
+            <div key="cross" style={styles.crossWrap}>
+              <CrossLogo size={150} />
+            </div>
+            <img
+              key="wordmark"
+              src={brand.wordmark}
+              alt="ChristianMegle"
+              style={styles.wordmark}
+            />
+          </>
+        )}
 
         <p style={styles.tagline}>Confess your sins to strangers</p>
 
