@@ -1,16 +1,16 @@
 import { useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { brand, CrossLogo } from '../assets';
+import ChromeButton from '../components/ChromeButton';
+import { LaceFrame } from '../lace';
+import EntryOverlay from '../features/entry/EntryOverlay';
 
 export default function Landing() {
   const navigate = useNavigate();
-  const [showSplash, setShowSplash] = useState(true);
+  const [showEntry, setShowEntry] = useState(() =>
+    typeof window !== 'undefined' && !sessionStorage.getItem('christianmegle_entered')
+  );
   const [showLightDenied, setShowLightDenied] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setShowSplash(false), 3000);
-    return () => clearTimeout(timer);
-  }, []);
   const [lightMode, setLightMode] = useState(() =>
     document.body.classList.contains('light-mode')
   );
@@ -26,25 +26,19 @@ export default function Landing() {
     setLightMode(next);
   };
 
-  if (showSplash) {
-    return (
-      <div style={styles.splashContainer}>
-        <p style={styles.splashVerse}>
-          But of the tree of the knowledge of good
-          <br />
-          and evil, thou shalt not eat of it:
-          <br />
-          for in the day that thou eatest thereof
-          <br />
-          thou shalt surely die.
-        </p>
-        <p style={styles.splashReference}>Genesis 2:17</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="page-enter" style={styles.container}>
+    <>
+      {showEntry && (
+        <EntryOverlay
+          onExit={() => {
+            sessionStorage.setItem('christianmegle_entered', '1');
+            setShowEntry(false);
+          }}
+        />
+      )}
+      <div className="page-enter" style={styles.container}>
+        <LaceFrame profile="landing-hero" />
+
       {/* Nav links — top right */}
       <div style={styles.navRow}>
         <span style={styles.navLink} onClick={() => navigate('/leaderboard')}>leaderboard</span>
@@ -86,7 +80,7 @@ export default function Landing() {
       </div>
 
       {/* Hero stack — everything centered in one column */}
-      <div style={styles.hero}>
+      <div className="hero-glow" style={styles.hero}>
         {/* Cross Logo (above wordmark, ~1/3 of wordmark width) */}
         <div style={styles.crossWrap}>
           <CrossLogo size={150} />
@@ -101,56 +95,23 @@ export default function Landing() {
 
         <p style={styles.tagline}>Confess your sins to strangers</p>
 
-        {/* Role selection - Chrome Silver */}
+        {/* Role selection - Chrome Sprite Buttons */}
         <div style={styles.roleContainer}>
-          <button
-            style={styles.heroButton}
-            onClick={() => navigate('/confess?role=priest')}
-          >
-            <span style={styles.heroTitle}>I AM FORGIVEN</span>
-            <span style={styles.heroSub}>hear the confessions of sinners</span>
-          </button>
+          <ChromeButton onClick={() => navigate('/confess?role=priest')}>
+            I AM FORGIVEN
+          </ChromeButton>
 
-          <button
-            style={styles.heroButton}
-            onClick={() => navigate('/confess?role=sinner')}
-          >
-            <span style={styles.heroTitle}>✝ I HAVE SINNED ✝</span>
-            <span style={styles.heroSub}>confess to a stranger</span>
-          </button>
+          <ChromeButton onClick={() => navigate('/confess?role=sinner')}>
+            ✝ I HAVE SINNED ✝
+          </ChromeButton>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  splashContainer: {
-    minHeight: '100vh',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: 'var(--bg-primary)',
-    padding: '2rem',
-  },
-  splashVerse: {
-    fontFamily: 'var(--font-body)',
-    fontSize: '1.1rem',
-    lineHeight: 1.8,
-    color: 'var(--ivory)',
-    textAlign: 'center',
-    fontStyle: 'italic',
-    maxWidth: '400px',
-  },
-  splashReference: {
-    fontFamily: 'var(--font-terminal)',
-    fontSize: '0.75rem',
-    color: 'var(--ivory-dim)',
-    letterSpacing: '0.1em',
-    marginTop: '1.5rem',
-    fontStyle: 'normal',
-  },
   navRow: {
     position: 'absolute',
     top: '1.2rem',

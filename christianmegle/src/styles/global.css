@@ -605,6 +605,117 @@ input::placeholder, textarea::placeholder {
 .mt-lg { margin-top: var(--space-lg); }
 .mt-xl { margin-top: var(--space-xl); }
 
+/* === Chrome sprite-sheet button === */
+
+.chrome-button {
+  /* Override the global chrome-3D button styles */
+  all: unset;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Frame size: sprite is 9720x200 (12 frames of 810x200) */
+  aspect-ratio: 810 / 200;
+  width: 100%;
+  max-width: 480px;
+
+  /* Default = button-default.png */
+  background-image: url('/assets/images/long-buttons/button-default.png');
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-position: 0 0;
+
+  position: relative;
+  font-family: var(--font-terminal);
+  color: var(--ivory);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.chrome-button__label {
+  position: relative;
+  z-index: 2;
+  font-size: 0.85rem;
+  pointer-events: none;
+  padding: 0 1.5rem;
+}
+
+.chrome-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.chrome-button:hover,
+.chrome-button:focus-visible {
+  /* Switch to the 12-frame sprite, scaled so each frame fills the button */
+  background-image: url('/assets/images/long-buttons/button-hover-sprite.png');
+  background-size: 1200% 100%; /* 12 frames laid out horizontally */
+  background-position: 0 0;
+  animation: chrome-button-hover 900ms steps(12, end) forwards;
+}
+
+.chrome-button:active {
+  transform: translateY(1px);
+}
+
+@keyframes chrome-button-hover {
+  from { background-position: 0% 0; }
+  to   { background-position: -1100% 0; } /* (12 - 1) * 100% */
+}
+
+/* Reduced motion — skip the animation, jump straight to last frame */
+@media (prefers-reduced-motion: reduce) {
+  .chrome-button:hover,
+  .chrome-button:focus-visible {
+    animation: none;
+    background-position: -1100% 0;
+  }
+}
+
+/* === Hero glow on hover === */
+
+.hero-glow img,
+.hero-glow > div {
+  transition: filter 0.35s ease;
+}
+
+.hero-glow p {
+  transition: text-shadow 0.35s ease, color 0.35s ease;
+}
+
+/* Cross logo wrap and any standalone wrappers — soft white halo */
+.hero-glow > div:hover {
+  filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.55))
+          drop-shadow(0 0 28px rgba(255, 255, 255, 0.25));
+}
+
+/* Wordmark image — keep existing red glow but layer a brighter halo on hover */
+.hero-glow img:hover {
+  filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.6))
+          drop-shadow(0 0 40px var(--blood-glow));
+}
+
+/* Tagline text */
+.hero-glow p:hover {
+  color: var(--ivory);
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.7),
+               0 0 20px rgba(255, 255, 255, 0.35);
+}
+
+/* Buttons inside the hero — augment the chrome hover glow */
+.hero-glow button:hover {
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.1),
+    0 0 18px rgba(255, 255, 255, 0.45),
+    0 0 36px rgba(220, 220, 240, 0.25);
+}
+
 /* === Light Mode (Heaven) === */
 
 body.light-mode {

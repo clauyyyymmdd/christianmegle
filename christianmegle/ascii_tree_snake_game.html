@@ -1,0 +1,282 @@
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<div id="tree-container" style="position: relative; width: 100%; min-height: 600px; background: #0a0a0a; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer;" onclick="startSnake()">
+<canvas id="c" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></canvas>
+<div id="click-hint" style="position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.3em; color: #333; opacity: 0; transition: opacity 1s ease; text-transform: lowercase;">eat the apple</div>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const hint = document.getElementById('click-hint');
+const container = document.getElementById('tree-container');
+
+const CHAR_W = 7.2;
+const CHAR_H = 14;
+let cols, rows;
+let grid = [];
+let snakeActive = false;
+let snakePath = [];
+let snakeHead = null;
+let snakeLength = 0;
+let eaten = new Set();
+let phase = 'tree';
+let verseChars = [];
+let versePositions = [];
+let frameCount = 0;
+let animId;
+
+const tree = [
+"                              ✿                              ",
+"                          ·  ˚ ° ˚  ·                        ",
+"                      · ˚  ✧  ❋  ✧  ˚ ·                    ",
+"                   · ˚ ✧ · ˚ ✿ ˚ · ✧ ˚ ·                  ",
+"                · ˚ ✧ ❋ · ˚ ° ˚ · ❋ ✧ ˚ ·                ",
+"             · ˚  · ✧ ˚ ✿ ˚ · ˚ ✿ ˚ ✧ ·  ˚ ·            ",
+"           · ✧ ˚ ❋ · ✧ ˚ · ° · ˚ ✧ · ❋ ˚ ✧ ·            ",
+"          · ˚ ✧ · ˚ ❋ ✧ ˚ ✿ ˚ ✧ ❋ ˚ · ✧ ˚ ·            ",
+"           · ˚ ✧ · ❋ ˚ · ✧ ° ✧ · ˚ ❋ · ✧ ˚ ·            ",
+"             · ˚  · ✧ ˚ ✿ ˚ · ˚ ✿ ˚ ✧ ·  ˚ ·            ",
+"                ·  ✧ ˚ · ˚  °  ˚ · ˚ ✧  ·                  ",
+"                   · ˚  ✧ ·  °  · ✧  ˚ ·                    ",
+"                      · ˚  · ˚ ·  ˚ ·                        ",
+"                          · ˚°˚ ·                            ",
+"                            · ˚ ·                            ",
+"                             )|(                              ",
+"                            )||(                              ",
+"                           )| |(                              ",
+"                          )| ~|(                              ",
+"                         )|~ ~|(                              ",
+"                         )| ~ |(                              ",
+"                         )|  ~|(                              ",
+"                         )| ~ |(                              ",
+"                          )| |(                              ",
+"                           )||(                              ",
+"                            )(                                ",
+"                      · .  ˚  . ·  . ·                        ",
+"                   ˚    · . ·    · .    ˚                    ",
+"                ✧    ˚    · . · .·    ˚    ✧                ",
+"             .    ✧    ˚    ·.·    ˚    ✧    .              ",
+"          ˚ . · ˚ . ✧ . ˚ . · . ˚ . ✧ . ˚ · . ˚          ",
+];
+
+const verse = "But of the tree of the knowledge of good and evil, thou shalt not eat of it: for in the day that thou eatest thereof thou shalt surely die. — Genesis 2:17";
+
+function init() {
+  const dpr = window.devicePixelRatio || 1;
+  const rect = container.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  ctx.scale(dpr, dpr);
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = rect.height + 'px';
+  
+  cols = Math.floor(rect.width / CHAR_W);
+  rows = Math.floor(rect.height / CHAR_H);
+  
+  grid = [];
+  const offsetR = Math.floor((rows - tree.length) / 2);
+  const offsetC = Math.floor((cols - 60) / 2);
+  
+  for (let r = 0; r < rows; r++) {
+    grid[r] = [];
+    for (let c = 0; c < cols; c++) {
+      const tr = r - offsetR;
+      const tc = c - offsetC;
+      if (tr >= 0 && tr < tree.length && tc >= 0 && tc < tree[tr].length && tree[tr][tc] !== ' ') {
+        grid[r][c] = { ch: tree[tr][tc], alive: true, opacity: 1 };
+      } else {
+        grid[r][c] = null;
+      }
+    }
+  }
+  
+  const verseLines = [];
+  const lineW = Math.min(50, cols - 10);
+  let cur = '';
+  verse.split(' ').forEach(w => {
+    if ((cur + ' ' + w).trim().length > lineW) { verseLines.push(cur.trim()); cur = w; }
+    else { cur = cur ? cur + ' ' + w : w; }
+  });
+  if (cur) verseLines.push(cur.trim());
+  
+  versePositions = [];
+  const vStartR = Math.floor((rows - verseLines.length) / 2);
+  for (let l = 0; l < verseLines.length; l++) {
+    const vStartC = Math.floor((cols - verseLines[l].length) / 2);
+    for (let c = 0; c < verseLines[l].length; c++) {
+      versePositions.push({ r: vStartR + l, c: vStartC + c, ch: verseLines[l][c], revealed: false, opacity: 0 });
+    }
+  }
+  
+  drawTree();
+  setTimeout(() => { hint.style.opacity = '1'; }, 2000);
+}
+
+function drawTree() {
+  const rect = container.getBoundingClientRect();
+  ctx.clearRect(0, 0, rect.width, rect.height);
+  ctx.font = '12px "IBM Plex Mono", monospace';
+  ctx.textBaseline = 'top';
+  
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const cell = grid[r][c];
+      if (cell && cell.alive) {
+        const brightness = 180 + Math.floor(Math.random() * 40);
+        ctx.fillStyle = `rgba(${brightness},${brightness},${brightness},${cell.opacity})`;
+        ctx.fillText(cell.ch, c * CHAR_W, r * CHAR_H);
+      }
+    }
+  }
+  
+  if (phase === 'eating' || phase === 'dissolving') {
+    for (let i = 0; i < snakePath.length; i++) {
+      const p = snakePath[i];
+      const age = snakePath.length - i;
+      const tailOpacity = Math.max(0, 1 - age / 30);
+      if (tailOpacity > 0) {
+        ctx.fillStyle = `rgba(255,255,255,${tailOpacity})`;
+        ctx.fillRect(p.c * CHAR_W, p.r * CHAR_H, CHAR_W, CHAR_H);
+      }
+    }
+  }
+  
+  if (phase === 'verse' || phase === 'dissolving') {
+    for (const vp of versePositions) {
+      if (vp.opacity > 0) {
+        ctx.fillStyle = `rgba(220,220,220,${vp.opacity})`;
+        ctx.fillText(vp.ch, vp.c * CHAR_W, vp.r * CHAR_H);
+      }
+    }
+  }
+}
+
+let alivePositions = [];
+let verseRevealIdx = 0;
+let snakeTarget = null;
+let dissolveFrame = 0;
+
+function startSnake() {
+  if (snakeActive) return;
+  snakeActive = true;
+  hint.style.opacity = '0';
+  phase = 'eating';
+  
+  alivePositions = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (grid[r][c] && grid[r][c].alive) alivePositions.push({r, c});
+    }
+  }
+  
+  const topFruit = alivePositions.reduce((best, p) => p.r < best.r ? p : best, alivePositions[0]);
+  snakeHead = { r: topFruit.r - 2, c: topFruit.c };
+  snakePath = [{ ...snakeHead }];
+  snakeLength = 8;
+  
+  pickTarget();
+  animate();
+}
+
+function pickTarget() {
+  if (alivePositions.length === 0) { snakeTarget = null; return; }
+  let best = null;
+  let bestDist = Infinity;
+  for (const p of alivePositions) {
+    if (!grid[p.r][p.c] || !grid[p.r][p.c].alive) continue;
+    const d = Math.abs(p.r - snakeHead.r) + Math.abs(p.c - snakeHead.c);
+    if (d < bestDist && d > 0) { bestDist = d; best = p; }
+  }
+  snakeTarget = best;
+}
+
+function moveSnake() {
+  if (!snakeTarget) return;
+  
+  let dr = 0, dc = 0;
+  if (Math.abs(snakeTarget.r - snakeHead.r) > Math.abs(snakeTarget.c - snakeHead.c)) {
+    dr = snakeTarget.r > snakeHead.r ? 1 : -1;
+  } else {
+    dc = snakeTarget.c > snakeHead.c ? 1 : -1;
+  }
+  
+  if (Math.random() < 0.15) {
+    if (dr !== 0) { dr = 0; dc = Math.random() < 0.5 ? 1 : -1; }
+    else { dc = 0; dr = Math.random() < 0.5 ? 1 : -1; }
+  }
+  
+  snakeHead = { r: Math.max(0, Math.min(rows-1, snakeHead.r + dr)), c: Math.max(0, Math.min(cols-1, snakeHead.c + dc)) };
+  snakePath.push({ ...snakeHead });
+  if (snakePath.length > snakeLength) snakePath.shift();
+  
+  const cell = grid[snakeHead.r] && grid[snakeHead.r][snakeHead.c];
+  if (cell && cell.alive) {
+    cell.alive = false;
+    cell.opacity = 0;
+    alivePositions = alivePositions.filter(p => !(p.r === snakeHead.r && p.c === snakeHead.c));
+    snakeLength = Math.min(snakeLength + 1, 25);
+    
+    if (Math.random() < 0.3 || !snakeTarget || (!grid[snakeTarget.r][snakeTarget.c] || !grid[snakeTarget.r][snakeTarget.c].alive)) {
+      pickTarget();
+    }
+  }
+}
+
+function animate() {
+  frameCount++;
+  
+  if (phase === 'eating') {
+    for (let i = 0; i < 3; i++) moveSnake();
+    
+    if (alivePositions.length === 0) {
+      phase = 'dissolving';
+      dissolveFrame = 0;
+    }
+  }
+  
+  if (phase === 'dissolving') {
+    dissolveFrame++;
+    
+    if (dissolveFrame > 30) {
+      snakePath.shift();
+      if (snakePath.length === 0) phase = 'verse';
+    }
+    
+    if (dissolveFrame > 60) {
+      const revealPerFrame = Math.max(1, Math.floor(versePositions.length / 120));
+      for (let i = 0; i < revealPerFrame; i++) {
+        if (verseRevealIdx < versePositions.length) {
+          versePositions[verseRevealIdx].revealed = true;
+          verseRevealIdx++;
+        }
+      }
+    }
+  }
+  
+  if (phase === 'verse') {
+    const revealPerFrame = Math.max(1, Math.floor(versePositions.length / 90));
+    for (let i = 0; i < revealPerFrame; i++) {
+      if (verseRevealIdx < versePositions.length) {
+        versePositions[verseRevealIdx].revealed = true;
+        verseRevealIdx++;
+      }
+    }
+  }
+  
+  for (const vp of versePositions) {
+    if (vp.revealed && vp.opacity < 1) {
+      vp.opacity = Math.min(1, vp.opacity + 0.03);
+    }
+  }
+  
+  drawTree();
+  
+  const allRevealed = versePositions.every(vp => vp.opacity >= 0.95);
+  if (!allRevealed) {
+    animId = requestAnimationFrame(animate);
+  }
+}
+
+init();
+window.addEventListener('resize', () => { cancelAnimationFrame(animId); snakeActive = false; phase = 'tree'; init(); });
+</script>

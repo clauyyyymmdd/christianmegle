@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { QuizQuestion } from '../../../lib/types';
 import { fetchQuizQuestions, submitQuiz } from '../api/quizApi';
+import ChromeButton from '../../../components/ChromeButton';
 
 interface BibleQuizProps {
   apiUrl: string;
@@ -308,19 +309,13 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
           {(['a', 'b', 'c', 'd'] as const).map((key) => {
             const isSelected = answers[question.id] === key;
             return (
-              <div
+              <ChromeButton
                 key={key}
                 onClick={() => handleAnswer(question.id, key)}
-                style={{
-                  ...styles.option,
-                  ...(isSelected ? styles.optionSelected : {}),
-                }}
+                style={isSelected ? { filter: 'brightness(1.2) drop-shadow(0 0 12px rgba(255,255,255,0.5))' } : undefined}
               >
-                <span style={styles.optionKey}>[{key.toUpperCase()}]</span>
-                <span style={styles.optionText}>
-                  {question.options[key]}
-                </span>
-              </div>
+                [{key.toUpperCase()}] {question.options[key]}
+              </ChromeButton>
             );
           })}
         </div>
