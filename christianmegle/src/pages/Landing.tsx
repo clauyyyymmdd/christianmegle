@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { brand, CrossLogo } from '../assets';
 import ChromeButton from '../components/ChromeButton';
+import AboutModal from '../components/AboutModal';
 import { LaceFrame } from '../lace';
 import LoadingScreen from '../features/entry/LoadingScreen';
 
@@ -11,6 +12,7 @@ export default function Landing() {
     typeof window !== 'undefined' && !sessionStorage.getItem('christianmegle_entered')
   );
   const [showLightDenied, setShowLightDenied] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
   const [lightMode, setLightMode] = useState(() =>
     document.body.classList.contains('light-mode')
   );
@@ -86,7 +88,7 @@ export default function Landing() {
         {!showEntry && (
           <>
             <div key="cross" style={styles.crossWrap}>
-              <CrossLogo size={150} />
+              <CrossLogo size={150} onClick={() => setShowAbout(true)} />
             </div>
             <img
               key="wordmark"
@@ -111,6 +113,8 @@ export default function Landing() {
         </div>
       </div>
       </div>
+
+      <AboutModal open={showAbout} onClose={() => setShowAbout(false)} />
     </>
   );
 }

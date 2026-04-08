@@ -17,7 +17,7 @@ const TREE = [
   '                · ˚ ✧ ❋ · ˚ ° ˚ · ❋ ✧ ˚ ·                ',
   '             · ˚  · ✧ ˚ ✿ ˚ · ˚ ✿ ˚ ✧ ·  ˚ ·            ',
   '           · ✧ ˚ ❋ · ✧ ˚ · ° · ˚ ✧ · ❋ ˚ ✧ ·            ',
-  '          · ˚ ✧ · ˚ ❋ ✧ ˚ ✿ ˚ ✧ ❋ ˚ · ✧ ˚ ·            ',
+  '          · ˚ ✧ · ˚ ❋ ✧ ˚ 🍎 ˚ ✧ ❋ ˚ · ✧ ˚ ·            ',
   '           · ˚ ✧ · ❋ ˚ · ✧ ° ✧ · ˚ ❋ · ✧ ˚ ·            ',
   '             · ˚  · ✧ ˚ ✿ ˚ · ˚ ✿ ˚ ✧ ·  ˚ ·            ',
   '                ·  ✧ ˚ · ˚  °  ˚ · ˚ ✧  ·                  ',
@@ -121,7 +121,9 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
     s.verseRevealIdx = 0;
     s.dissolveFrame = 0;
 
-    // build grid
+    // build grid — iterate TREE rows by code points so emojis (e.g. 🍎)
+    // stay whole instead of splitting across their surrogate pair
+    const treeRows = TREE.map((row) => Array.from(row));
     const offsetR = Math.floor((s.rows - TREE.length) / 2);
     const offsetC = Math.floor((s.cols - 60) / 2);
     s.grid = [];
@@ -130,8 +132,8 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
       for (let c = 0; c < s.cols; c++) {
         const tr = r - offsetR;
         const tc = c - offsetC;
-        if (tr >= 0 && tr < TREE.length && tc >= 0 && tc < TREE[tr].length && TREE[tr][tc] !== ' ') {
-          s.grid[r][c] = { ch: TREE[tr][tc], alive: true, opacity: 1 };
+        if (tr >= 0 && tr < treeRows.length && tc >= 0 && tc < treeRows[tr].length && treeRows[tr][tc] !== ' ') {
+          s.grid[r][c] = { ch: treeRows[tr][tc], alive: true, opacity: 1 };
         } else {
           s.grid[r][c] = null;
         }
