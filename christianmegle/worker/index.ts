@@ -32,7 +32,14 @@ export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     try {
       return await router.handle(request, env);
-    } catch {
+    } catch (error) {
+      console.error('Worker error', {
+        method: request.method,
+        url: request.url,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+
       return Response.json(
         { error: 'Internal server error' },
         { status: 500, headers: corsHeaders(request, env) }

@@ -1,13 +1,11 @@
-import { useCallback, useEffect } from 'react';
 import { SignalingClient } from '../../lib/signaling';
 import { UserRole } from '../../lib/types';
-import type { ServerMessage } from '../../../shared/types/messages';
-import { isPriestAction, isChatMessage } from '../../../shared/types/messages';
 
 // Feature hooks
 import { useWebRTC } from '../confession-session/hooks/useWebRTC';
 import { usePriestActions } from '../priest-toolkit/hooks/usePriestActions';
 import { useChat } from '../chat/hooks/useChat';
+import { useSessionMessageRouter } from './useSessionMessageRouter';
 
 // Feature UI
 import { VideoPanel } from '../confession-session/ui/VideoPanel';
@@ -32,27 +30,13 @@ export default function SessionShell({ signaling, role, isInitiator, apiUrl, onS
   const priest = usePriestActions(signaling);
   const chat = useChat(signaling, role);
 
+  // Route incoming signaling messages to the right feature hook.
+  useSessionMessageRouter(signaling, chat, priest);
+
   const handleEndSession = () => {
     session.endSession();
     onSessionEnd();
   };
-
-  // --- Signaling message router ---
-  const routeMessage = useCallback(
-    (msg: ServerMessage) => {
-      if (isChatMessage(msg)) {
-        chat.handleIncoming(msg);
-      } else if (isPriestAction(msg)) {
-        priest.handleIncoming(msg);
-      }
-    },
-    [chat.handleIncoming, priest.handleIncoming]
-  );
-
-  useEffect(() => {
-    const cleanup = signaling.onMessage(routeMessage);
-    return cleanup;
-  }, [signaling, routeMessage]);
 
   // --- Compose UI ---
   return (

@@ -74,7 +74,7 @@ interface LoadingScreenProps {
 export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [showHint, setShowHint] = useState(false);
+  const [showHint, setShowHint] = useState(true);
   const [showButton, setShowButton] = useState(false);
   const [exiting, setExiting] = useState(false);
 
@@ -170,7 +170,7 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
     }
 
     draw(ctx, rect.width, rect.height);
-    setTimeout(() => setShowHint(true), 2000);
+    setShowHint(true);
   }, []);
 
   // ─── DRAWING ───

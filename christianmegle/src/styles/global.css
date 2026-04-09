@@ -709,10 +709,15 @@ input::placeholder, textarea::placeholder {
           drop-shadow(0 0 28px rgba(255, 255, 255, 0.25));
 }
 
-/* Wordmark image — keep existing red glow but layer a brighter halo on hover */
+/* Wordmark image — restrained ivory halo layered over the resting blood glow.
+   Filter-only, so there is no layout shift. */
+.hero-glow img {
+  transition: filter 0.5s ease;
+}
 .hero-glow img:hover {
-  filter: drop-shadow(0 0 18px rgba(255, 255, 255, 0.6))
-          drop-shadow(0 0 40px var(--blood-glow));
+  filter: drop-shadow(0 0 10px rgba(245, 240, 230, 0.35))
+          drop-shadow(0 0 22px rgba(245, 240, 230, 0.18))
+          drop-shadow(0 0 30px var(--blood-glow));
 }
 
 /* Tagline text */

@@ -32,45 +32,43 @@ export default function AboutModal({ open, onClose }: AboutModalProps) {
       >
         {/* Chrome title bar */}
         <div style={styles.titleBar}>
-          <span id="about-title" style={styles.title}>ABOUT CHRISTIANMEGLE</span>
+          <span id="about-title" style={styles.title}>How to use Christianmegle:</span>
           <button onClick={onClose} style={styles.closeBtn} aria-label="Close">×</button>
         </div>
 
         {/* Dark content area */}
         <div style={styles.content}>
-          <p style={styles.lede}>
-            Random pairing. Anonymous confession. Two roles.
-          </p>
-
-          <div style={styles.divider} />
-
           <div style={styles.row}>
-            <div style={styles.roleLabel}>☦ PRIEST</div>
+            <div style={styles.roleLabel}>FOR SINNERS:</div>
             <p style={styles.roleBody}>
-              Priests must prove their worth. Pass the scripture
-              examination. Demonstrate sufficient knowledge and
-              compassion. Await approval. The booth is not for
-              the unvetted.
+              If you are unable to visit a church and confess your transgressions,
+              it shows: your sins have stained you like scarlet. To go about with
+              them still stuck inside you, rather than practicing regular repentance
+              and confession, is the spiritual equivalent of never brushing your
+              teeth or never relieving yourself. Everyone can tell.
+            </p>
+            <p style={styles.roleBody}>
+              Christianmegle is your portable, on-the-go confession booth. Speak
+              to a priest authenticated right here on Christianmegle. Our
+              God-breathed, roulette-style algorithm matches you with the right
+              person to hear your confession in real time. At any point during
+              your session, you may switch priests and continue. Your priest will
+              assign you penance, and your sins will be absolved. Now go forth
+              and confess.
             </p>
           </div>
 
           <div style={styles.divider} />
 
           <div style={styles.row}>
-            <div style={styles.roleLabel}>✝ SINNER</div>
+            <div style={styles.roleLabel}>FOR PRIESTS:</div>
             <p style={styles.roleBody}>
-              Anyone may confess. Jesus takes everyone. No test,
-              no review, no credentials. Step into the booth and
-              a priest will hear you.
+              Priests, do you want practice hearing confessions and pardoning
+              sins? Look no further. God will always find a way for you to do
+              His work. With our simple authentication process, you can exercise
+              the authority God gave you.
             </p>
           </div>
-
-          <div style={styles.divider} />
-
-          <p style={styles.footerText}>
-            Conversations are not stored. Sessions end when either
-            party leaves.
-          </p>
         </div>
       </div>
     </div>
@@ -117,10 +115,10 @@ const styles: Record<string, React.CSSProperties> = {
     borderBottom: '1px solid #666',
   },
   title: {
-    fontFamily: 'var(--font-terminal)',
-    fontSize: '0.72rem',
-    fontWeight: 700,
-    letterSpacing: '0.15em',
+    fontFamily: '"IBM Plex Mono", monospace',
+    fontSize: '0.78rem',
+    fontWeight: 500,
+    letterSpacing: '0.04em',
     color: '#1a1a1a',
     textShadow: '0 1px 0 rgba(255, 255, 255, 0.6)',
   },
@@ -154,16 +152,6 @@ const styles: Record<string, React.CSSProperties> = {
     border: '1px solid #333',
     borderTop: 'none',
   },
-  lede: {
-    fontFamily: 'var(--font-terminal)',
-    fontSize: '0.8rem',
-    letterSpacing: '0.1em',
-    color: 'var(--ivory)',
-    textAlign: 'center',
-    margin: 0,
-    textTransform: 'uppercase',
-    lineHeight: 1.6,
-  },
   divider: {
     height: '1px',
     background: 'linear-gradient(90deg, transparent, #555, transparent)',
@@ -172,31 +160,21 @@ const styles: Record<string, React.CSSProperties> = {
   row: {
     display: 'flex',
     flexDirection: 'column',
-    gap: '0.55rem',
+    gap: '0.75rem',
   },
   roleLabel: {
-    fontFamily: 'var(--font-terminal)',
-    fontSize: '0.85rem',
-    fontWeight: 700,
-    letterSpacing: '0.18em',
+    fontFamily: '"IBM Plex Mono", monospace',
+    fontSize: '0.8rem',
+    fontWeight: 500,
+    letterSpacing: '0.08em',
     color: '#e8e8e8',
-    textShadow: '0 0 8px rgba(255, 255, 255, 0.25)',
+    textShadow: '0 0 8px rgba(255, 255, 255, 0.2)',
   },
   roleBody: {
-    fontFamily: 'var(--font-body)',
-    fontSize: '0.9rem',
-    lineHeight: 1.6,
+    fontFamily: '"IBM Plex Mono", monospace',
+    fontSize: '0.78rem',
+    lineHeight: 1.7,
     color: 'var(--ivory-dim)',
     margin: 0,
-    fontStyle: 'italic',
-  },
-  footerText: {
-    fontFamily: 'var(--font-terminal)',
-    fontSize: '0.65rem',
-    letterSpacing: '0.08em',
-    color: '#888',
-    textAlign: 'center',
-    margin: 0,
-    textTransform: 'uppercase',
   },
 };
