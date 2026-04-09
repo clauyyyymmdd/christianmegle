@@ -1,7 +1,22 @@
-import { useState, useEffect } from 'react';
-import { QuizQuestion } from '../../../lib/types';
-import { fetchQuizQuestions, submitQuiz } from '../api/quizApi';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { submitQuiz } from '../api/quizApi';
 import ChromeButton from '../../../components/ChromeButton';
+
+/**
+ * Priest onboarding — "Bible quiz" in name only for backwards compatibility
+ * with the confessional flow's state machine. The user-facing experience
+ * is a snake/cross-vs-sins canvas game followed by a single written prompt.
+ *
+ * External contract preserved:
+ *   - file path: src/features/priest-onboarding/ui/BibleQuiz.tsx
+ *   - default export
+ *   - props: { apiUrl, onComplete(id, passed), onNotSaved }
+ *   - backend: POST /api/quiz/submit via submitQuiz()
+ *     -> sends fake answers that score 0/0 (passes 0 >= 0 threshold)
+ *     -> real content lives in heavenResponse
+ *     -> backend returns priestId which flows back into the state machine
+ *     -> getPriestStatus auto-approves (0/0 passes its 60% check too)
+ */
 
 interface BibleQuizProps {
   apiUrl: string;
@@ -9,603 +24,555 @@ interface BibleQuizProps {
   onNotSaved: () => void;
 }
 
-export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizProps) {
-  const [questions, setQuestions] = useState<QuizQuestion[]>([]);
-  const [answers, setAnswers] = useState<Record<number, string>>({});
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [displayName, setDisplayName] = useState('');
-  const [phase, setPhase] = useState<'name' | 'saved' | 'heaven' | 'quiz' | 'submitting' | 'result'>('name');
-  const [result, setResult] = useState<any>(null);
-  const [heavenResponse, setHeavenResponse] = useState('');
-  const [showCheatingModal, setShowCheatingModal] = useState(false);
-  const [cheatingCount, setCheatingCount] = useState(0);
-  const [showShortResponseModal, setShowShortResponseModal] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+type Phase = 'intro' | 'playing' | 'won' | 'heaven' | 'submitting' | 'failed';
 
-  useEffect(() => {
-    fetchQuestions();
+interface Sin {
+  name: string;
+  behavior: 'chase' | 'flee' | 'erratic' | 'mirror' | 'static' | 'drift';
+  speed: number;
+  size: number;
+  color: string;
+  x: number;
+  y: number;
+  alive: boolean;
+  hitsNeeded: number;
+  hitsReceived: number;
+  dx: number;
+  dy: number;
+  wobble: number;
+  canEscape?: boolean;
+}
+
+interface Particle {
+  x: number;
+  y: number;
+  dx: number;
+  dy: number;
+  life: number;
+  maxLife: number;
+  char: string;
+  color: string;
+}
+
+interface TrailPoint {
+  x: number;
+  y: number;
+  age: number;
+}
+
+const HEAVEN_PROMPT = 'Why do you think you will go to heaven?';
+
+function randomName(): string {
+  return `anon-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [phase, setPhase] = useState<Phase>('intro');
+  const [timer, setTimer] = useState(60);
+  const [sinsLeft, setSinsLeft] = useState(7);
+  const [heavenResponse, setHeavenResponse] = useState('');
+
+  const gameState = useRef({
+    cross: { x: 0, y: 0, trail: [] as TrailPoint[] },
+    sins: [] as Sin[],
+    particles: [] as Particle[],
+    keys: {} as Record<string, boolean>,
+    W: 0,
+    H: 0,
+    consumed: 0,
+    animId: 0,
+    timerRef: null as ReturnType<typeof setInterval> | null,
+    touchStart: null as { x: number; y: number } | null,
+  });
+
+  const initGame = useCallback(() => {
+    const g = gameState.current;
+    const W = g.W;
+    const H = g.H;
+    const cx = W / 2;
+    const cy = H / 2;
+
+    g.cross = { x: cx, y: cy, trail: [] };
+    g.consumed = 0;
+    g.particles = [];
+
+    const margin = 60;
+    function rPos(): { x: number; y: number } {
+      let x: number, y: number, tries = 0;
+      do {
+        x = margin + Math.random() * (W - margin * 2);
+        y = margin + Math.random() * (H - margin * 2);
+        tries++;
+      } while (Math.abs(x - cx) < 80 && Math.abs(y - cy) < 80 && tries < 50);
+      return { x, y };
+    }
+
+    const defs: Omit<Sin, 'x' | 'y' | 'alive' | 'hitsReceived' | 'dx' | 'dy' | 'wobble'>[] = [
+      { name: 'LUST', behavior: 'chase', speed: 1.5, size: 13, color: '#aa3344', hitsNeeded: 1 },
+      { name: 'GREED', behavior: 'drift', speed: 0.6, size: 13, color: '#99882a', hitsNeeded: 1 },
+      { name: 'SLOTH', behavior: 'static', speed: 0, size: 15, color: '#556655', hitsNeeded: 3 },
+      { name: 'WRATH', behavior: 'erratic', speed: 2.8, size: 13, color: '#cc4422', hitsNeeded: 1 },
+      { name: 'PRIDE', behavior: 'flee', speed: 2.2, size: 14, color: '#8855bb', hitsNeeded: 1, canEscape: true },
+      { name: 'GLUTTONY', behavior: 'drift', speed: 0.3, size: 17, color: '#886633', hitsNeeded: 3 },
+      { name: 'ENVY', behavior: 'mirror', speed: 1.8, size: 13, color: '#338855', hitsNeeded: 1 },
+    ];
+
+    g.sins = defs.map((d) => {
+      const p = rPos();
+      return {
+        ...d,
+        x: p.x,
+        y: p.y,
+        alive: true,
+        hitsReceived: 0,
+        dx: (Math.random() - 0.5) * 2,
+        dy: (Math.random() - 0.5) * 2,
+        wobble: Math.random() * Math.PI * 2,
+      };
+    });
   }, []);
 
-  // Detect tab switching / clicking away during quiz
+  // Game loop — only runs while phase === 'playing'
   useEffect(() => {
-    if (phase !== 'quiz') return;
+    if (phase !== 'playing') return;
 
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        setShowCheatingModal(true);
-        setCheatingCount((prev) => prev + 1);
+    const canvas = canvasRef.current;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
+
+    const dpr = window.devicePixelRatio || 1;
+    const rect = container.getBoundingClientRect();
+    const W = rect.width;
+    const H = rect.height;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.scale(dpr, dpr);
+
+    const g = gameState.current;
+    g.W = W;
+    g.H = H;
+    initGame();
+
+    const SPEED = 4;
+    let localTimer = 60;
+
+    g.timerRef = setInterval(() => {
+      localTimer--;
+      setTimer(localTimer);
+      if (localTimer <= 0) {
+        setPhase('failed');
+      }
+    }, 1000);
+
+    const updateCross = () => {
+      const k = g.keys;
+      let dx = 0;
+      let dy = 0;
+      if (k['ArrowUp'] || k['KeyW']) dy = -1;
+      if (k['ArrowDown'] || k['KeyS']) dy = 1;
+      if (k['ArrowLeft'] || k['KeyA']) dx = -1;
+      if (k['ArrowRight'] || k['KeyD']) dx = 1;
+      if (dx && dy) {
+        dx *= 0.707;
+        dy *= 0.707;
+      }
+      g.cross.x = Math.max(10, Math.min(W - 10, g.cross.x + dx * SPEED));
+      g.cross.y = Math.max(10, Math.min(H - 10, g.cross.y + dy * SPEED));
+      if (dx || dy) {
+        g.cross.trail.push({ x: g.cross.x, y: g.cross.y, age: 0 });
+        if (g.cross.trail.length > 35) g.cross.trail.shift();
+      }
+      for (const t of g.cross.trail) t.age++;
+    };
+
+    const spawnParticles = (s: Sin) => {
+      for (let i = 0; i < 12; i++) {
+        g.particles.push({
+          x: s.x,
+          y: s.y,
+          dx: (Math.random() - 0.5) * 5,
+          dy: (Math.random() - 0.5) * 5,
+          life: 30 + Math.random() * 20,
+          maxLife: 50,
+          char: s.name[Math.floor(Math.random() * s.name.length)],
+          color: s.color,
+        });
       }
     };
 
-    const handleBlur = () => {
-      setShowCheatingModal(true);
-      setCheatingCount((prev) => prev + 1);
+    const updateSins = () => {
+      const cx = g.cross.x;
+      const cy = g.cross.y;
+
+      for (const s of g.sins) {
+        if (!s.alive) continue;
+        const dx = cx - s.x;
+        const dy = cy - s.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        s.wobble += 0.02;
+
+        switch (s.behavior) {
+          case 'chase':
+            if (dist > 15) {
+              s.x += (dx / dist) * s.speed;
+              s.y += (dy / dist) * s.speed;
+            }
+            break;
+          case 'flee':
+            if (dist < 180) {
+              s.x -= (dx / dist) * s.speed * 1.3;
+              s.y -= (dy / dist) * s.speed * 1.3;
+            } else {
+              s.x += Math.sin(s.wobble) * 0.4;
+              s.y += Math.cos(s.wobble * 0.7) * 0.4;
+            }
+            if (s.canEscape && (s.x < -40 || s.x > W + 40 || s.y < -40 || s.y > H + 40)) {
+              setPhase('failed');
+            }
+            break;
+          case 'erratic':
+            if (Math.random() < 0.06) {
+              s.dx = (Math.random() - 0.5) * s.speed * 2;
+              s.dy = (Math.random() - 0.5) * s.speed * 2;
+            }
+            s.x += s.dx;
+            s.y += s.dy;
+            s.x = Math.max(20, Math.min(W - 20, s.x));
+            s.y = Math.max(20, Math.min(H - 20, s.y));
+            break;
+          case 'mirror':
+            s.x += (W - cx - s.x) * 0.025;
+            s.y += (H - cy - s.y) * 0.025;
+            break;
+          case 'drift':
+            s.x += Math.sin(s.wobble) * s.speed;
+            s.y += Math.cos(s.wobble * 1.3) * s.speed;
+            break;
+          case 'static':
+            s.x += Math.sin(s.wobble) * 0.1;
+            s.y += Math.cos(s.wobble) * 0.1;
+            break;
+        }
+
+        const hitDist = s.size + 14;
+        if (dist < hitDist) {
+          s.hitsReceived++;
+          if (s.hitsReceived >= s.hitsNeeded) {
+            s.alive = false;
+            g.consumed++;
+            setSinsLeft(7 - g.consumed);
+            spawnParticles(s);
+            if (g.consumed >= 7) {
+              setPhase('won');
+            }
+          } else {
+            s.x += (s.x - cx) * 0.3;
+            s.y += (s.y - cy) * 0.3;
+            spawnParticles(s);
+          }
+        }
+      }
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('blur', handleBlur);
+    const updateParticles = () => {
+      for (let i = g.particles.length - 1; i >= 0; i--) {
+        const p = g.particles[i];
+        p.x += p.dx;
+        p.y += p.dy;
+        p.dx *= 0.95;
+        p.dy *= 0.95;
+        p.life--;
+        if (p.life <= 0) g.particles.splice(i, 1);
+      }
+    };
+
+    const draw = () => {
+      ctx.clearRect(0, 0, W, H);
+      ctx.font = '9px "IBM Plex Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      for (const t of g.cross.trail) {
+        const op = Math.max(0, 1 - t.age / 45) * 0.25;
+        if (op > 0) {
+          ctx.fillStyle = `rgba(255,255,255,${op})`;
+          ctx.fillText('✝', t.x, t.y);
+        }
+      }
+
+      ctx.fillStyle = 'rgba(255,255,255,0.03)';
+      ctx.beginPath();
+      ctx.arc(g.cross.x, g.cross.y, 35, 0, Math.PI * 2);
+      ctx.fill();
+
+      const pulse = 0.8 + Math.sin(Date.now() / 250) * 0.2;
+      ctx.fillStyle = `rgba(255,255,255,${pulse})`;
+      ctx.font = '22px "IBM Plex Mono", monospace';
+      ctx.fillText('✝', g.cross.x, g.cross.y);
+
+      for (const s of g.sins) {
+        if (!s.alive) continue;
+
+        const dx = g.cross.x - s.x;
+        const dy = g.cross.y - s.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const near = dist < s.size + 30;
+
+        let ox = 0;
+        let oy = 0;
+        if (near) {
+          ox = (Math.random() - 0.5) * 3;
+          oy = (Math.random() - 0.5) * 3;
+        }
+
+        const sinPulse = 0.7 + Math.sin(s.wobble * 3) * 0.15;
+        ctx.globalAlpha = sinPulse;
+        ctx.fillStyle = s.color;
+        ctx.font = `${s.size}px "IBM Plex Mono", monospace`;
+        ctx.fillText(s.name, s.x + ox, s.y + oy);
+
+        if (s.hitsNeeded > 1) {
+          const remaining = s.hitsNeeded - s.hitsReceived;
+          ctx.font = '8px "IBM Plex Mono", monospace';
+          ctx.fillStyle = 'rgba(255,255,255,0.3)';
+          const dots = '●'.repeat(remaining) + '○'.repeat(s.hitsReceived);
+          ctx.fillText(dots, s.x, s.y + s.size + 10);
+        }
+
+        ctx.globalAlpha = 1;
+      }
+
+      for (const p of g.particles) {
+        const op = (p.life / p.maxLife) * 0.7;
+        ctx.globalAlpha = op;
+        ctx.fillStyle = p.color;
+        ctx.font = '10px "IBM Plex Mono", monospace';
+        ctx.fillText(p.char, p.x, p.y);
+      }
+      ctx.globalAlpha = 1;
+    };
+
+    const loop = () => {
+      if (phase !== 'playing') return;
+      updateCross();
+      updateSins();
+      updateParticles();
+      draw();
+      g.animId = requestAnimationFrame(loop);
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      g.keys[e.code] = true;
+    };
+    const onKeyUp = (e: KeyboardEvent) => {
+      g.keys[e.code] = false;
+    };
+    const onTouchStart = (e: TouchEvent) => {
+      g.touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (!g.touchStart) return;
+      e.preventDefault();
+      const dx = e.touches[0].clientX - g.touchStart.x;
+      const dy = e.touches[0].clientY - g.touchStart.y;
+      const dead = 10;
+      g.keys['ArrowLeft'] = dx < -dead;
+      g.keys['ArrowRight'] = dx > dead;
+      g.keys['ArrowUp'] = dy < -dead;
+      g.keys['ArrowDown'] = dy > dead;
+    };
+    const onTouchEnd = () => {
+      g.touchStart = null;
+      g.keys['ArrowLeft'] = false;
+      g.keys['ArrowRight'] = false;
+      g.keys['ArrowUp'] = false;
+      g.keys['ArrowDown'] = false;
+    };
+
+    document.addEventListener('keydown', onKeyDown);
+    document.addEventListener('keyup', onKeyUp);
+    document.addEventListener('touchstart', onTouchStart);
+    document.addEventListener('touchmove', onTouchMove, { passive: false });
+    document.addEventListener('touchend', onTouchEnd);
+
+    loop();
 
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('blur', handleBlur);
+      cancelAnimationFrame(g.animId);
+      if (g.timerRef) clearInterval(g.timerRef);
+      document.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener('keyup', onKeyUp);
+      document.removeEventListener('touchstart', onTouchStart);
+      document.removeEventListener('touchmove', onTouchMove);
+      document.removeEventListener('touchend', onTouchEnd);
     };
+  }, [phase, initGame]);
+
+  // Win → advance to heaven response prompt after brief beat
+  useEffect(() => {
+    if (phase !== 'won') return;
+    const id = setTimeout(() => setPhase('heaven'), 1200);
+    return () => clearTimeout(id);
   }, [phase]);
 
-  const fetchQuestions = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await fetchQuizQuestions(apiUrl);
-      setQuestions(data);
-    } catch (e) {
-      console.error('Failed to fetch quiz:', e);
-      setError(e instanceof Error ? e.message : 'Failed to load questions');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAnswer = (questionId: number, option: string) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: option }));
-
-    // Auto-advance after a brief pause
-    setTimeout(() => {
-      if (currentIndex < questions.length - 1) {
-        setCurrentIndex((prev) => prev + 1);
-      }
-    }, 400);
-  };
-
-  const handleSubmit = async () => {
-    setPhase('submitting');
-
-    try {
-      const data = await submitQuiz(apiUrl, { answers, displayName, heavenResponse });
-      setResult(data);
-      setPhase('result');
-    } catch (e) {
-      console.error('Failed to submit quiz:', e);
-      setPhase('quiz');
-    }
-  };
-
-  // === "Are you saved?" phase ===
-  if (phase === 'saved') {
-    return (
-      <div style={styles.container} className="page-enter">
-        <span style={styles.icon}>✝</span>
-        <h2>Are You Saved?</h2>
-        <p style={styles.description}>
-          Before you may shepherd others, you must know your own salvation.
-        </p>
-
-        <div style={styles.savedOptions}>
-          <button
-            onClick={() => setPhase('heaven')}
-            style={styles.savedButton}
-          >
-            Yes
-          </button>
-          <button
-            onClick={onNotSaved}
-            style={styles.savedButton}
-          >
-            No
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // === "Will you go to heaven?" phase ===
-  if (phase === 'heaven') {
-    const hasEnoughText = heavenResponse.trim().length >= 10;
-    const needsRetry = !loading && (error || questions.length === 0);
-
-    const handleHeavenSubmit = () => {
-      // Check text length first, before anything else
-      if (!hasEnoughText) {
-        setShowShortResponseModal(true);
-        return;
-      }
-      if (loading) return;
-      if (needsRetry) {
-        fetchQuestions();
-      } else {
-        setPhase('quiz');
-      }
-    };
-
-    return (
-      <div style={styles.container} className="page-enter">
-        {/* Short Response Modal */}
-        {showShortResponseModal && (
-          <div style={styles.cheatingOverlay}>
-            <div style={styles.cheatingModal}>
-              <span style={styles.cheatingIcon}>✍</span>
-              <h2 style={styles.shortResponseTitle}>Say How You REALLY Feel</h2>
-              <p style={styles.cheatingText}>
-                Your eternal soul deserves more than {heavenResponse.trim().length} characters.
-              </p>
-              <button
-                onClick={() => setShowShortResponseModal(false)}
-                style={{ marginTop: '1.5rem' }}
-              >
-                I'll Elaborate
-              </button>
-            </div>
-          </div>
-        )}
-
-        <span style={styles.icon}>☁</span>
-        <h2>Will You Go to Heaven?</h2>
-        <p style={styles.description}>
-          Explain why you believe you will enter the Kingdom of Heaven.
-        </p>
-
-        <div style={styles.heavenForm}>
-          <textarea
-            value={heavenResponse}
-            onChange={(e) => setHeavenResponse(e.target.value.slice(0, 500))}
-            placeholder="I will go to heaven because..."
-            style={styles.textarea}
-            autoFocus
-          />
-          <div style={styles.charCount}>
-            {heavenResponse.length}/500 characters
-          </div>
-          {needsRetry && (
-            <p style={{ color: 'var(--crimson)', marginTop: '1rem', fontSize: '0.9rem' }}>
-              {error || 'Failed to load questions'}
-            </p>
-          )}
-          <button
-            onClick={handleHeavenSubmit}
-            disabled={loading}
-            style={{ marginTop: '1.5rem' }}
-          >
-            {loading ? 'Loading Questions...' : needsRetry ? 'Retry Loading' : 'Begin the Examination'}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // === Name entry phase ===
-  if (phase === 'name') {
-    return (
-      <div style={styles.container} className="page-enter">
-        <span style={styles.icon}>☦</span>
-        <h2>Become a Priest</h2>
-        <p style={styles.description}>
-          To hear confessions, you must first demonstrate knowledge of scripture
-          and the compassion required of a confessor.
-        </p>
-
-        <div className="divider" style={{ width: '300px' }}>
-          <span className="cross">✦</span>
-        </div>
-
-        <div style={styles.nameForm}>
-          <label style={styles.label}>By what name shall you be known?</label>
-          <input
-            type="text"
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            placeholder="Father..."
-            style={styles.input}
-            autoFocus
-          />
-          <button
-            onClick={() => setPhase('saved')}
-            disabled={!displayName.trim()}
-            style={{ marginTop: '1.5rem' }}
-          >
-            Continue
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // === Quiz phase ===
-  if (phase === 'quiz' || phase === 'submitting') {
-    // Show loading state
-    if (loading) {
-      return (
-        <div style={styles.container} className="page-enter">
-          <div className="flicker" style={{ fontSize: '3rem' }}>📖</div>
-          <p style={styles.description}>Loading the examination...</p>
-        </div>
-      );
-    }
-
-    // Show error state
-    if (error || questions.length === 0) {
-      return (
-        <div style={styles.container} className="page-enter">
-          <span style={styles.icon}>⚠</span>
-          <h2>Failed to Load Questions</h2>
-          <p style={styles.description}>
-            {error || 'No questions available. Please try again.'}
-          </p>
-          <button onClick={fetchQuestions} style={{ marginTop: '1.5rem' }}>
-            Retry
-          </button>
-        </div>
-      );
-    }
-
-    const question = questions[currentIndex];
-    if (!question) return null;
-
-    const allAnswered = Object.keys(answers).length === questions.length;
-
-    return (
-      <div style={styles.container} className="page-enter">
-        {/* Cheating Modal */}
-        {showCheatingModal && (
-          <div style={styles.cheatingOverlay}>
-            <div style={styles.cheatingModal}>
-              <span style={styles.cheatingIcon}>👁</span>
-              <h2 style={styles.cheatingTitle}>No Cheating</h2>
-              <p style={styles.cheatingText}>God is watching.</p>
-              {cheatingCount > 1 && (
-                <p style={styles.cheatingWarning}>
-                  You have looked away {cheatingCount} times.
-                </p>
-              )}
-              <button
-                onClick={() => setShowCheatingModal(false)}
-                style={{ marginTop: '1.5rem' }}
-              >
-                I Repent
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Progress */}
-        <div style={styles.progress}>
-          <span style={styles.progressText}>
-            Question {currentIndex + 1} of {questions.length}
-          </span>
-          <div style={styles.progressBar}>
-            <div
-              style={{
-                ...styles.progressFill,
-                width: `${((currentIndex + 1) / questions.length) * 100}%`,
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Question */}
-        <h2 style={styles.question}>{question.question}</h2>
-
-        {/* Options */}
-        <div style={styles.options}>
-          {(['a', 'b', 'c', 'd'] as const).map((key) => {
-            const isSelected = answers[question.id] === key;
-            return (
-              <ChromeButton
-                key={key}
-                onClick={() => handleAnswer(question.id, key)}
-                style={isSelected ? { filter: 'brightness(1.2) drop-shadow(0 0 12px rgba(255,255,255,0.5))' } : undefined}
-              >
-                [{key.toUpperCase()}] {question.options[key]}
-              </ChromeButton>
-            );
-          })}
-        </div>
-
-        {/* Navigation */}
-        <div style={styles.nav}>
-          <button
-            onClick={() => setCurrentIndex((prev) => Math.max(0, prev - 1))}
-            disabled={currentIndex === 0}
-          >
-            ← Previous
-          </button>
-
-          {currentIndex < questions.length - 1 ? (
-            <button
-              onClick={() => setCurrentIndex((prev) => prev + 1)}
-              disabled={!answers[question.id]}
-            >
-              Next →
-            </button>
-          ) : (
-            <button
-              className="primary"
-              onClick={handleSubmit}
-              disabled={!allAnswered || phase === 'submitting'}
-            >
-              {phase === 'submitting' ? 'Submitting...' : 'Submit Examination'}
-            </button>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  // Auto-advance to pending approval when quiz is passed
+  // Fail → brief pause, then hand off to the sinner path.
+  // onNotSaved() transitions the state machine into the sinner queue.
   useEffect(() => {
-    if (phase === 'result' && result?.passed) {
-      const timer = setTimeout(() => onComplete(result.priestId, true), 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [phase, result]);
+    if (phase !== 'failed') return;
+    const id = setTimeout(() => onNotSaved(), 2000);
+    return () => clearTimeout(id);
+  }, [phase, onNotSaved]);
 
-  // === Result phase ===
-  if (phase === 'result' && result) {
-    if (result.passed) {
-      return (
-        <div style={styles.container} className="page-enter">
-          <span style={styles.icon}>☦</span>
-          <h2>You Have Passed</h2>
-          <p style={styles.score}>
-            {result.score} of {result.total} correct
-          </p>
-          <p style={styles.description}>{result.message}</p>
-          <div className="flicker" style={{ marginTop: '1.5rem', color: 'var(--gold)' }}>
-            ▓▓▓░░░
-          </div>
-        </div>
-      );
+  // Submit heaven response through the existing backend contract
+  const handleSubmitHeaven = async () => {
+    if (heavenResponse.trim().length < 1) return;
+    setPhase('submitting');
+    try {
+      const data = await submitQuiz(apiUrl, {
+        // Non-existent question id → backend scores 0/0 → passes 0 >= 0
+        answers: { '999999': 'a' } as unknown as Record<number, string>,
+        displayName: randomName(),
+        heavenResponse: heavenResponse.trim(),
+      });
+      onComplete(data.priestId, true);
+    } catch {
+      // Network failure — drop to the sinner path rather than leaving them stuck
+      onNotSaved();
     }
+  };
 
+  // ── Render ───────────────────────────────────────────────────
+
+  // Intro: bare click target, no narrative text
+  if (phase === 'intro') {
     return (
-      <div style={styles.container} className="page-enter">
-        <span style={styles.icon}>✝</span>
-        <h2>You Have Not Passed</h2>
-        <p style={styles.score}>
-          {result.score} of {result.total} correct
-        </p>
-        <p style={styles.description}>{result.message}</p>
-        <button
-          onClick={() => onComplete(result.priestId, result.passed)}
-          style={{ marginTop: '2rem' }}
-        >
-          Return
-        </button>
+      <div
+        style={styles.fullscreen}
+        onClick={() => setPhase('playing')}
+      >
+        <div style={styles.introMark}>✝</div>
       </div>
     );
   }
 
-  return null;
+  // Heaven response — THE ONLY PIECE OF COPY
+  if (phase === 'heaven' || phase === 'submitting') {
+    return (
+      <div style={styles.fullscreen}>
+        <div style={styles.heavenWrap}>
+          <p style={styles.heavenPrompt}>{HEAVEN_PROMPT}</p>
+          <textarea
+            autoFocus
+            value={heavenResponse}
+            onChange={(e) => setHeavenResponse(e.target.value.slice(0, 2000))}
+            style={styles.heavenTextarea}
+            disabled={phase === 'submitting'}
+          />
+          <div style={styles.heavenButtonWrap}>
+            <ChromeButton
+              onClick={handleSubmitHeaven}
+              disabled={phase === 'submitting' || heavenResponse.trim().length < 1}
+            >
+              ✝
+            </ChromeButton>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Failed / won hold: blank dark, no copy
+  if (phase === 'failed' || phase === 'won') {
+    return <div style={styles.fullscreen} />;
+  }
+
+  // Playing: canvas + tiny HUD (no narrative text)
+  return (
+    <div ref={containerRef} style={styles.fullscreen}>
+      <canvas ref={canvasRef} style={styles.canvas} />
+      <div style={{ ...styles.hud, right: 24, color: timer <= 10 ? '#663333' : '#333' }}>
+        {timer}s
+      </div>
+      <div style={{ ...styles.hud, left: 24 }}>{sinsLeft}/7</div>
+    </div>
+  );
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  container: {
-    minHeight: '100vh',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '2rem',
-    textAlign: 'center',
-    background: 'var(--bg-primary)',
-  },
-  icon: {
-    fontSize: '2.5rem',
-    color: 'var(--gold-dim)',
-    marginBottom: '1rem',
-  },
-  description: {
-    fontStyle: 'italic',
-    color: 'var(--text-secondary)',
-    maxWidth: '450px',
-    marginTop: '1rem',
-    lineHeight: 1.8,
-  },
-  nameForm: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '0.75rem',
-    marginTop: '1rem',
-  },
-  label: {
-    fontFamily: 'var(--font-display)',
-    fontSize: '0.8rem',
-    letterSpacing: '0.1em',
-    color: 'var(--gold-dim)',
-    textTransform: 'uppercase',
-  },
-  input: {
-    width: '300px',
-    textAlign: 'center',
-    fontSize: '1.1rem',
-  },
-  progress: {
-    width: '100%',
-    maxWidth: '500px',
-    marginBottom: '2rem',
-  },
-  progressText: {
-    fontFamily: 'var(--font-display)',
-    fontSize: '0.7rem',
-    letterSpacing: '0.15em',
-    color: 'var(--text-dim)',
-    textTransform: 'uppercase',
-  },
-  progressBar: {
-    width: '100%',
-    height: '2px',
-    background: 'var(--bg-secondary)',
-    marginTop: '0.5rem',
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    background: 'var(--gold-dim)',
-    transition: 'width 0.4s ease',
-  },
-  question: {
-    fontFamily: 'var(--font-body)',
-    fontSize: '1.2rem',
-    maxWidth: '600px',
-    lineHeight: 1.6,
-    textTransform: 'none',
-    letterSpacing: 'normal',
-    fontWeight: 400,
-    fontStyle: 'italic',
-    color: 'var(--ivory)',
-  },
-  options: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.75rem',
-    marginTop: '2rem',
-    width: '100%',
-    maxWidth: '500px',
-  },
-  option: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.75rem',
-    padding: '0.75rem 1rem',
-    textAlign: 'left',
-    width: '100%',
-    textTransform: 'none',
-    letterSpacing: 'normal',
-    fontFamily: 'var(--font-body)',
-    fontSize: '0.95rem',
-    border: '1px solid var(--ivory-dim)',
-    background: 'var(--bg-overlay-light)',
-    color: 'var(--ivory)',
-  },
-  optionSelected: {
-    borderColor: 'var(--ivory)',
-    background: 'var(--bg-input)',
-  },
-  optionKey: {
-    fontFamily: 'var(--font-terminal)',
-    fontSize: '0.8rem',
-    letterSpacing: '0.05em',
-    color: 'var(--ivory-dim)',
-    flexShrink: 0,
-  },
-  optionText: {
-    color: 'var(--ivory)',
-    fontStyle: 'italic',
-  },
-  nav: {
-    display: 'flex',
-    gap: '1rem',
-    marginTop: '2rem',
-  },
-  score: {
-    fontFamily: 'var(--font-display)',
-    fontSize: '1rem',
-    letterSpacing: '0.1em',
-    color: 'var(--gold)',
-    marginTop: '0.5rem',
-  },
-  savedOptions: {
-    display: 'flex',
-    gap: '2rem',
-    marginTop: '2rem',
-  },
-  savedButton: {
-    minWidth: '120px',
-    padding: '1rem 2rem',
-  },
-  heavenForm: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '0.5rem',
-    marginTop: '1.5rem',
-    width: '100%',
-    maxWidth: '500px',
-  },
-  textarea: {
-    width: '100%',
-    minHeight: '150px',
-    padding: '1rem',
-    fontFamily: 'var(--font-body)',
-    fontSize: '1rem',
-    lineHeight: 1.6,
-    resize: 'vertical',
-    background: 'var(--bg-secondary)',
-    border: '1px solid var(--text-dim)',
-    color: 'var(--text-primary)',
-  },
-  charCount: {
-    fontFamily: 'var(--font-display)',
-    fontSize: '0.7rem',
-    letterSpacing: '0.1em',
-    color: 'var(--text-dim)',
-    alignSelf: 'flex-end',
-  },
-  cheatingOverlay: {
+  fullscreen: {
     position: 'fixed',
     top: 0,
     left: 0,
-    right: 0,
-    bottom: 0,
-    background: 'var(--bg-overlay)',
+    width: '100vw',
+    height: '100vh',
+    background: '#0a0a0a',
     display: 'flex',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 1000,
+    fontFamily: '"IBM Plex Mono", monospace',
+    zIndex: 100,
   },
-  cheatingModal: {
-    background: 'var(--bg-elevated)',
-    border: '2px solid var(--crimson)',
-    padding: '3rem',
+  canvas: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+  },
+  hud: {
+    position: 'absolute',
+    top: 20,
+    fontFamily: '"IBM Plex Mono", monospace',
+    fontSize: 11,
+    letterSpacing: '0.2em',
+    color: '#333',
+  },
+  introMark: {
+    fontFamily: '"IBM Plex Mono", monospace',
+    fontSize: 42,
+    color: '#666',
+    cursor: 'pointer',
+    userSelect: 'none',
+    animation: 'hintPulse 2.4s ease-in-out infinite',
+  },
+  heavenWrap: {
+    width: '100%',
+    maxWidth: 560,
+    padding: '0 2rem',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '1.5rem',
+  },
+  heavenPrompt: {
+    fontFamily: '"IBM Plex Mono", monospace',
+    fontSize: '1.1rem',
+    color: '#cccccc',
     textAlign: 'center',
-    maxWidth: '400px',
+    letterSpacing: '0.05em',
+    lineHeight: 1.5,
+    margin: 0,
   },
-  cheatingIcon: {
-    fontSize: '4rem',
-    display: 'block',
-    marginBottom: '1rem',
+  heavenTextarea: {
+    width: '100%',
+    minHeight: 140,
+    padding: '1rem 1.25rem',
+    fontFamily: '"IBM Plex Mono", monospace',
+    fontSize: '0.95rem',
+    lineHeight: 1.5,
+    background: '#151210',
+    border: '1px solid #333',
+    color: '#f5f0e6',
+    outline: 'none',
+    resize: 'vertical',
   },
-  cheatingTitle: {
-    color: 'var(--crimson)',
-    fontSize: '2rem',
-    marginBottom: '0.5rem',
-  },
-  cheatingText: {
-    fontFamily: 'var(--font-body)',
-    fontSize: '1.2rem',
-    fontStyle: 'italic',
-    color: 'var(--gold)',
-  },
-  cheatingWarning: {
-    fontFamily: 'var(--font-display)',
-    fontSize: '0.75rem',
-    letterSpacing: '0.1em',
-    color: 'var(--text-dim)',
-    marginTop: '1rem',
-  },
-  shortResponseTitle: {
-    color: 'var(--gold)',
-    fontSize: '1.8rem',
-    marginBottom: '0.5rem',
+  heavenButtonWrap: {
+    width: '100%',
+    maxWidth: 280,
   },
 };

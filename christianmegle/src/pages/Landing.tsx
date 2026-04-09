@@ -31,26 +31,41 @@ export default function Landing() {
   return (
     <>
       {showEntry && (
-        <LoadingScreen
-          onComplete={() => {
+        // onClickCapture runs before LoadingScreen's internal onClick,
+        // so a single click dismisses the splash immediately (taking
+        // the "eat the apple" hint with it). LoadingScreen's own
+        // onComplete is kept as a fallback if the animation finishes.
+        <div
+          onClickCapture={(e) => {
+            e.stopPropagation();
             sessionStorage.setItem('christianmegle_entered', '1');
             setShowEntry(false);
           }}
-        />
+        >
+          <LoadingScreen
+            onComplete={() => {
+              sessionStorage.setItem('christianmegle_entered', '1');
+              setShowEntry(false);
+            }}
+          />
+        </div>
       )}
       <div className="page-enter" style={styles.container}>
         <LaceFrame profile="landing-hero" />
 
-      {/* Nav links — top right */}
-      <div style={styles.navRow}>
-        <span style={styles.navLink} onClick={() => navigate('/leaderboard')}>leaderboard</span>
-        <span style={styles.navLink} onClick={() => navigate('/whitepaper')}>whitepaper</span>
-        <span style={styles.navLink} onClick={() => navigate('/offering')}>offering</span>
-        <span style={styles.navLink} onClick={() => navigate('/careers')}>careers</span>
-        <span style={styles.navLink} onClick={handleLightMode}>
-          {lightMode ? 'dark mode' : 'light mode'}
-        </span>
-      </div>
+      {/* Nav links — top right. Gated + delayed so it fades in
+          after the wordmark has loaded. */}
+      {!showEntry && (
+        <div style={styles.navRow}>
+          <span style={styles.navLink} onClick={() => navigate('/leaderboard')}>leaderboard</span>
+          <span style={styles.navLink} onClick={() => navigate('/whitepaper')}>whitepaper</span>
+          <span style={styles.navLink} onClick={() => navigate('/offering')}>offering</span>
+          <span style={styles.navLink} onClick={() => navigate('/careers')}>careers</span>
+          <span style={styles.navLink} onClick={handleLightMode}>
+            {lightMode ? 'dark mode' : 'light mode'}
+          </span>
+        </div>
+      )}
 
       {/* Light mode denial */}
       {showLightDenied && (
@@ -82,12 +97,19 @@ export default function Landing() {
       </div>
 
       {/* Hero stack — everything centered in one column.
-          Cross + wordmark only mount once the entry overlay is gone,
-          so their CSS animations play visibly instead of behind the overlay. */}
+          All children only mount once the entry overlay is gone,
+          so their CSS animations play visibly instead of behind it.
+          Animation delays create a staged reveal:
+            cross (0.2s) → wordmark (0.6s) → tagline (1.4s)
+            → buttons (1.6s) → nav row (1.8s, above). */}
       <div className="hero-glow" style={styles.hero}>
         {!showEntry && (
           <>
-            <div key="cross" style={styles.crossWrap}>
+            <div
+              key="cross"
+              style={styles.crossWrap}
+              title="click for about"
+            >
               <CrossLogo size={150} onClick={() => setShowAbout(true)} />
             </div>
             <img
@@ -96,21 +118,21 @@ export default function Landing() {
               alt="ChristianMegle"
               style={styles.wordmark}
             />
+
+            <p style={styles.tagline}>Confess your sins to strangers</p>
+
+            {/* Role selection - Chrome Sprite Buttons */}
+            <div style={styles.roleContainer}>
+              <ChromeButton onClick={() => navigate('/confess?role=priest')}>
+                I AM FORGIVEN
+              </ChromeButton>
+
+              <ChromeButton onClick={() => navigate('/confess?role=sinner')}>
+                enter christianmegle
+              </ChromeButton>
+            </div>
           </>
         )}
-
-        <p style={styles.tagline}>Confess your sins to strangers</p>
-
-        {/* Role selection - Chrome Sprite Buttons */}
-        <div style={styles.roleContainer}>
-          <ChromeButton onClick={() => navigate('/confess?role=priest')}>
-            I AM FORGIVEN
-          </ChromeButton>
-
-          <ChromeButton onClick={() => navigate('/confess?role=sinner')}>
-            ✝ I HAVE SINNED ✝
-          </ChromeButton>
-        </div>
       </div>
       </div>
 
@@ -127,6 +149,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     gap: '1.5rem',
     zIndex: 10,
+    animation: 'fadeIn 0.8s ease 1.8s both',
   },
   navLink: {
     fontFamily: 'var(--font-terminal)',
@@ -227,6 +250,7 @@ const styles: Record<string, React.CSSProperties> = {
     textTransform: 'uppercase',
     margin: 0,
     textAlign: 'center',
+    animation: 'fadeIn 0.8s ease 1.4s both',
   },
   roleContainer: {
     display: 'flex',
@@ -234,6 +258,7 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '1rem',
     marginTop: '0.75rem',
     width: '100%',
+    animation: 'fadeIn 0.8s ease 1.6s both',
   },
   heroButton: {
     display: 'flex',
