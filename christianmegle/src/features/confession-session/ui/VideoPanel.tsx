@@ -68,15 +68,15 @@ export function VideoPanel({
       <div style={styles.actionBar}>
         {sessionActive ? (
           <div style={styles.buttonGroup}>
-            <button onClick={onEndSession} style={styles.endButton}>■ End Confession</button>
+            <button onClick={onEndSession} style={styles.endButton} title="End this session">■ End Confession</button>
             {onSwitchPartner && (
-              <button onClick={onSwitchPartner} style={styles.switchButton}>
+              <button onClick={onSwitchPartner} style={styles.switchButton} title={role === 'priest' ? 'Match with a new penitent' : 'Match with a new priest'}>
                 ⇆ {role === 'priest' ? 'Next Penitent' : 'Switch Priest'}
               </button>
             )}
           </div>
         ) : connectionState === 'ended' ? (
-          <button onClick={onNext} style={styles.nextButton}>
+          <button onClick={onNext} style={styles.nextButton} title="Return to matchmaking">
             ▶ {role === 'priest' ? 'Next Penitent' : 'Confess Again'}
           </button>
         ) : null}

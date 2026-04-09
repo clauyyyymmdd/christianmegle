@@ -24,7 +24,7 @@ export function LandingHero({ visible }: LandingHeroProps) {
           <div
             key="cross"
             style={styles.crossWrap}
-            title="click for about"
+            title="About Christianmegle"
           >
             <CrossLogo size={150} onClick={() => setShowAbout(true)} />
           </div>

@@ -5,6 +5,7 @@ interface ChromeButtonProps {
   children?: ReactNode;
   style?: CSSProperties;
   ariaLabel?: string;
+  title?: string;
   type?: 'button' | 'submit';
   disabled?: boolean;
 }
@@ -21,6 +22,7 @@ export default function ChromeButton({
   children,
   style,
   ariaLabel,
+  title,
   type = 'button',
   disabled,
 }: ChromeButtonProps) {
@@ -29,6 +31,7 @@ export default function ChromeButton({
       type={type}
       onClick={onClick}
       aria-label={ariaLabel}
+      title={title}
       disabled={disabled}
       className="chrome-button"
       style={style}

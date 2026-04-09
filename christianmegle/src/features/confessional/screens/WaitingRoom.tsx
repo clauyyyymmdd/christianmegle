@@ -71,9 +71,9 @@ export function WaitingRoom({ role, waitingPosition, onLeave, onStartOver }: Pro
       )}
 
       <div style={{ marginTop: '2rem', display: 'flex', gap: '1rem' }}>
-        <button onClick={onLeave}>Leave</button>
+        <button onClick={onLeave} title="Return to the landing page">Leave</button>
         {role === 'priest' && (
-          <button onClick={onStartOver} style={{ opacity: 0.7 }}>Retake Quiz</button>
+          <button onClick={onStartOver} style={{ opacity: 0.7 }} title="Start authentication over">Retake Quiz</button>
         )}
       </div>
     </div>

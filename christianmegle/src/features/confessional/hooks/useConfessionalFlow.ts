@@ -120,7 +120,7 @@ export function useConfessionalFlow(apiUrl: string) {
       } else {
         dispatch({ type: 'BOOT_AS_SINNER' });
       }
-    }, 1200);
+    }, 600);
 
     return () => {
       clearTimeout(timer);

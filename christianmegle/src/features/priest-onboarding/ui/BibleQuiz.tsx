@@ -483,7 +483,7 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
   // Win → advance to heaven response prompt after brief beat
   useEffect(() => {
     if (phase !== 'won') return;
-    const id = setTimeout(() => setPhase('heaven'), 1200);
+    const id = setTimeout(() => setPhase('heaven'), 500);
     return () => clearTimeout(id);
   }, [phase]);
 
@@ -491,7 +491,7 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
   // onNotSaved() transitions the state machine into the sinner queue.
   useEffect(() => {
     if (phase !== 'failed') return;
-    const id = setTimeout(() => onNotSaved(), 2000);
+    const id = setTimeout(() => onNotSaved(), 800);
     return () => clearTimeout(id);
   }, [phase, onNotSaved]);
 
