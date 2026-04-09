@@ -566,6 +566,9 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
     return (
       <div style={styles.fullscreen}>
         <div style={styles.heavenWrap}>
+          <p style={styles.wonText}>
+            you have conquered the serpent. welcome to the priesthood.
+          </p>
           <p style={styles.heavenPrompt}>What shall we call you, Father?</p>
           <input
             autoFocus
@@ -597,15 +600,9 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
     return <div style={styles.fullscreen} />;
   }
 
-  // Won: success message before advancing to heaven prompt
+  // Won: brief hold before advancing to heaven prompt
   if (phase === 'won') {
-    return (
-      <div style={styles.fullscreen}>
-        <p style={styles.wonText}>
-          you have conquered the serpent. welcome to the priesthood.
-        </p>
-      </div>
-    );
+    return <div style={styles.fullscreen} />;
   }
 
   // Playing: canvas + tiny HUD (no narrative text)
