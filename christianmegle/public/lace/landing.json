@@ -1,0 +1,30 @@
+{
+  "_format": "sacred-lace-border-v1",
+  "current": {
+    "shape": "arch",
+    "fw": 144,
+    "fh": 90,
+    "margin": 5,
+    "thick": 8,
+    "pscale": 14,
+    "edgePat": "checker",
+    "corner": "cross",
+    "charset": "minimal",
+    "customChars": "*☆*·˚₊",
+    "centerText": "",
+    "centerOrn": "none",
+    "fillDensity": "medium",
+    "imgOpacity": 38,
+    "blendMode": "overlay",
+    "chars": [
+      "*",
+      "☆",
+      "·",
+      "˚",
+      "₊",
+      "·"
+    ],
+    "name": "landing"
+  },
+  "allProfiles": []
+}

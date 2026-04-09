@@ -1,0 +1,33 @@
+{
+  "_format": "sacred-lace-border-v1",
+  "current": {
+    "shape": "rect",
+    "fw": 144,
+    "fh": 64,
+    "margin": 5,
+    "thick": 4,
+    "pscale": 10,
+    "edgePat": "braid",
+    "corner": "fleur",
+    "charset": "liturgical",
+    "customChars": "",
+    "centerText": "",
+    "centerOrn": "none",
+    "fillDensity": "medium",
+    "imgOpacity": 38,
+    "blendMode": "overlay",
+    "chars": [
+      "✝",
+      "✟",
+      "✠",
+      "†",
+      "‡",
+      "◇",
+      "○",
+      "·",
+      "✦"
+    ],
+    "name": "untitled"
+  },
+  "allProfiles": []
+}

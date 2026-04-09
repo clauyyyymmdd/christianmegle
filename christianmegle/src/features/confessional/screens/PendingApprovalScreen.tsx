@@ -1,4 +1,5 @@
 import { screenStyles as s } from '../styles';
+import { AsciiLace } from '../../../lace';
 
 interface Props {
   onStartOver: () => void;
@@ -7,6 +8,7 @@ interface Props {
 export function PendingApprovalScreen({ onStartOver }: Props) {
   return (
     <div style={s.centered} className="page-enter">
+      <AsciiLace profile="authentication-passed" target="LaceFrame" />
       <pre style={s.asciiPending}>{`
 ╔══════════════════════════════════════╗
 ║       APPLICATION SUBMITTED          ║

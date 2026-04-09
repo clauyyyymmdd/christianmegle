@@ -1,6 +1,12 @@
+import { AsciiLace } from '../../../lace';
+
 export default function LoadingScreen() {
   return (
     <div style={styles.container}>
+      {/* Lace frame from /lace/loading.json sits behind the verse
+          at fixed position, matching the LaceFrame fullscreen spec. */}
+      <AsciiLace profile="loading" target="LaceFrame" />
+
       <p style={styles.verse}>
         But of the tree of the knowledge of good
         <br />
@@ -24,6 +30,7 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: 'center',
     background: 'var(--bg-primary)',
     padding: '2rem',
+    position: 'relative',
   },
   verse: {
     fontFamily: 'var(--font-body)',
@@ -33,6 +40,8 @@ const styles: Record<string, React.CSSProperties> = {
     textAlign: 'center',
     fontStyle: 'italic',
     maxWidth: '400px',
+    position: 'relative',
+    zIndex: 200,
   },
   reference: {
     fontFamily: 'var(--font-terminal)',
@@ -41,5 +50,7 @@ const styles: Record<string, React.CSSProperties> = {
     letterSpacing: '0.1em',
     marginTop: '1.5rem',
     fontStyle: 'normal',
+    position: 'relative',
+    zIndex: 200,
   },
 };

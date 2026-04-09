@@ -1,4 +1,4 @@
-import { LaceFrame } from '../lace';
+import { AsciiLace } from '../lace';
 import LoadingScreen from '../features/entry/LoadingScreen';
 import { useLandingGate } from '../features/landing/useLandingGate';
 import { LandingNav } from '../features/landing/LandingNav';
@@ -26,7 +26,7 @@ export default function Landing() {
       {showEntry && <LoadingScreen onComplete={dismissEntry} />}
 
       <div className="page-enter" style={styles.container}>
-        <LaceFrame profile="landing-hero" />
+        <AsciiLace profile="landing" target="LaceFrame" />
 
         <LandingNav
           visible={!showEntry}

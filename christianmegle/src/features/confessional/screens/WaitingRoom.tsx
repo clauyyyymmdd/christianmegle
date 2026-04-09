@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { UserRole } from '../../../lib/types';
 import { screenStyles as s } from '../styles';
-import { LaceFrame } from '../../../lace';
+import { AsciiLace } from '../../../lace';
 
 interface Props {
   role: UserRole;
@@ -41,7 +41,7 @@ export function WaitingRoom({ role, waitingPosition, onLeave, onStartOver }: Pro
 
   return (
     <div style={s.centered} className="page-enter">
-      <LaceFrame profile="waiting-room" />
+      <AsciiLace profile="waiting-room" target="LaceFrame" />
       <pre style={s.asciiWaiting}>{`
      ║
      ║

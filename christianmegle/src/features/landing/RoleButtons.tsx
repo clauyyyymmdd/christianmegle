@@ -24,7 +24,7 @@ export function RoleButtons() {
         <ChromeButton onClick={() => navigate('/confess?role=sinner')}>
           <span style={styles.labelStack}>
             <span style={styles.labelMain}>I am a sinner</span>
-            <span style={styles.labelSub}>confession your sins</span>
+            <span style={styles.labelSub}>confess your sins</span>
           </span>
         </ChromeButton>
       </div>
