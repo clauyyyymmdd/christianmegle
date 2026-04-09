@@ -28,6 +28,8 @@ export default function ConfessionalRoute({ apiUrl }: Props) {
     handleSwitchPartner,
     handleRejoin,
     handleEnterConfessional,
+    screenshotDataUrl,
+    captureScreenshot,
   } = useConfessionalFlow(apiUrl);
 
   // Exhaustive switch on the discriminated union — TypeScript will error
@@ -84,6 +86,7 @@ export default function ConfessionalRoute({ apiUrl }: Props) {
           onSessionEnd={handleSessionEnd}
           onExcommunicate={handleExcommunicate}
           onSwitchPartner={handleSwitchPartner}
+          onScreenshot={captureScreenshot}
         />
       );
 
@@ -93,6 +96,7 @@ export default function ConfessionalRoute({ apiUrl }: Props) {
           role={state.role}
           onRejoin={handleRejoin}
           onHome={() => navigate('/')}
+          screenshotDataUrl={screenshotDataUrl}
         />
       );
   }

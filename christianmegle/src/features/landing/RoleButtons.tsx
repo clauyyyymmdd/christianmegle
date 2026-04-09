@@ -74,14 +74,14 @@ const styles: Record<string, React.CSSProperties> = {
     lineHeight: 1.2,
   },
   labelMain: {
-    fontFamily: '"IBM Plex Mono", monospace',
+    fontFamily: 'var(--font-body)',
     fontSize: '0.85rem',
     fontWeight: 500,
     letterSpacing: '0.04em',
     color: 'inherit',
   },
   labelSub: {
-    fontFamily: '"IBM Plex Mono", monospace',
+    fontFamily: 'var(--font-body)',
     fontSize: '0.6rem',
     fontWeight: 400,
     letterSpacing: '0.05em',
@@ -105,7 +105,7 @@ const styles: Record<string, React.CSSProperties> = {
     border: '1px solid var(--border-subtle)',
   },
   modalText: {
-    fontFamily: '"IBM Plex Mono", monospace',
+    fontFamily: 'var(--font-body)',
     fontSize: '0.9rem',
     color: 'var(--ivory)',
     margin: 0,
@@ -118,7 +118,7 @@ const styles: Record<string, React.CSSProperties> = {
     marginTop: '1.5rem',
   },
   modalButton: {
-    fontFamily: '"IBM Plex Mono", monospace',
+    fontFamily: 'var(--font-body)',
     fontSize: '0.7rem',
     letterSpacing: '0.05em',
     padding: '0.5rem 1rem',

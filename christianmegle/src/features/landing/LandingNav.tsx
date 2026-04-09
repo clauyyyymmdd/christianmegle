@@ -76,7 +76,7 @@ const styles: Record<string, React.CSSProperties> = {
     animation: 'fadeIn 0.8s ease 1.8s both',
   },
   navLink: {
-    fontFamily: '"IBM Plex Mono", monospace',
+    fontFamily: 'var(--font-body)',
     fontSize: '0.65rem',
     letterSpacing: '0.05em',
     color: 'var(--ivory-dim)',
@@ -99,7 +99,7 @@ const styles: Record<string, React.CSSProperties> = {
     textAlign: 'center',
   },
   modalText: {
-    fontFamily: '"IBM Plex Mono", monospace',
+    fontFamily: 'var(--font-body)',
     fontSize: '0.9rem',
     color: 'var(--ivory)',
     margin: 0,

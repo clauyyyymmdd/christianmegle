@@ -122,7 +122,7 @@ const styles: Record<string, React.CSSProperties> = {
     borderBottom: '1px solid #666',
   },
   title: {
-    fontFamily: '"IBM Plex Mono", monospace',
+    fontFamily: 'var(--font-body)',
     fontSize: '0.78rem',
     fontWeight: 500,
     letterSpacing: '0.04em',
@@ -174,7 +174,7 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '0.75rem',
   },
   roleLabel: {
-    fontFamily: '"IBM Plex Mono", monospace',
+    fontFamily: 'var(--font-body)',
     fontSize: '0.8rem',
     fontWeight: 500,
     letterSpacing: '0.08em',
@@ -182,7 +182,7 @@ const styles: Record<string, React.CSSProperties> = {
     textShadow: '0 0 8px rgba(255, 255, 255, 0.2)',
   },
   roleBody: {
-    fontFamily: '"IBM Plex Mono", monospace',
+    fontFamily: 'var(--font-body)',
     fontSize: '0.78rem',
     lineHeight: 1.8,
     color: 'var(--ivory)',

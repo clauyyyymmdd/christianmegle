@@ -1,7 +1,15 @@
+export interface EmailAttachment {
+  filename: string;
+  /** Base64-encoded file contents (no data-URL prefix). */
+  content: string;
+  contentType: string;
+}
+
 export interface EmailPayload {
   to: string;
   subject: string;
   body: string;
+  attachments?: EmailAttachment[];
 }
 
 export interface PriestApplicationEmail {

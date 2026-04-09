@@ -13,6 +13,7 @@ import { getLeaderboard } from './features/leaderboard/getLeaderboard';
 import { handleWebSocket } from './features/matchmaking/handler';
 import { getIceConfig } from './features/ice/getIceConfig';
 import { reportBug } from './features/email/reportBug';
+import { sendScreenshotEmail } from './features/email/sendScreenshot';
 
 export { SignalingRoom, Matchmaker };
 
@@ -27,6 +28,7 @@ router.post('/api/admin/priests/:id/:action', updatePriestStatus);
 router.get('/api/leaderboard', getLeaderboard);
 router.get('/api/ice-config', getIceConfig);
 router.post('/api/report-bug', reportBug);
+router.post('/api/session-snapshot/email', sendScreenshotEmail);
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {

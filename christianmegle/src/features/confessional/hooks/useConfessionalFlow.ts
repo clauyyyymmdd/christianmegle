@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useRef } from 'react';
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { UserRole } from '../../../lib/types';
 import { usePriestIdentity } from './usePriestIdentity';
@@ -16,6 +16,13 @@ export function useConfessionalFlow(apiUrl: string) {
   const initialRole = (searchParams.get('role') as UserRole) || 'sinner';
 
   const [state, dispatch] = useReducer(reducer, initialRole, initialState);
+
+  // Single-slot screenshot: last-write-wins across switches. Cleared
+  // when the user rejoins from the ended screen or starts over.
+  const [screenshotDataUrl, setScreenshotDataUrl] = useState<string | null>(null);
+  const captureScreenshot = useCallback((dataUrl: string) => {
+    setScreenshotDataUrl(dataUrl);
+  }, []);
 
   const { priestId, priestName, savePriest, clearPriest } = usePriestIdentity();
   const { check, startPolling } = usePriestApproval(apiUrl);
@@ -141,6 +148,7 @@ export function useConfessionalFlow(apiUrl: string) {
 
   const handleStartOver = () => {
     clearPriest();
+    setScreenshotDataUrl(null);
     dispatch({ type: 'START_OVER' });
   };
 
@@ -148,7 +156,12 @@ export function useConfessionalFlow(apiUrl: string) {
 
   const handleSessionEnd = () => dispatch({ type: 'SESSION_ENDED' });
 
-  const handleRejoin = () => dispatch({ type: 'REJOIN' });
+  const handleRejoin = () => {
+    // Clear the previous session's screenshot so the new journey
+    // starts with an empty slot.
+    setScreenshotDataUrl(null);
+    dispatch({ type: 'REJOIN' });
+  };
 
   const handleExcommunicate = () => dispatch({ type: 'EXCOMMUNICATE' });
 
@@ -172,5 +185,7 @@ export function useConfessionalFlow(apiUrl: string) {
     handleRejoin,
     handleExcommunicate,
     handleSwitchPartner,
+    screenshotDataUrl,
+    captureScreenshot,
   };
 }

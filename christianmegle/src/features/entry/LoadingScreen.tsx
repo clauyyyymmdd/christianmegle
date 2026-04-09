@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
+import ChromeButton from '../../components/ChromeButton';
 
 // ═══════════════════════════════════════
 // ASCII Tree of Knowledge — Snake Loading Screen
@@ -432,7 +433,7 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
           top: '8%',
           left: '50%',
           transform: 'translateX(-50%)',
-          fontFamily: "'IBM Plex Mono', monospace",
+          fontFamily: 'var(--font-body)',
           fontWeight: 500,
           fontSize: 16,
           letterSpacing: '0.4em',
@@ -451,32 +452,36 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
       </div>
 
       {showButton && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleEnter();
-          }}
+        <div
+          onClick={(e) => e.stopPropagation()}
           style={{
             position: 'absolute',
             bottom: '12%',
             left: '50%',
             transform: 'translateX(-50%)',
-            background: 'transparent',
-            border: '1px solid #555',
-            color: '#cccccc',
-            fontFamily: "'IBM Plex Mono', monospace",
-            fontSize: 12,
-            letterSpacing: '0.2em',
-            padding: '14px 36px',
-            cursor: 'pointer',
+            width: '100%',
+            maxWidth: 420,
+            padding: '0 1.5rem',
             opacity: 0,
             animation: 'entryBtnFadeIn 0.8s ease forwards',
             zIndex: 10,
-            whiteSpace: 'nowrap',
           }}
         >
-          I know I am a sinner
-        </button>
+          <ChromeButton
+            onClick={handleEnter}
+            ariaLabel="I know I am a sinner"
+          >
+            <span
+              style={{
+                fontFamily: 'var(--font-body)',
+                fontSize: '0.85rem',
+                letterSpacing: '0.05em',
+              }}
+            >
+              I know I am a sinner
+            </span>
+          </ChromeButton>
+        </div>
       )}
 
       <style>{`
@@ -496,8 +501,8 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
           }
         }
         @keyframes entryBtnFadeIn {
-          from { opacity: 0; transform: translate(-50%, 8px); }
-          to { opacity: 1; transform: translate(-50%, 0); }
+          from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+          to   { opacity: 1; transform: translateX(-50%) translateY(0); }
         }
       `}</style>
     </div>

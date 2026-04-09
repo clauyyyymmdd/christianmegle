@@ -119,13 +119,13 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
     // DVD-logo screensaver, so "speed" maps to the velocity magnitude cap.
     // Single-hit kills everywhere to make the round clearly winnable.
     const defs: Omit<Sin, 'x' | 'y' | 'alive' | 'hitsReceived' | 'vx' | 'vy' | 'wobble' | 'halfW' | 'halfH'>[] = [
-      { name: 'LUST',     behavior: 'chase',   speed: 0.9, size: 13, color: '#aa3344', hitsNeeded: 1 },
-      { name: 'GREED',    behavior: 'drift',   speed: 0.7, size: 13, color: '#99882a', hitsNeeded: 1 },
-      { name: 'SLOTH',    behavior: 'static',  speed: 0.25, size: 15, color: '#556655', hitsNeeded: 1 },
-      { name: 'WRATH',    behavior: 'erratic', speed: 1.3, size: 13, color: '#cc4422', hitsNeeded: 1 },
-      { name: 'PRIDE',    behavior: 'flee',    speed: 1.0, size: 14, color: '#8855bb', hitsNeeded: 1 },
-      { name: 'GLUTTONY', behavior: 'drift',   speed: 0.5, size: 17, color: '#886633', hitsNeeded: 1 },
-      { name: 'ENVY',     behavior: 'mirror',  speed: 0.9, size: 13, color: '#338855', hitsNeeded: 1 },
+      { name: 'LUST',     behavior: 'chase',   speed: 0.9, size: 26, color: '#aa3344', hitsNeeded: 1 },
+      { name: 'GREED',    behavior: 'drift',   speed: 0.7, size: 26, color: '#99882a', hitsNeeded: 1 },
+      { name: 'SLOTH',    behavior: 'static',  speed: 0.25, size: 30, color: '#556655', hitsNeeded: 1 },
+      { name: 'WRATH',    behavior: 'erratic', speed: 1.3, size: 26, color: '#cc4422', hitsNeeded: 1 },
+      { name: 'PRIDE',    behavior: 'flee',    speed: 1.0, size: 28, color: '#8855bb', hitsNeeded: 1 },
+      { name: 'GLUTTONY', behavior: 'drift',   speed: 0.5, size: 34, color: '#886633', hitsNeeded: 1 },
+      { name: 'ENVY',     behavior: 'mirror',  speed: 0.9, size: 26, color: '#338855', hitsNeeded: 1 },
     ];
 
     g.sins = defs.map((d) => {
@@ -621,7 +621,7 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '1.5rem',
   },
   heavenPrompt: {
-    fontFamily: '"IBM Plex Mono", monospace',
+    fontFamily: 'var(--font-body)',
     fontSize: '1.1rem',
     color: '#cccccc',
     textAlign: 'center',
@@ -633,7 +633,7 @@ const styles: Record<string, React.CSSProperties> = {
     width: '100%',
     minHeight: 140,
     padding: '1rem 1.25rem',
-    fontFamily: '"IBM Plex Mono", monospace',
+    fontFamily: 'var(--font-body)',
     fontSize: '0.95rem',
     lineHeight: 1.5,
     background: '#151210',

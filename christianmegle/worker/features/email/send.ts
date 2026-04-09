@@ -24,6 +24,15 @@ export async function sendEmail(env: Env, payload: EmailPayload): Promise<void> 
       to: [payload.to],
       subject: payload.subject,
       text: payload.body,
+      ...(payload.attachments && payload.attachments.length > 0
+        ? {
+            attachments: payload.attachments.map((a) => ({
+              filename: a.filename,
+              content: a.content,
+              content_type: a.contentType,
+            })),
+          }
+        : {}),
     }),
   });
 

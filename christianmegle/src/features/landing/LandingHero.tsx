@@ -70,7 +70,7 @@ const styles: Record<string, React.CSSProperties> = {
     animation: 'wordmarkLoad 1.6s ease-out 0.6s both',
   },
   tagline: {
-    fontFamily: '"IBM Plex Mono", monospace',
+    fontFamily: 'var(--font-body)',
     fontStyle: 'normal',
     fontSize: '0.72rem',
     fontWeight: 400,
