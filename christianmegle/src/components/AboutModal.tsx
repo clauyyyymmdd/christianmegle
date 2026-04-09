@@ -32,41 +32,46 @@ export default function AboutModal({ open, onClose }: AboutModalProps) {
       >
         {/* Chrome title bar */}
         <div style={styles.titleBar}>
-          <span id="about-title" style={styles.title}>How to use Christianmegle:</span>
+          <span id="about-title" style={styles.title}>How 🤷 to use 🛠️ Christianmegle: ✝️</span>
           <button onClick={onClose} style={styles.closeBtn} aria-label="Close">×</button>
         </div>
 
         {/* Dark content area */}
         <div style={styles.content}>
           <div style={styles.row}>
-            <div style={styles.roleLabel}>FOR SINNERS:</div>
+            <div style={styles.roleLabel}>FOR SINNERS 😈:</div>
             <p style={styles.roleBody}>
-              If you are unable to visit a church and confess your transgressions,
-              it shows: your sins have stained you like scarlet. To go about with
-              them still stuck inside you, rather than practicing regular repentance
-              and confession, is the spiritual equivalent of never brushing your
-              teeth or never relieving yourself. Everyone can tell.
+              If you 🙋 are unable 🚫 to visit 🚶 a church ⛪ and confess 🗣️
+              your transgressions 💔, it shows 👀: your sins 💀 have stained 🩸
+              you like scarlet 🔴. To go 🏃 about with them still stuck 🔒
+              inside you 🫵, rather than practicing 🙏 regular repentance 😔
+              and confession 🤫, is the spiritual 👻 equivalent of never
+              brushing 🪥 your teeth 🦷 or never relieving 🚽 yourself 🧍.
+              Everyone 👥 can tell 👃.
             </p>
             <p style={styles.roleBody}>
-              Christianmegle is your portable, on-the-go confession booth. Speak
-              to a priest authenticated right here on Christianmegle. Our
-              God-breathed, roulette-style algorithm matches you with the right
-              person to hear your confession in real time. At any point during
-              your session, you may switch priests and continue. Your priest will
-              assign you penance, and your sins will be absolved. Now go forth
-              and confess.
+              Christianmegle 💻 is your portable 📱, on-the-go 🏃 confession 🗣️
+              booth 📦. Speak 💬 to a priest 👨‍🦱 authenticated ✅ right here 📍
+              on Christianmegle 💻. Our God-breathed 🌬️, roulette-style 🎰
+              algorithm 🤖 matches 🔗 you with the right 👉 person 🧑 to
+              hear 👂 your confession 🤐 in real ⏱️ time 🕰️. At any point
+              during ⏳ your session 🎬, you may switch 🔄 priests ⛪ and
+              continue ▶️. Your priest 👨‍🦱 will assign 📝 you penance 🙇,
+              and your sins 🔥 will be absolved ✨. Now go forth 🏃 and
+              confess 🙏.
             </p>
           </div>
 
           <div style={styles.divider} />
 
           <div style={styles.row}>
-            <div style={styles.roleLabel}>FOR PRIESTS:</div>
+            <div style={styles.roleLabel}>FOR PRIESTS ⛪:</div>
             <p style={styles.roleBody}>
-              Priests, do you want practice hearing confessions and pardoning
-              sins? Look no further. God will always find a way for you to do
-              His work. With our simple authentication process, you can exercise
-              the authority God gave you.
+              Priests 👨‍🦱, do you want 🤔 practice 📚 hearing 👂 confessions 🗣️
+              and pardoning 🕊️ sins 💀? Look 👀 no further 🛑. God 🙏 will
+              always ♾️ find a way 🛤️ for you to do His work ⚒️. With our
+              simple 👌 authentication 🔐 process 📋, you can exercise 💪 the
+              authority 👑 God gave 🎁 you 🫵.
             </p>
           </div>
         </div>
@@ -79,13 +84,15 @@ const styles: Record<string, React.CSSProperties> = {
   backdrop: {
     position: 'fixed',
     inset: 0,
-    background: 'rgba(0, 0, 0, 0.75)',
+    // Fully opaque so the modal text isn't competing with the landing
+    // page behind it.
+    background: 'rgba(0, 0, 0, 0.96)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 2000,
     padding: '2rem',
-    backdropFilter: 'blur(2px)',
+    backdropFilter: 'blur(6px)',
     animation: 'aboutBackdropIn 0.3s ease forwards',
   },
   frame: {
@@ -145,12 +152,16 @@ const styles: Record<string, React.CSSProperties> = {
       '0 1px 2px rgba(0, 0, 0, 0.4)',
   },
   content: {
-    background: '#0d0a0a',
+    // Solid dark panel with a subtle top-to-bottom falloff so the chrome
+    // frame reads as a lit surface and the body copy has real contrast.
+    background:
+      'linear-gradient(180deg, #14100f 0%, #0c0807 60%, #060404 100%)',
     color: 'var(--ivory)',
-    padding: '1.5rem 1.75rem 1.75rem',
+    padding: '1.75rem 1.85rem 2rem',
     borderRadius: '0 0 3px 3px',
     border: '1px solid #333',
     borderTop: 'none',
+    boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.04)',
   },
   divider: {
     height: '1px',
@@ -173,8 +184,8 @@ const styles: Record<string, React.CSSProperties> = {
   roleBody: {
     fontFamily: '"IBM Plex Mono", monospace',
     fontSize: '0.78rem',
-    lineHeight: 1.7,
-    color: 'var(--ivory-dim)',
+    lineHeight: 1.8,
+    color: 'var(--ivory)',
     margin: 0,
   },
 };

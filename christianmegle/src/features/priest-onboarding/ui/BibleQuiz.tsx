@@ -37,10 +37,16 @@ interface Sin {
   alive: boolean;
   hitsNeeded: number;
   hitsReceived: number;
-  dx: number;
-  dy: number;
+  /** Persistent velocity — every sin moves by (vx, vy) per frame and
+   *  bounces off the canvas edges like a DVD-logo screensaver. */
+  vx: number;
+  vy: number;
   wobble: number;
-  canEscape?: boolean;
+  /** Half the rendered word's width/height including a small buffer.
+   *  Computed once in the effect after the canvas font is set, so the
+   *  bounce test accounts for the full text bounding box. */
+  halfW: number;
+  halfH: number;
 }
 
 interface Particle {
@@ -70,7 +76,7 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [phase, setPhase] = useState<Phase>('intro');
-  const [timer, setTimer] = useState(60);
+  const [timer, setTimer] = useState(90);
   const [sinsLeft, setSinsLeft] = useState(7);
   const [heavenResponse, setHeavenResponse] = useState('');
 
@@ -109,27 +115,38 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
       return { x, y };
     }
 
-    const defs: Omit<Sin, 'x' | 'y' | 'alive' | 'hitsReceived' | 'dx' | 'dy' | 'wobble'>[] = [
-      { name: 'LUST', behavior: 'chase', speed: 1.5, size: 13, color: '#aa3344', hitsNeeded: 1 },
-      { name: 'GREED', behavior: 'drift', speed: 0.6, size: 13, color: '#99882a', hitsNeeded: 1 },
-      { name: 'SLOTH', behavior: 'static', speed: 0, size: 15, color: '#556655', hitsNeeded: 3 },
-      { name: 'WRATH', behavior: 'erratic', speed: 2.8, size: 13, color: '#cc4422', hitsNeeded: 1 },
-      { name: 'PRIDE', behavior: 'flee', speed: 2.2, size: 14, color: '#8855bb', hitsNeeded: 1, canEscape: true },
-      { name: 'GLUTTONY', behavior: 'drift', speed: 0.3, size: 17, color: '#886633', hitsNeeded: 3 },
-      { name: 'ENVY', behavior: 'mirror', speed: 1.8, size: 13, color: '#338855', hitsNeeded: 1 },
+    // Speeds tuned down across the board — every sin now bounces like a
+    // DVD-logo screensaver, so "speed" maps to the velocity magnitude cap.
+    // Single-hit kills everywhere to make the round clearly winnable.
+    const defs: Omit<Sin, 'x' | 'y' | 'alive' | 'hitsReceived' | 'vx' | 'vy' | 'wobble' | 'halfW' | 'halfH'>[] = [
+      { name: 'LUST',     behavior: 'chase',   speed: 0.9, size: 13, color: '#aa3344', hitsNeeded: 1 },
+      { name: 'GREED',    behavior: 'drift',   speed: 0.7, size: 13, color: '#99882a', hitsNeeded: 1 },
+      { name: 'SLOTH',    behavior: 'static',  speed: 0.25, size: 15, color: '#556655', hitsNeeded: 1 },
+      { name: 'WRATH',    behavior: 'erratic', speed: 1.3, size: 13, color: '#cc4422', hitsNeeded: 1 },
+      { name: 'PRIDE',    behavior: 'flee',    speed: 1.0, size: 14, color: '#8855bb', hitsNeeded: 1 },
+      { name: 'GLUTTONY', behavior: 'drift',   speed: 0.5, size: 17, color: '#886633', hitsNeeded: 1 },
+      { name: 'ENVY',     behavior: 'mirror',  speed: 0.9, size: 13, color: '#338855', hitsNeeded: 1 },
     ];
 
     g.sins = defs.map((d) => {
       const p = rPos();
+      // Initial velocity: random direction at ~half the speed cap,
+      // so sins start drifting and behaviors can steer from there.
+      const angle = Math.random() * Math.PI * 2;
+      const v = Math.max(0.35, d.speed * 0.6);
       return {
         ...d,
         x: p.x,
         y: p.y,
         alive: true,
         hitsReceived: 0,
-        dx: (Math.random() - 0.5) * 2,
-        dy: (Math.random() - 0.5) * 2,
+        vx: Math.cos(angle) * v,
+        vy: Math.sin(angle) * v,
         wobble: Math.random() * Math.PI * 2,
+        // Placeholder — real extents are measured in the effect once the
+        // canvas font is set (Pirata One metrics differ from monospace).
+        halfW: 30,
+        halfH: d.size / 2 + 4,
       };
     });
   }, []);
@@ -157,8 +174,24 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
     g.H = H;
     initGame();
 
-    const SPEED = 4;
-    let localTimer = 60;
+    // Now that ctx is available, measure each sin's rendered word in
+    // Pirata One so the DVD-logo bounce test uses the real bounding box.
+    for (const s of g.sins) {
+      ctx.font = `${s.size}px "Pirata One", "Noto Serif SC", serif`;
+      const m = ctx.measureText(s.name);
+      s.halfW = m.width / 2 + 4;
+      s.halfH = s.size / 2 + 4;
+      // Nudge sins that happen to have spawned partially off-screen
+      // (can happen on very narrow canvases) fully inside the bounds.
+      if (s.x - s.halfW < 0) s.x = s.halfW;
+      if (s.x + s.halfW > W) s.x = W - s.halfW;
+      if (s.y - s.halfH < 0) s.y = s.halfH;
+      if (s.y + s.halfH > H) s.y = H - s.halfH;
+    }
+
+    // Slower cross — reaction time for beginners.
+    const SPEED = 2.6;
+    let localTimer = 90;
 
     g.timerRef = setInterval(() => {
       localTimer--;
@@ -212,53 +245,87 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
         if (!s.alive) continue;
         const dx = cx - s.x;
         const dy = cy - s.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
         s.wobble += 0.02;
 
+        // Behaviors only nudge velocity — position is applied once below,
+        // after which the DVD-logo bounce clamp keeps the word on screen.
         switch (s.behavior) {
           case 'chase':
-            if (dist > 15) {
-              s.x += (dx / dist) * s.speed;
-              s.y += (dy / dist) * s.speed;
-            }
+            // Mild steering toward the cross.
+            s.vx += (dx / dist) * 0.025;
+            s.vy += (dy / dist) * 0.025;
             break;
           case 'flee':
-            if (dist < 180) {
-              s.x -= (dx / dist) * s.speed * 1.3;
-              s.y -= (dy / dist) * s.speed * 1.3;
-            } else {
-              s.x += Math.sin(s.wobble) * 0.4;
-              s.y += Math.cos(s.wobble * 0.7) * 0.4;
-            }
-            if (s.canEscape && (s.x < -40 || s.x > W + 40 || s.y < -40 || s.y > H + 40)) {
-              setPhase('failed');
+            // Only steer away when the cross gets close.
+            if (dist < 140) {
+              s.vx -= (dx / dist) * 0.04;
+              s.vy -= (dy / dist) * 0.04;
             }
             break;
           case 'erratic':
-            if (Math.random() < 0.06) {
-              s.dx = (Math.random() - 0.5) * s.speed * 2;
-              s.dy = (Math.random() - 0.5) * s.speed * 2;
+            // Occasional small random kick, not a full velocity reroll.
+            if (Math.random() < 0.02) {
+              s.vx += (Math.random() - 0.5) * 0.5;
+              s.vy += (Math.random() - 0.5) * 0.5;
             }
-            s.x += s.dx;
-            s.y += s.dy;
-            s.x = Math.max(20, Math.min(W - 20, s.x));
-            s.y = Math.max(20, Math.min(H - 20, s.y));
             break;
-          case 'mirror':
-            s.x += (W - cx - s.x) * 0.025;
-            s.y += (H - cy - s.y) * 0.025;
+          case 'mirror': {
+            // Steer toward the cross's mirrored position.
+            const tx = W - cx;
+            const ty = H - cy;
+            const mdx = tx - s.x;
+            const mdy = ty - s.y;
+            const mdist = Math.sqrt(mdx * mdx + mdy * mdy) || 1;
+            s.vx += (mdx / mdist) * 0.018;
+            s.vy += (mdy / mdist) * 0.018;
             break;
+          }
           case 'drift':
-            s.x += Math.sin(s.wobble) * s.speed;
-            s.y += Math.cos(s.wobble * 1.3) * s.speed;
+            // Gentle sinusoidal sway on top of the base bounce.
+            s.vx += Math.sin(s.wobble) * 0.015;
+            s.vy += Math.cos(s.wobble * 1.3) * 0.015;
             break;
           case 'static':
-            s.x += Math.sin(s.wobble) * 0.1;
-            s.y += Math.cos(s.wobble) * 0.1;
+            // Heavy damping — barely moves, still bounces if pushed.
+            s.vx *= 0.9;
+            s.vy *= 0.9;
             break;
         }
 
-        const hitDist = s.size + 14;
+        // Cap velocity magnitude to the sin's speed spec so steering
+        // can't snowball into something chaotic.
+        const maxV = s.speed;
+        const vmag = Math.sqrt(s.vx * s.vx + s.vy * s.vy);
+        if (vmag > maxV) {
+          s.vx = (s.vx / vmag) * maxV;
+          s.vy = (s.vy / vmag) * maxV;
+        }
+
+        // Apply velocity.
+        s.x += s.vx;
+        s.y += s.vy;
+
+        // DVD-logo bounce: clamp to the measured text bounding box and
+        // flip the corresponding velocity component so the word
+        // continuously reverses direction at the canvas edges.
+        if (s.x - s.halfW < 0) {
+          s.x = s.halfW;
+          s.vx = Math.abs(s.vx);
+        } else if (s.x + s.halfW > W) {
+          s.x = W - s.halfW;
+          s.vx = -Math.abs(s.vx);
+        }
+        if (s.y - s.halfH < 0) {
+          s.y = s.halfH;
+          s.vy = Math.abs(s.vy);
+        } else if (s.y + s.halfH > H) {
+          s.y = H - s.halfH;
+          s.vy = -Math.abs(s.vy);
+        }
+
+        // Collision with the cross — one hit kills, generous hit radius.
+        const hitDist = s.size + 20;
         if (dist < hitDist) {
           s.hitsReceived++;
           if (s.hitsReceived >= s.hitsNeeded) {
@@ -270,8 +337,10 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
               setPhase('won');
             }
           } else {
-            s.x += (s.x - cx) * 0.3;
-            s.y += (s.y - cy) * 0.3;
+            // Knock the sin away via its velocity so the bounce logic
+            // still governs where it ends up on the next frame.
+            s.vx = ((s.x - cx) / dist) * Math.max(1.2, s.speed);
+            s.vy = ((s.y - cy) / dist) * Math.max(1.2, s.speed);
             spawnParticles(s);
           }
         }
@@ -332,7 +401,9 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
         const sinPulse = 0.7 + Math.sin(s.wobble * 3) * 0.15;
         ctx.globalAlpha = sinPulse;
         ctx.fillStyle = s.color;
-        ctx.font = `${s.size}px "IBM Plex Mono", monospace`;
+        // Deadly-sin labels use Pirata One. The rest of the canvas
+        // (trail cross, dots, particles) stays on IBM Plex Mono.
+        ctx.font = `${s.size}px "Pirata One", "Noto Serif SC", serif`;
         ctx.fillText(s.name, s.x + ox, s.y + oy);
 
         if (s.hitsNeeded > 1) {
