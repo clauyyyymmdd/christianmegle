@@ -25,6 +25,7 @@ export default function ConfessionalRoute({ apiUrl }: Props) {
     handleStartOver,
     handleSessionEnd,
     handleExcommunicate,
+    handleSwitchPartner,
     handleRejoin,
     handleEnterConfessional,
   } = useConfessionalFlow(apiUrl);
@@ -82,6 +83,7 @@ export default function ConfessionalRoute({ apiUrl }: Props) {
           apiUrl={apiUrl}
           onSessionEnd={handleSessionEnd}
           onExcommunicate={handleExcommunicate}
+          onSwitchPartner={handleSwitchPartner}
         />
       );
 

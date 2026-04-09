@@ -11,6 +11,8 @@ interface VideoPanelProps {
   formatTime: (seconds: number) => string;
   onEndSession: () => void;
   onNext: () => void;
+  /** Shown during an active session for sinners — rematch with a new priest. */
+  onSwitchPartner?: () => void;
   /** Rendered inside the remote video container (e.g. priest effects) */
   effectsOverlay?: ReactNode;
   /** Rendered below the action bar (e.g. priest toolbar, book of life) */
@@ -27,6 +29,7 @@ export function VideoPanel({
   formatTime,
   onEndSession,
   onNext,
+  onSwitchPartner,
   effectsOverlay,
   children,
 }: VideoPanelProps) {
@@ -64,7 +67,14 @@ export function VideoPanel({
       {/* Action bar */}
       <div style={styles.actionBar}>
         {sessionActive ? (
-          <button onClick={onEndSession} style={styles.endButton}>■ End Confession</button>
+          <div style={styles.buttonGroup}>
+            <button onClick={onEndSession} style={styles.endButton}>■ End Confession</button>
+            {onSwitchPartner && (
+              <button onClick={onSwitchPartner} style={styles.switchButton}>
+                ⇆ {role === 'priest' ? 'Next Penitent' : 'Switch Priest'}
+              </button>
+            )}
+          </div>
         ) : connectionState === 'ended' ? (
           <button onClick={onNext} style={styles.nextButton}>
             ▶ {role === 'priest' ? 'Next Penitent' : 'Confess Again'}
@@ -144,9 +154,27 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '1rem',
     flexShrink: 0,
   },
+  buttonGroup: {
+    display: 'flex',
+    gap: '0.6rem',
+    alignItems: 'center',
+  },
   endButton: {
     background: '#3a1a1a',
     border: '1px solid #6a2a2a',
+    color: '#f5f0e6',
+    fontFamily: 'var(--font-terminal)',
+    fontSize: '0.75rem',
+    padding: '0.5rem 1.4rem',
+    letterSpacing: '0.08em',
+    fontWeight: 700,
+    flexShrink: 0,
+    cursor: 'pointer',
+    borderRadius: '3px',
+  },
+  switchButton: {
+    background: '#1c2a2a',
+    border: '1px solid #3a5a5a',
     color: '#f5f0e6',
     fontFamily: 'var(--font-terminal)',
     fontSize: '0.75rem',

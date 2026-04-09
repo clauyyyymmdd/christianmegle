@@ -27,10 +27,15 @@
   --text-secondary: #c9c0b0;
   --text-dim: #6a6258;
 
-  /* Typography - CJK serif: SimSun (Win), STSong/Songti SC (Mac), Noto Serif SC (fallback web font) */
+  /* Typography
+     - title/display/terminal: CJK serif stack (SimSun / Songti) for the
+       decorative chrome that's intentionally distinct.
+     - body: Noto Serif SC first, so normal paragraph/interface copy lands
+       on the web font the app actually ships (index.html preloads it).
+       Native CJK serifs remain as a graceful fallback. */
   --font-title: 'SimSun', 'STSong', 'Songti SC', 'Noto Serif SC', serif;
   --font-display: 'SimSun', 'STSong', 'Songti SC', 'Noto Serif SC', serif;
-  --font-body: 'SimSun', 'STSong', 'Songti SC', 'Noto Serif SC', serif;
+  --font-body: 'Noto Serif SC', 'Songti SC', 'STSong', 'SimSun', serif;
   --font-terminal: 'SimSun', 'STSong', 'Songti SC', 'Noto Serif SC', monospace;
 
   /* Amber (terminal/ASCII accents) */

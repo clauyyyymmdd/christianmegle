@@ -1,55 +1,32 @@
 import { useState } from 'react';
-import { VisualEffectType, PenanceAssignment, ScriptureVerse } from '../../../lib/types';
-import PenanceDropdown from './PenanceDropdown';
+import { VisualEffectType, ScriptureVerse } from '../../../lib/types';
 import ScriptureLibrary from './ScriptureLibrary';
 
 interface PriestToolbarProps {
   activeEffects: Set<VisualEffectType>;
   silenceActive: boolean;
-  onSendPenance: (penance: PenanceAssignment) => void;
-  onGrantAbsolution: () => void;
   onSendScripture: (verse: ScriptureVerse) => void;
   onToggleEffect: (effect: VisualEffectType) => void;
   onRingBells: () => void;
   onToggleSilence: () => void;
   onExcommunicate: () => void;
-  onInscribe: (text: string) => void;
 }
 
 export default function PriestToolbar({
   activeEffects,
   silenceActive,
-  onSendPenance,
-  onGrantAbsolution,
   onSendScripture,
   onToggleEffect,
   onRingBells,
   onToggleSilence,
   onExcommunicate,
-  onInscribe,
 }: PriestToolbarProps) {
-  const [showPenance, setShowPenance] = useState(false);
   const [showScripture, setShowScripture] = useState(false);
-  const [showInscribe, setShowInscribe] = useState(false);
   const [showExcommunicateConfirm, setShowExcommunicateConfirm] = useState(false);
-  const [inscribeText, setInscribeText] = useState('');
-
-  const handlePenanceSelect = (penance: PenanceAssignment) => {
-    onSendPenance(penance);
-    setShowPenance(false);
-  };
 
   const handleScriptureSelect = (verse: ScriptureVerse) => {
     onSendScripture(verse);
     setShowScripture(false);
-  };
-
-  const handleInscribeSubmit = () => {
-    if (inscribeText.trim()) {
-      onInscribe(inscribeText.trim());
-      setInscribeText('');
-      setShowInscribe(false);
-    }
   };
 
   const handleExcommunicateConfirm = () => {
@@ -67,28 +44,6 @@ export default function PriestToolbar({
   return (
     <>
       <div className="priest-toolbar">
-        {/* Sacraments */}
-        <div className="toolbar-section">
-          <div className="section-title">Sacraments</div>
-          <div className="penance-dropdown">
-            <button onClick={() => setShowPenance(!showPenance)}>
-              Assign Penance
-            </button>
-            {showPenance && (
-              <PenanceDropdown
-                onSelect={handlePenanceSelect}
-                onClose={() => setShowPenance(false)}
-              />
-            )}
-          </div>
-          <button onClick={onGrantAbsolution}>
-            Grant Absolution
-          </button>
-          <button onClick={() => setShowInscribe(true)}>
-            Inscribe
-          </button>
-        </div>
-
         {/* Scripture */}
         <div className="toolbar-section">
           <div className="section-title">Scripture</div>
@@ -138,29 +93,6 @@ export default function PriestToolbar({
           onSelect={handleScriptureSelect}
           onClose={() => setShowScripture(false)}
         />
-      )}
-
-      {/* Inscribe Modal */}
-      {showInscribe && (
-        <div className="inscribe-modal">
-          <div className="modal-content">
-            <h3>Inscribe in the Book of Life</h3>
-            <textarea
-              value={inscribeText}
-              onChange={(e) => setInscribeText(e.target.value)}
-              placeholder="Write your inscription..."
-              autoFocus
-            />
-            <div className="modal-buttons">
-              <button onClick={() => setShowInscribe(false)}>
-                Cancel
-              </button>
-              <button onClick={handleInscribeSubmit}>
-                Inscribe
-              </button>
-            </div>
-          </div>
-        </div>
       )}
 
       {/* Excommunicate Confirmation Modal */}

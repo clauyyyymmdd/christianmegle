@@ -22,9 +22,19 @@ interface SessionShellProps {
   apiUrl: string;
   onSessionEnd: () => void;
   onExcommunicate?: () => void;
+  /** Triggered when either party asks to be rematched mid-session. */
+  onSwitchPartner?: () => void;
 }
 
-export default function SessionShell({ signaling, role, isInitiator, apiUrl, onSessionEnd, onExcommunicate }: SessionShellProps) {
+export default function SessionShell({
+  signaling,
+  role,
+  isInitiator,
+  apiUrl,
+  onSessionEnd,
+  onExcommunicate,
+  onSwitchPartner,
+}: SessionShellProps) {
   // --- Feature hooks ---
   const session = useWebRTC(signaling, isInitiator, apiUrl);
   const priest = usePriestActions(signaling);
@@ -36,6 +46,14 @@ export default function SessionShell({ signaling, role, isInitiator, apiUrl, onS
   const handleEndSession = () => {
     session.endSession();
     onSessionEnd();
+  };
+
+  const handleSwitchPartner = () => {
+    // Tear down the current WebRTC session locally, then kick the
+    // state machine back into matchmaking. The useMatchmaking effect
+    // will reconnect the signaling socket automatically.
+    session.endSession();
+    onSwitchPartner?.();
   };
 
   // --- Compose UI ---
@@ -52,6 +70,7 @@ export default function SessionShell({ signaling, role, isInitiator, apiUrl, onS
         formatTime={session.formatTime}
         onEndSession={handleEndSession}
         onNext={onSessionEnd}
+        onSwitchPartner={onSwitchPartner ? handleSwitchPartner : undefined}
         effectsOverlay={
           <EffectsOverlay
             activeEffects={priest.activeEffects}
@@ -71,8 +90,6 @@ export default function SessionShell({ signaling, role, isInitiator, apiUrl, onS
               <PriestToolbar
                 activeEffects={priest.activeEffects}
                 silenceActive={priest.silenceActive}
-                onSendPenance={priest.sendPenance}
-                onGrantAbsolution={priest.grantAbsolution}
                 onSendScripture={priest.sendScripture}
                 onToggleEffect={priest.sendToggleEffect}
                 onRingBells={priest.ringBells}
@@ -81,7 +98,6 @@ export default function SessionShell({ signaling, role, isInitiator, apiUrl, onS
                   session.endSession();
                   (onExcommunicate || onSessionEnd)();
                 })}
-                onInscribe={priest.inscribe}
               />
             )}
             {priest.bookEntries.length > 0 && <BookOfLife entries={priest.bookEntries} />}

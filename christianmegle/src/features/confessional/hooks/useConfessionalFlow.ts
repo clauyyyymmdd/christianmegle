@@ -152,6 +152,8 @@ export function useConfessionalFlow(apiUrl: string) {
 
   const handleExcommunicate = () => dispatch({ type: 'EXCOMMUNICATE' });
 
+  const handleSwitchPartner = () => dispatch({ type: 'SWITCH_PARTNER' });
+
   return {
     state,
     role: state.role,
@@ -169,5 +171,6 @@ export function useConfessionalFlow(apiUrl: string) {
     handleSessionEnd,
     handleRejoin,
     handleExcommunicate,
+    handleSwitchPartner,
   };
 }

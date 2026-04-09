@@ -51,7 +51,8 @@ export type Event =
   | { type: 'MATCHED'; isInitiator: boolean }
   /** Session lifecycle */
   | { type: 'SESSION_ENDED' }
-  | { type: 'EXCOMMUNICATE' };
+  | { type: 'EXCOMMUNICATE' }
+  | { type: 'SWITCH_PARTNER' };
 
 // ── Initial state ──────────────────────────────────────────────────
 
@@ -142,6 +143,13 @@ export function transition(state: State, event: Event): State {
 
     case 'EXCOMMUNICATE':
       // Priest excommunicates → straight back to matchmaking, skip ended
+      if (state.kind !== 'connected') return state;
+      return { kind: 'waiting', role: state.role, position: 0 };
+
+    case 'SWITCH_PARTNER':
+      // Sinner rolls for a new priest (or priest switches penitent) →
+      // straight back to matchmaking, skip ended. Same target state as
+      // EXCOMMUNICATE, but no excommunication semantics.
       if (state.kind !== 'connected') return state;
       return { kind: 'waiting', role: state.role, position: 0 };
   }
