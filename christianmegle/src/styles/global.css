@@ -750,9 +750,12 @@ input::placeholder, textarea::placeholder {
 /* === Light Mode (Heaven) === */
 
 body.light-mode {
-  --bg-primary: #faf8f3;
-  --bg-secondary: #f0ece4;
-  --bg-elevated: #e8e4dc;
+  /* Full-viewport background image — fixed, no tile, no scroll */
+  background: url('/assets/images/lightmode-bg.png') center / cover no-repeat fixed;
+
+  --bg-primary: rgba(250, 248, 243, 0.85);
+  --bg-secondary: rgba(240, 236, 228, 0.9);
+  --bg-elevated: rgba(232, 228, 220, 0.92);
 
   --blood: #8b4513;
   --blood-bright: #a0522d;

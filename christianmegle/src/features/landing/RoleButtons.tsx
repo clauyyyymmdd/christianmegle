@@ -54,7 +54,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '0.6rem',
     fontWeight: 400,
     letterSpacing: '0.05em',
-    opacity: 0.7,
-    color: 'inherit',
+    opacity: 1,
+    color: '#8b0000',
   },
 };
