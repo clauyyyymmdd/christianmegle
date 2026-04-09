@@ -483,7 +483,7 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
   // Win → advance to heaven response prompt after brief beat
   useEffect(() => {
     if (phase !== 'won') return;
-    const id = setTimeout(() => setPhase('heaven'), 500);
+    const id = setTimeout(() => setPhase('heaven'), 250);
     return () => clearTimeout(id);
   }, [phase]);
 
@@ -521,7 +521,7 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
 
   // ── Render ───────────────────────────────────────────────────
 
-  // Intro: bare click target, no narrative text
+  // Intro: click to start, with instruction text
   if (phase === 'intro') {
     return (
       <div
@@ -529,6 +529,9 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
         onClick={() => setPhase('playing')}
       >
         <div style={styles.introMark}>✝</div>
+        <p style={styles.introInstruction}>
+          press up and down keys to authenticate priesthood.
+        </p>
       </div>
     );
   }
@@ -589,9 +592,20 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
     );
   }
 
-  // Failed / won hold: blank dark, no copy
-  if (phase === 'failed' || phase === 'won') {
+  // Failed: blank dark hold
+  if (phase === 'failed') {
     return <div style={styles.fullscreen} />;
+  }
+
+  // Won: success message before advancing to heaven prompt
+  if (phase === 'won') {
+    return (
+      <div style={styles.fullscreen}>
+        <p style={styles.wonText}>
+          you have conquered the serpent. welcome to the priesthood.
+        </p>
+      </div>
+    );
   }
 
   // Playing: canvas + tiny HUD (no narrative text)
@@ -643,6 +657,26 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
     userSelect: 'none',
     animation: 'hintPulse 2.4s ease-in-out infinite',
+  },
+  introInstruction: {
+    fontFamily: 'var(--font-body)',
+    fontSize: '0.8rem',
+    color: '#555',
+    marginTop: '1.5rem',
+    textAlign: 'center',
+    letterSpacing: '0.04em',
+    lineHeight: 1.6,
+    maxWidth: '300px',
+  },
+  wonText: {
+    fontFamily: 'var(--font-body)',
+    fontSize: '1rem',
+    color: 'var(--ivory)',
+    textAlign: 'center',
+    fontStyle: 'italic',
+    lineHeight: 1.8,
+    maxWidth: '360px',
+    letterSpacing: '0.03em',
   },
   heavenWrap: {
     width: '100%',
