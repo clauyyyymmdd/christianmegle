@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { AsciiLace } from '../../../lace';
 
 /**
@@ -74,20 +75,39 @@ interface LoadingScreenProps {
 
 export default function LoadingScreen({ context = 'general' }: LoadingScreenProps) {
   const verse = pickVerse(context);
+  const [charCount, setCharCount] = useState(0);
+
+  useEffect(() => {
+    setCharCount(0);
+    const len = verse.text.length;
+    const interval = setInterval(() => {
+      setCharCount((c) => {
+        if (c >= len) {
+          clearInterval(interval);
+          return len;
+        }
+        return c + 1;
+      });
+    }, 35);
+    return () => clearInterval(interval);
+  }, [verse.text]);
+
+  const visible = verse.text.slice(0, charCount);
+  const done = charCount >= verse.text.length;
 
   return (
     <div style={styles.container}>
       <AsciiLace profile="loading" target="LaceFrame" />
 
       <p style={styles.verse}>
-        {verse.text.split('\n').map((line, i, arr) => (
+        {visible.split('\n').map((line, i, arr) => (
           <span key={i}>
             {line}
             {i < arr.length - 1 && <br />}
           </span>
         ))}
       </p>
-      <p style={styles.reference}>{verse.reference}</p>
+      <p style={{ ...styles.reference, opacity: done ? 1 : 0 }}>{verse.reference}</p>
     </div>
   );
 }
