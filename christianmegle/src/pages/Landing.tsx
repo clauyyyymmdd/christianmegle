@@ -45,6 +45,8 @@ export default function Landing() {
         </div>
 
         <LandingHero visible={!showEntry} />
+
+        <span style={styles.footer}>made with devotion by claudia yile</span>
       </div>
 
       <LightModeDeniedModal open={showLightDenied} onClose={dismissLightDenied} />
@@ -78,5 +80,14 @@ const styles: Record<string, React.CSSProperties> = {
     color: 'var(--ivory-dim)',
     fontSize: '1.2rem',
     animation: 'twinkle 2s ease-in-out infinite',
+  },
+  footer: {
+    position: 'absolute',
+    bottom: '0.6rem',
+    fontFamily: 'var(--font-body)',
+    fontSize: '0.45rem',
+    letterSpacing: '0.06em',
+    color: 'var(--ivory-dark)',
+    opacity: 0.4,
   },
 };

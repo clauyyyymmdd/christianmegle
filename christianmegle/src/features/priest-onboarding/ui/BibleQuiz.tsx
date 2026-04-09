@@ -24,7 +24,7 @@ interface BibleQuizProps {
   onNotSaved: () => void;
 }
 
-type Phase = 'intro' | 'playing' | 'won' | 'heaven' | 'submitting' | 'failed';
+type Phase = 'intro' | 'playing' | 'won' | 'heaven' | 'naming' | 'submitting' | 'failed';
 
 interface Sin {
   name: string;
@@ -68,10 +68,6 @@ interface TrailPoint {
 
 const HEAVEN_PROMPT = 'Why do you think you will go to heaven?';
 
-function randomName(): string {
-  return `anon-${Math.random().toString(36).slice(2, 8)}`;
-}
-
 export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -79,6 +75,7 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
   const [timer, setTimer] = useState(90);
   const [sinsLeft, setSinsLeft] = useState(7);
   const [heavenResponse, setHeavenResponse] = useState('');
+  const [priestName, setPriestName] = useState('');
 
   const gameState = useRef({
     cross: { x: 0, y: 0, trail: [] as TrailPoint[] },
@@ -498,15 +495,21 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
     return () => clearTimeout(id);
   }, [phase, onNotSaved]);
 
-  // Submit heaven response through the existing backend contract
-  const handleSubmitHeaven = async () => {
+  // Advance to the naming step after the heaven prompt is answered.
+  const handleAdvanceToNaming = () => {
     if (heavenResponse.trim().length < 1) return;
+    setPhase('naming');
+  };
+
+  // Submit through the existing backend contract with the chosen name.
+  const handleSubmitWithName = async () => {
+    const name = priestName.trim() || 'Father';
     setPhase('submitting');
     try {
       const data = await submitQuiz(apiUrl, {
         // Non-existent question id → backend scores 0/0 → passes 0 >= 0
         answers: { '999999': 'a' } as unknown as Record<number, string>,
-        displayName: randomName(),
+        displayName: name,
         heavenResponse: heavenResponse.trim(),
       });
       onComplete(data.priestId, true);
@@ -530,8 +533,8 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
     );
   }
 
-  // Heaven response — THE ONLY PIECE OF COPY
-  if (phase === 'heaven' || phase === 'submitting') {
+  // Heaven response prompt
+  if (phase === 'heaven') {
     return (
       <div style={styles.fullscreen}>
         <div style={styles.heavenWrap}>
@@ -541,12 +544,42 @@ export default function BibleQuiz({ apiUrl, onComplete, onNotSaved }: BibleQuizP
             value={heavenResponse}
             onChange={(e) => setHeavenResponse(e.target.value.slice(0, 2000))}
             style={styles.heavenTextarea}
-            disabled={phase === 'submitting'}
           />
           <div style={styles.heavenButtonWrap}>
             <ChromeButton
-              onClick={handleSubmitHeaven}
-              disabled={phase === 'submitting' || heavenResponse.trim().length < 1}
+              onClick={handleAdvanceToNaming}
+              disabled={heavenResponse.trim().length < 1}
+            >
+              ✝
+            </ChromeButton>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Priest naming step — shown after the heaven prompt, before submission
+  if (phase === 'naming' || phase === 'submitting') {
+    return (
+      <div style={styles.fullscreen}>
+        <div style={styles.heavenWrap}>
+          <p style={styles.heavenPrompt}>What shall we call you, Father?</p>
+          <input
+            autoFocus
+            type="text"
+            placeholder="Father..."
+            value={priestName}
+            onChange={(e) => setPriestName(e.target.value.slice(0, 60))}
+            style={styles.nameInput}
+            disabled={phase === 'submitting'}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleSubmitWithName();
+            }}
+          />
+          <div style={styles.heavenButtonWrap}>
+            <ChromeButton
+              onClick={handleSubmitWithName}
+              disabled={phase === 'submitting'}
             >
               ✝
             </ChromeButton>
@@ -645,5 +678,18 @@ const styles: Record<string, React.CSSProperties> = {
   heavenButtonWrap: {
     width: '100%',
     maxWidth: 280,
+  },
+  nameInput: {
+    width: '100%',
+    padding: '0.85rem 1.25rem',
+    fontFamily: 'var(--font-body)',
+    fontSize: '1.1rem',
+    lineHeight: 1.5,
+    background: '#151210',
+    border: '1px solid #333',
+    color: '#f5f0e6',
+    outline: 'none',
+    textAlign: 'center',
+    letterSpacing: '0.04em',
   },
 };
