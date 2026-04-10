@@ -53,7 +53,7 @@ const frameWrapStyle: CSSProperties = {
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  paddingLeft: '2in',
+  paddingLeft: '2.25in',
   overflow: 'hidden',
   animation: 'lacePulse 8s ease-in-out infinite',
 };
