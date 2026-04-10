@@ -15,7 +15,6 @@ import EffectsOverlay from '../priest-toolkit/ui/EffectsOverlay';
 import PriestToolbar from '../priest-toolkit/ui/PriestToolbar';
 import BookOfLife from '../priest-toolkit/ui/BookOfLife';
 import { ChatPanel } from '../chat/ui/ChatPanel';
-import { LaceFrame } from '../../lace';
 
 interface SessionShellProps {
   signaling: SignalingClient;
@@ -103,7 +102,6 @@ export default function SessionShell({
   // --- Compose UI ---
   return (
     <div style={styles.container}>
-      <LaceFrame profile="confessional-screen" style={styles.laceFrame} />
       <VideoPanel
         localVideoRef={session.localVideoRef}
         remoteVideoRef={session.remoteVideoRef}
@@ -171,11 +169,5 @@ export default function SessionShell({
 
 const styles: Record<string, React.CSSProperties> = {
   container: { display: 'flex', width: '100%', height: '100vh', background: 'var(--bg-primary)', overflow: 'hidden', position: 'relative' },
-  // Lace frame sits behind video panel only — dimmed so it doesn't fight chat readability
-  laceFrame: {
-    right: '320px', // chat panel width — confine to video column
-    opacity: 0.25,
-    mixBlendMode: 'screen',
-  },
   error: { position: 'absolute', top: '1rem', left: '50%', transform: 'translateX(-50%)', background: 'var(--crimson-dim)', border: '1px solid var(--crimson)', padding: '0.75rem 1.5rem', zIndex: 30, color: 'var(--parchment)', fontStyle: 'italic', fontFamily: 'var(--font-terminal)', fontSize: '0.8rem' },
 };

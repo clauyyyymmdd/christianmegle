@@ -69,6 +69,9 @@ export function VideoPanel({
         {sessionActive ? (
           <div style={styles.buttonGroup}>
             <button onClick={onEndSession} style={styles.endButton} title="End this session">■ End Confession</button>
+            <button onClick={() => alert('🍞🍷 You have taken the Eucharist.')} style={styles.switchButton} title="Take the Eucharist">
+              ✝ Take Eucharist
+            </button>
             {onSwitchPartner && (
               <button onClick={onSwitchPartner} style={styles.switchButton} title={role === 'priest' ? 'Match with a new penitent' : 'Match with a new priest'}>
                 ⇆ {role === 'priest' ? 'Next Penitent' : 'Switch Priest'}
