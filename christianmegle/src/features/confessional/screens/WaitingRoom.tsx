@@ -6,13 +6,15 @@ import { AsciiLace } from '../../../lace';
 interface Props {
   role: UserRole;
   waitingPosition: number;
+  onCameraReady: () => void;
   onLeave: () => void;
   onStartOver: () => void;
 }
 
-export function WaitingRoom({ role, waitingPosition, onLeave, onStartOver }: Props) {
+export function WaitingRoom({ role, waitingPosition, onCameraReady, onLeave, onStartOver }: Props) {
   const [cameraStatus, setCameraStatus] = useState<'requesting' | 'granted' | 'denied'>('requesting');
   const streamRef = useRef<MediaStream | null>(null);
+  const notifiedRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -28,6 +30,10 @@ export function WaitingRoom({ role, waitingPosition, onLeave, onStartOver }: Pro
         }
         streamRef.current = stream;
         setCameraStatus('granted');
+        if (!notifiedRef.current) {
+          notifiedRef.current = true;
+          onCameraReady();
+        }
       })
       .catch(() => {
         if (!cancelled) setCameraStatus('denied');

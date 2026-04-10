@@ -27,6 +27,7 @@ export default function ConfessionalRoute({ apiUrl }: Props) {
     handleSwitchPartner,
     handleRejoin,
     handleEnterConfessional,
+    handleCameraReady,
     handleBoot,
     screenshotDataUrl,
     captureScreenshot,
@@ -70,6 +71,7 @@ export default function ConfessionalRoute({ apiUrl }: Props) {
         <WaitingRoom
           role={state.role}
           waitingPosition={state.position}
+          onCameraReady={handleCameraReady}
           onLeave={() => navigate('/')}
           onStartOver={handleStartOver}
         />

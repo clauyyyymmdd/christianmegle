@@ -27,6 +27,7 @@ export function useConfessionalFlow(apiUrl: string) {
   const { priestId, priestName, savePriest, clearPriest } = usePriestIdentity();
   const { check, startPolling } = usePriestApproval(apiUrl);
   const { waitingPosition, signalingRef, connect, disconnect } = useMatchmaking(apiUrl);
+  const [cameraReady, setCameraReady] = useState(false);
 
   // Sync external matchmaking state into the state machine
   useEffect(() => {
@@ -35,11 +36,22 @@ export function useConfessionalFlow(apiUrl: string) {
     }
   }, [waitingPosition, state]);
 
+  // Reset camera readiness when leaving the waiting state so re-entry
+  // (e.g. switch partner) re-gates on the new permission prompt.
+  const prevKindRef = useRef(state.kind);
+  useEffect(() => {
+    if (prevKindRef.current === 'waiting' && state.kind !== 'waiting') {
+      setCameraReady(false);
+    }
+    prevKindRef.current = state.kind;
+  }, [state.kind]);
+
   // Side effect: kick off matchmaking when entering 'waiting' state
+  // AND camera permission has been granted.
   const lastConnectKey = useRef<string | null>(null);
   useEffect(() => {
-    if (state.kind !== 'waiting') {
-      lastConnectKey.current = null;
+    if (state.kind !== 'waiting' || !cameraReady) {
+      if (state.kind !== 'waiting') lastConnectKey.current = null;
       return;
     }
     const key = `${state.role}:${priestId ?? ''}`;
@@ -49,7 +61,7 @@ export function useConfessionalFlow(apiUrl: string) {
     connect(state.role, priestId || undefined, (initiator) => {
       dispatch({ type: 'MATCHED', isInitiator: initiator });
     });
-  }, [state.kind, state.role, priestId]);
+  }, [state.kind, state.role, priestId, cameraReady]);
 
   // Side effect: check priest approval status when entering 'applied'
   const lastPollKey = useRef<string | null>(null);
@@ -169,6 +181,8 @@ export function useConfessionalFlow(apiUrl: string) {
 
   const handleSwitchPartner = () => dispatch({ type: 'SWITCH_PARTNER' });
 
+  const handleCameraReady = useCallback(() => setCameraReady(true), []);
+
   return {
     state,
     role: state.role,
@@ -187,6 +201,7 @@ export function useConfessionalFlow(apiUrl: string) {
     handleRejoin,
     handleExcommunicate,
     handleSwitchPartner,
+    handleCameraReady,
     handleBoot,
     screenshotDataUrl,
     captureScreenshot,

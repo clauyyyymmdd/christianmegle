@@ -47,7 +47,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '0.85rem',
     fontWeight: 500,
     letterSpacing: '0.04em',
-    color: 'inherit',
+    color: '#8b0000',
   },
   labelSub: {
     fontFamily: 'var(--font-body)',

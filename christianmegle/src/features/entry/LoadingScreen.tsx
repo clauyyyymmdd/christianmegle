@@ -476,6 +476,7 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
                 fontFamily: 'var(--font-body)',
                 fontSize: '0.85rem',
                 letterSpacing: '0.05em',
+                color: '#8b0000',
               }}
             >
               I know I am a sinner
