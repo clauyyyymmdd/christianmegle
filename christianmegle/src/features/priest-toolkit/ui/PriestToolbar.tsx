@@ -67,6 +67,9 @@ export default function PriestToolbar({
           <button onClick={onRingBells}>
             Ring Bells
           </button>
+          <button onClick={() => alert('🍞🍷 You have taken the Eucharist.')}>
+            Take Eucharist
+          </button>
         </div>
 
         {/* Discipline */}

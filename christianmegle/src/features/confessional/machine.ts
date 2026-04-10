@@ -103,7 +103,9 @@ export function transition(state: State, event: Event): State {
 
     case 'QUIZ_PASSED':
       if (state.kind !== 'quiz') return state;
-      return { kind: 'applied', role: 'priest' };
+      // Skip applied/approval — priest is auto-approved at submission.
+      // Go straight to matchmaking.
+      return { kind: 'waiting', role: 'priest', position: 0 };
 
     case 'QUIZ_FAILED':
       if (state.kind !== 'quiz') return state;

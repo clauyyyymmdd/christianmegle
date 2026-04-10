@@ -13,6 +13,7 @@ import { useSessionScreenshot } from './useSessionScreenshot';
 import { VideoPanel } from '../confession-session/ui/VideoPanel';
 import EffectsOverlay from '../priest-toolkit/ui/EffectsOverlay';
 import PriestToolbar from '../priest-toolkit/ui/PriestToolbar';
+import AtmosphereToolbar from '../priest-toolkit/ui/AtmosphereToolbar';
 import BookOfLife from '../priest-toolkit/ui/BookOfLife';
 import { ChatPanel } from '../chat/ui/ChatPanel';
 
@@ -126,24 +127,29 @@ export default function SessionShell({
           />
         }
       >
-        {role === 'priest' && (
-          <>
-            {session.sessionActive && (
-              <PriestToolbar
-                activeEffects={priest.activeEffects}
-                silenceActive={priest.silenceActive}
-                onSendScripture={priest.sendScripture}
-                onToggleEffect={priest.sendToggleEffect}
-                onRingBells={priest.ringBells}
-                onToggleSilence={priest.toggleSilence}
-                onExcommunicate={() => priest.excommunicate(() => {
-                  session.endSession();
-                  (onExcommunicate || onSessionEnd)();
-                })}
-              />
-            )}
-            {priest.bookEntries.length > 0 && <BookOfLife entries={priest.bookEntries} />}
-          </>
+        {session.sessionActive && role === 'priest' && (
+          <PriestToolbar
+            activeEffects={priest.activeEffects}
+            silenceActive={priest.silenceActive}
+            onSendScripture={priest.sendScripture}
+            onToggleEffect={priest.sendToggleEffect}
+            onRingBells={priest.ringBells}
+            onToggleSilence={priest.toggleSilence}
+            onExcommunicate={() => priest.excommunicate(() => {
+              session.endSession();
+              (onExcommunicate || onSessionEnd)();
+            })}
+          />
+        )}
+        {session.sessionActive && role === 'sinner' && (
+          <AtmosphereToolbar
+            activeEffects={priest.activeEffects}
+            onToggleEffect={priest.sendToggleEffect}
+            onRingBells={priest.ringBells}
+          />
+        )}
+        {role === 'priest' && priest.bookEntries.length > 0 && (
+          <BookOfLife entries={priest.bookEntries} />
         )}
       </VideoPanel>
 
