@@ -94,38 +94,40 @@ export function useConfessionalFlow(apiUrl: string) {
     return () => { cancelled = true; };
   }, [state.kind, priestId]);
 
-  // Bootstrap: hold loading for 1200ms, then dispatch the right boot event
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (initialRole === 'priest') {
-        if (priestId) {
-          // Returning priest — check status
-          check(priestId).then((data) => {
-            if (data.status === 'approved') {
-              if (data.displayName) savePriest(priestId, data.displayName);
-              dispatch({ type: 'BOOT_AS_PRIEST_RETURNING' });
-            } else if (data.status === 'pending') {
-              if (data.displayName) savePriest(priestId, data.displayName);
-              dispatch({ type: 'BOOT_AS_PRIEST_PENDING' });
-            } else {
-              clearPriest();
-              dispatch({ type: 'BOOT_AS_PRIEST_NEW' });
-            }
-          }).catch(() => {
-            dispatch({ type: 'BOOT_AS_PRIEST_NEW' });
-          });
-        } else {
-          dispatch({ type: 'BOOT_AS_PRIEST_NEW' });
-        }
-      } else {
-        dispatch({ type: 'BOOT_AS_SINNER' });
-      }
-    }, 300);
+  // Bootstrap: called by LoadingScreen's onComplete when the verse
+  // typewriter finishes, so the user always reads the full verse.
+  const bootedRef = useRef(false);
+  const handleBoot = useCallback(() => {
+    if (bootedRef.current) return;
+    bootedRef.current = true;
 
-    return () => {
-      clearTimeout(timer);
-      disconnect();
-    };
+    if (initialRole === 'priest') {
+      if (priestId) {
+        check(priestId).then((data) => {
+          if (data.status === 'approved') {
+            if (data.displayName) savePriest(priestId, data.displayName);
+            dispatch({ type: 'BOOT_AS_PRIEST_RETURNING' });
+          } else if (data.status === 'pending') {
+            if (data.displayName) savePriest(priestId, data.displayName);
+            dispatch({ type: 'BOOT_AS_PRIEST_PENDING' });
+          } else {
+            clearPriest();
+            dispatch({ type: 'BOOT_AS_PRIEST_NEW' });
+          }
+        }).catch(() => {
+          dispatch({ type: 'BOOT_AS_PRIEST_NEW' });
+        });
+      } else {
+        dispatch({ type: 'BOOT_AS_PRIEST_NEW' });
+      }
+    } else {
+      dispatch({ type: 'BOOT_AS_SINNER' });
+    }
+  }, [initialRole, priestId]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => disconnect();
   }, []);
 
   // ── Action dispatchers (called by ConfessionalRoute screens) ──
@@ -185,6 +187,7 @@ export function useConfessionalFlow(apiUrl: string) {
     handleRejoin,
     handleExcommunicate,
     handleSwitchPartner,
+    handleBoot,
     screenshotDataUrl,
     captureScreenshot,
   };

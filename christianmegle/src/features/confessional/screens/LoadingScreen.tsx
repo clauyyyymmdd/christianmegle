@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { AsciiLace } from '../../../lace';
 
 /**
@@ -71,14 +71,18 @@ function pickVerse(context: LoadingContext): Verse {
 interface LoadingScreenProps {
   /** Which verse pool to draw from. Defaults to 'general'. */
   context?: LoadingContext;
+  /** Called once the verse has finished typing + a short read beat. */
+  onComplete?: () => void;
 }
 
-export default function LoadingScreen({ context = 'general' }: LoadingScreenProps) {
+export default function LoadingScreen({ context = 'general', onComplete }: LoadingScreenProps) {
   const verse = pickVerse(context);
   const [charCount, setCharCount] = useState(0);
+  const completedRef = useRef(false);
 
   useEffect(() => {
     setCharCount(0);
+    completedRef.current = false;
     const len = verse.text.length;
     const interval = setInterval(() => {
       setCharCount((c) => {
@@ -91,6 +95,15 @@ export default function LoadingScreen({ context = 'general' }: LoadingScreenProp
     }, 35);
     return () => clearInterval(interval);
   }, [verse.text]);
+
+  // Fire onComplete after typing finishes + 800ms read beat
+  useEffect(() => {
+    if (charCount < verse.text.length) return;
+    if (completedRef.current) return;
+    completedRef.current = true;
+    const id = setTimeout(() => onComplete?.(), 800);
+    return () => clearTimeout(id);
+  }, [charCount, verse.text.length, onComplete]);
 
   const visible = verse.text.slice(0, charCount);
   const done = charCount >= verse.text.length;

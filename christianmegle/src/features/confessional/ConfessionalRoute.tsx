@@ -3,7 +3,6 @@ import VideoChat from '../session/SessionShell';
 import { useConfessionalFlow } from './hooks/useConfessionalFlow';
 import { WelcomeBackScreen } from './screens/WelcomeBackScreen';
 import { PriestQuizScreen } from './screens/PriestQuizScreen';
-import { PendingApprovalScreen } from './screens/PendingApprovalScreen';
 import { WaitingRoom } from './screens/WaitingRoom';
 import { SessionEndedScreen } from './screens/SessionEndedScreen';
 import { StillASinnerScreen } from './screens/StillASinnerScreen';
@@ -28,6 +27,7 @@ export default function ConfessionalRoute({ apiUrl }: Props) {
     handleSwitchPartner,
     handleRejoin,
     handleEnterConfessional,
+    handleBoot,
     screenshotDataUrl,
     captureScreenshot,
   } = useConfessionalFlow(apiUrl);
@@ -36,7 +36,7 @@ export default function ConfessionalRoute({ apiUrl }: Props) {
   // if a new state kind is added to machine.ts without handling it here.
   switch (state.kind) {
     case 'loading':
-      return <LoadingScreen />;
+      return <LoadingScreen onComplete={handleBoot} />;
 
     case 'welcome-back':
       return (
@@ -60,7 +60,7 @@ export default function ConfessionalRoute({ apiUrl }: Props) {
       return <NotSavedScreen onBecomeSinner={handleBecomeSinner} />;
 
     case 'applied':
-      return <PendingApprovalScreen onStartOver={handleStartOver} />;
+      return null;
 
     case 'still-a-sinner':
       return <StillASinnerScreen onBecomeSinner={handleBecomeSinner} />;
