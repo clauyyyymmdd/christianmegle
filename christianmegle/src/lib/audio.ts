@@ -1,4 +1,4 @@
-type SoundEffect = 'organ-swell' | 'sanctus-bells' | 'ambient-silence' | 'chat-message';
+type SoundEffect = 'organ-swell' | 'sanctus-bells' | 'ambient-silence' | 'chat-message' | 'exorcism-drone';
 
 export class AudioManager {
   private audioContext: AudioContext | null = null;
@@ -143,6 +143,9 @@ export class AudioManager {
       if (sound === 'ambient-silence') {
         this.startAmbientSilence(ctx, sound);
       }
+      if (sound === 'exorcism-drone') {
+        this.startExorcismDrone(ctx, sound);
+      }
     } catch (e) {
       console.warn('[AudioManager] Loop start failed:', e);
     }
@@ -171,6 +174,36 @@ export class AudioManager {
     this.activeLoops.set(sound, { oscillator: osc, gain });
   }
 
+  private startExorcismDrone(ctx: AudioContext, sound: SoundEffect): void {
+    // Dissonant low-frequency drone — stacked detuned oscillators
+    const osc = ctx.createOscillator();
+    const osc2 = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
+    osc.type = 'sawtooth';
+    osc.frequency.value = 82; // Low E
+    osc2.type = 'sawtooth';
+    osc2.frequency.value = 87; // Slightly detuned — dissonant beat
+
+    filter.type = 'lowpass';
+    filter.frequency.value = 200;
+
+    gain.gain.value = 0.07;
+
+    osc.connect(filter);
+    osc2.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start();
+    osc2.start();
+
+    this.activeLoops.set(sound, { oscillator: osc, gain });
+    // Store second oscillator for cleanup
+    (this.activeLoops.get(sound) as any)._osc2 = osc2;
+  }
+
   /**
    * Stop a looping sound
    */
@@ -180,8 +213,10 @@ export class AudioManager {
       try {
         const ctx = this.getContext();
         if (ctx) loop.gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.5);
+        const osc2 = (loop as any)._osc2 as OscillatorNode | undefined;
         setTimeout(() => {
           loop.oscillator.stop();
+          osc2?.stop();
         }, 500);
       } catch (e) {
         // Oscillator may already be stopped

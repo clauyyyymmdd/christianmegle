@@ -864,3 +864,141 @@
   padding: 0.25rem 0.5rem;
   font-size: 0.65rem;
 }
+
+/* === Exorcism Effect — Screen Shake + Color Shift + Static === */
+@keyframes exorcism-shake {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  10% { transform: translate(-2px, 1px) rotate(-0.5deg); }
+  20% { transform: translate(1px, -1px) rotate(0.3deg); }
+  30% { transform: translate(-1px, 2px) rotate(-0.2deg); }
+  40% { transform: translate(2px, -2px) rotate(0.4deg); }
+  50% { transform: translate(-1px, 1px) rotate(-0.3deg); }
+  60% { transform: translate(1px, -1px) rotate(0.2deg); }
+  70% { transform: translate(-2px, 2px) rotate(-0.4deg); }
+  80% { transform: translate(2px, 0) rotate(0.3deg); }
+  90% { transform: translate(-1px, -1px) rotate(-0.1deg); }
+}
+
+@keyframes exorcism-color-shift {
+  0% { background: rgba(80, 0, 0, 0.08); }
+  25% { background: rgba(0, 40, 0, 0.06); }
+  50% { background: rgba(60, 0, 60, 0.08); }
+  75% { background: rgba(0, 0, 60, 0.06); }
+  100% { background: rgba(80, 0, 0, 0.08); }
+}
+
+@keyframes exorcism-static {
+  0% { background-position: 0 0; }
+  10% { background-position: -5% -10%; }
+  20% { background-position: -15% 5%; }
+  30% { background-position: 7% -25%; }
+  40% { background-position: -5% 25%; }
+  50% { background-position: -15% 10%; }
+  60% { background-position: 15% 0%; }
+  70% { background-position: 0% 15%; }
+  80% { background-position: 3% 35%; }
+  90% { background-position: -10% 10%; }
+  100% { background-position: 0 0; }
+}
+
+@keyframes float-script {
+  0% {
+    opacity: 0;
+    transform: translateY(10vh) translateX(0);
+  }
+  15% {
+    opacity: 0.6;
+  }
+  85% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-100vh) translateX(20px);
+  }
+}
+
+.video-panel-exorcism {
+  animation: exorcism-shake 0.15s linear infinite;
+}
+
+.effect-exorcism {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 55;
+}
+
+.effect-exorcism .color-shift {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  animation: exorcism-color-shift 3s ease-in-out infinite;
+  mix-blend-mode: overlay;
+}
+
+.effect-exorcism .static-overlay {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  right: -50%;
+  bottom: -50%;
+  background-image: repeating-conic-gradient(
+    rgba(255, 255, 255, 0.03) 0% 25%,
+    transparent 0% 50%
+  );
+  background-size: 4px 4px;
+  opacity: 0.5;
+  animation: exorcism-static 0.1s steps(8) infinite;
+  pointer-events: none;
+}
+
+.exorcism-floating-text {
+  position: absolute;
+  font-size: 1.2rem;
+  color: rgba(200, 180, 140, 0.5);
+  font-family: 'Noto Sans', 'Noto Sans Hebrew', 'Noto Sans Coptic', serif;
+  pointer-events: none;
+  white-space: nowrap;
+  animation: float-script var(--duration) linear infinite;
+  animation-delay: var(--delay);
+  left: var(--left);
+  text-shadow: 0 0 12px rgba(200, 180, 140, 0.3);
+  will-change: transform, opacity;
+}
+
+/* === Speak in Tongues — Chat Message Glow === */
+.tongues-message .chatText,
+.tongues-message span[style] {
+  text-shadow: 0 0 8px rgba(255, 120, 0, 0.5), 0 0 16px rgba(255, 80, 0, 0.2);
+  letter-spacing: 0.06em;
+}
+
+.tongues-message {
+  border-color: rgba(255, 140, 40, 0.3) !important;
+}
+
+@keyframes tongues-flame {
+  0%, 100% { opacity: 0.8; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+.tongues-flame {
+  display: inline-block;
+  animation: tongues-flame 0.6s ease-in-out infinite;
+  margin-left: 0.3em;
+}
+
+.tongues-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.65rem;
+  color: rgba(255, 140, 40, 0.8);
+  font-family: var(--font-terminal);
+  letter-spacing: 0.08em;
+}

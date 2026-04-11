@@ -19,10 +19,6 @@ interface Verse {
 const VERSES: Record<LoadingContext, Verse[]> = {
   general: [
     {
-      text: 'But of the tree of the knowledge of good\nand evil, thou shalt not eat of it:\nfor in the day that thou eatest thereof\nthou shalt surely die.',
-      reference: 'Genesis 2:17',
-    },
-    {
       text: 'For the wages of sin is death;\nbut the gift of God is eternal life\nthrough Jesus Christ our Lord.',
       reference: 'Romans 6:23',
     },

@@ -12,6 +12,7 @@ describe('isPriestAction', () => {
       'priest-silence',
       'priest-inscribe',
       'priest-bells',
+      'priest-exorcism',
     ];
     for (const type of priestTypes) {
       expect(isPriestAction({ type }), `expected true for ${type}`).toBe(true);

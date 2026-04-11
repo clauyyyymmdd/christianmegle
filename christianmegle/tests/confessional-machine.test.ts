@@ -46,9 +46,9 @@ describe('confessional state machine', () => {
   describe('quiz outcomes', () => {
     const quiz: State = { kind: 'quiz', role: 'priest' };
 
-    it('passing the quiz → applied', () => {
+    it('passing the quiz → waiting (skips applied)', () => {
       const s = transition(quiz, { type: 'QUIZ_PASSED' });
-      expect(s).toEqual({ kind: 'applied', role: 'priest' });
+      expect(s).toEqual({ kind: 'waiting', role: 'priest', position: 0 });
     });
 
     it('failing the quiz → still-a-sinner', () => {
@@ -103,6 +103,18 @@ describe('confessional state machine', () => {
       expect(s).toEqual({ kind: 'waiting', role: 'sinner', position: 0 });
     });
 
+    it('START_OVER from any state → quiz', () => {
+      const states: State[] = [
+        { kind: 'welcome-back', role: 'priest' },
+        { kind: 'waiting', role: 'priest', position: 3 },
+        { kind: 'ended', role: 'priest' },
+      ];
+      for (const s of states) {
+        const next = transition(s, { type: 'START_OVER' });
+        expect(next.kind).toBe('quiz');
+      }
+    });
+
     it('updates queue position via WAITING event', () => {
       const start: State = { kind: 'waiting', role: 'sinner', position: 0 };
       const s = transition(start, { type: 'WAITING', position: 3 });
@@ -140,9 +152,19 @@ describe('confessional state machine', () => {
       expect(s).toEqual({ kind: 'waiting', role: 'priest', position: 0 });
     });
 
+    it('connected → waiting on SWITCH_PARTNER (skips ended)', () => {
+      const s = transition(connected, { type: 'SWITCH_PARTNER' });
+      expect(s).toEqual({ kind: 'waiting', role: 'sinner', position: 0 });
+    });
+
     it('SESSION_ENDED is no-op outside connected', () => {
       const s: State = { kind: 'waiting', role: 'sinner', position: 0 };
       expect(transition(s, { type: 'SESSION_ENDED' })).toBe(s);
+    });
+
+    it('SWITCH_PARTNER is no-op outside connected', () => {
+      const s: State = { kind: 'waiting', role: 'sinner', position: 0 };
+      expect(transition(s, { type: 'SWITCH_PARTNER' })).toBe(s);
     });
   });
 
@@ -170,19 +192,13 @@ describe('confessional state machine', () => {
     });
   });
 
-  describe('full happy path: new priest passes quiz, gets approved', () => {
-    it('loading → quiz → applied → welcome-back → waiting → connected', () => {
+  describe('full happy path: new priest passes quiz (auto-approved)', () => {
+    it('loading → quiz → waiting → connected', () => {
       let s = initialState('priest');
       s = transition(s, { type: 'BOOT_AS_PRIEST_NEW' });
       expect(s.kind).toBe('quiz');
 
       s = transition(s, { type: 'QUIZ_PASSED' });
-      expect(s.kind).toBe('applied');
-
-      s = transition(s, { type: 'PRIEST_APPROVED' });
-      expect(s.kind).toBe('welcome-back');
-
-      s = transition(s, { type: 'ENTER_CONFESSIONAL' });
       expect(s.kind).toBe('waiting');
 
       s = transition(s, { type: 'MATCHED', isInitiator: true });

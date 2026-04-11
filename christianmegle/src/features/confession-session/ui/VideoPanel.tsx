@@ -13,6 +13,8 @@ interface VideoPanelProps {
   onNext: () => void;
   /** Shown during an active session for sinners — rematch with a new priest. */
   onSwitchPartner?: () => void;
+  /** Whether exorcism mode is active — applies shake to video containers */
+  exorcismActive?: boolean;
   /** Rendered inside the remote video container (e.g. priest effects) */
   effectsOverlay?: ReactNode;
   /** Rendered below the action bar (e.g. priest toolbar, book of life) */
@@ -30,13 +32,14 @@ export function VideoPanel({
   onEndSession,
   onNext,
   onSwitchPartner,
+  exorcismActive,
   effectsOverlay,
   children,
 }: VideoPanelProps) {
   return (
     <div style={styles.videoColumn}>
       {/* Stranger video (top) */}
-      <div className="video-container" style={styles.videoPanel}>
+      <div className={`video-container${exorcismActive ? ' video-panel-exorcism' : ''}`} style={styles.videoPanel}>
         <video ref={remoteVideoRef} autoPlay playsInline style={styles.video} />
         {!sessionActive && (
           <div style={styles.videoOverlay}>

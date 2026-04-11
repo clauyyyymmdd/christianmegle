@@ -5,21 +5,29 @@ import ScriptureLibrary from './ScriptureLibrary';
 interface PriestToolbarProps {
   activeEffects: Set<VisualEffectType>;
   silenceActive: boolean;
+  exorcismActive: boolean;
+  tonguesActive: boolean;
   onSendScripture: (verse: ScriptureVerse) => void;
   onToggleEffect: (effect: VisualEffectType) => void;
   onRingBells: () => void;
   onToggleSilence: () => void;
   onExcommunicate: () => void;
+  onToggleExorcism: () => void;
+  onToggleTongues: () => void;
 }
 
 export default function PriestToolbar({
   activeEffects,
   silenceActive,
+  exorcismActive,
+  tonguesActive,
   onSendScripture,
   onToggleEffect,
   onRingBells,
   onToggleSilence,
   onExcommunicate,
+  onToggleExorcism,
+  onToggleTongues,
 }: PriestToolbarProps) {
   const [showScripture, setShowScripture] = useState(false);
   const [showExcommunicateConfirm, setShowExcommunicateConfirm] = useState(false);
@@ -72,6 +80,17 @@ export default function PriestToolbar({
           </button>
         </div>
 
+        {/* Gifts */}
+        <div className="toolbar-section">
+          <div className="section-title">Gifts</div>
+          <button
+            onClick={onToggleTongues}
+            className={tonguesActive ? 'active' : ''}
+          >
+            {tonguesActive ? '🔥 Speaking...' : 'Speak in Tongues'}
+          </button>
+        </div>
+
         {/* Discipline */}
         <div className="toolbar-section">
           <div className="section-title">Discipline</div>
@@ -80,6 +99,12 @@ export default function PriestToolbar({
             className={silenceActive ? 'active' : ''}
           >
             {silenceActive ? 'Lift Silence' : 'Impose Silence'}
+          </button>
+          <button
+            onClick={onToggleExorcism}
+            className={`danger${exorcismActive ? ' active' : ''}`}
+          >
+            {exorcismActive ? '✝ End Exorcism' : '✝ Begin Exorcism'}
           </button>
           <button
             className="danger"

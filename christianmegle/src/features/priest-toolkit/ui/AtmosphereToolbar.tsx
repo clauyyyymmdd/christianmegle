@@ -2,8 +2,10 @@ import { VisualEffectType } from '../../../lib/types';
 
 interface AtmosphereToolbarProps {
   activeEffects: Set<VisualEffectType>;
+  tonguesActive: boolean;
   onToggleEffect: (effect: VisualEffectType) => void;
   onRingBells: () => void;
+  onToggleTongues: () => void;
 }
 
 /**
@@ -13,8 +15,10 @@ interface AtmosphereToolbarProps {
  */
 export default function AtmosphereToolbar({
   activeEffects,
+  tonguesActive,
   onToggleEffect,
   onRingBells,
+  onToggleTongues,
 }: AtmosphereToolbarProps) {
   const effects: VisualEffectType[] = [
     'stained-glass',
@@ -41,6 +45,15 @@ export default function AtmosphereToolbar({
         </button>
         <button onClick={() => alert('🍞🍷 You have taken the Eucharist.')}>
           Take Eucharist
+        </button>
+      </div>
+      <div className="toolbar-section">
+        <div className="section-title">Gifts</div>
+        <button
+          onClick={onToggleTongues}
+          className={tonguesActive ? 'active' : ''}
+        >
+          {tonguesActive ? '🔥 Speaking...' : 'Speak in Tongues'}
         </button>
       </div>
     </div>

@@ -14,6 +14,7 @@ export function usePriestActions(signaling: SignalingClient) {
   const [absolutionActive, setAbsolutionActive] = useState(false);
   const [silenceActive, setSilenceActive] = useState(false);
   const [excommunicateActive, setExcommunicateActive] = useState(false);
+  const [exorcismActive, setExorcismActive] = useState(false);
   const [currentPenance, setCurrentPenance] = useState<PenanceAssignment | null>(null);
   const [currentScripture, setCurrentScripture] = useState<ScriptureVerse | null>(null);
   const [bookEntries, setBookEntries] = useState<BookEntry[]>([]);
@@ -64,6 +65,11 @@ export function usePriestActions(signaling: SignalingClient) {
       case 'priest-excommunicate':
         setExcommunicateActive(true);
         break;
+      case 'priest-exorcism':
+        setExorcismActive(msg.active);
+        if (msg.active) audioManager.startLoop('exorcism-drone');
+        else audioManager.stopLoop('exorcism-drone');
+        break;
     }
   };
 
@@ -109,6 +115,14 @@ export function usePriestActions(signaling: SignalingClient) {
     setTimeout(onDone, 3000);
   };
 
+  const toggleExorcism = () => {
+    const next = !exorcismActive;
+    signaling.send({ type: 'priest-exorcism', active: next });
+    setExorcismActive(next);
+    if (next) audioManager.startLoop('exorcism-drone');
+    else audioManager.stopLoop('exorcism-drone');
+  };
+
   const inscribe = (text: string) => {
     signaling.send({ type: 'priest-inscribe', text });
     setBookEntries((prev) => [
@@ -122,6 +136,7 @@ export function usePriestActions(signaling: SignalingClient) {
     absolutionActive,
     silenceActive,
     excommunicateActive,
+    exorcismActive,
     currentPenance,
     currentScripture,
     bookEntries,
@@ -133,6 +148,7 @@ export function usePriestActions(signaling: SignalingClient) {
     ringBells,
     toggleSilence,
     excommunicate,
+    toggleExorcism,
     inscribe,
     dismissPenance: () => setCurrentPenance(null),
     dismissScripture: () => setCurrentScripture(null),

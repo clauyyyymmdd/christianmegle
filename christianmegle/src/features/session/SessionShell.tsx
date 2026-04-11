@@ -114,12 +114,14 @@ export default function SessionShell({
         onEndSession={handleEndSession}
         onNext={onSessionEnd}
         onSwitchPartner={onSwitchPartner ? handleSwitchPartner : undefined}
+        exorcismActive={priest.exorcismActive}
         effectsOverlay={
           <EffectsOverlay
             activeEffects={priest.activeEffects}
             absolutionActive={priest.absolutionActive}
             silenceActive={priest.silenceActive}
             excommunicateActive={priest.excommunicateActive}
+            exorcismActive={priest.exorcismActive}
             currentPenance={priest.currentPenance}
             currentScripture={priest.currentScripture}
             onPenanceDismiss={priest.dismissPenance}
@@ -131,10 +133,14 @@ export default function SessionShell({
           <PriestToolbar
             activeEffects={priest.activeEffects}
             silenceActive={priest.silenceActive}
+            exorcismActive={priest.exorcismActive}
+            tonguesActive={chat.tonguesActive}
             onSendScripture={priest.sendScripture}
             onToggleEffect={priest.sendToggleEffect}
             onRingBells={priest.ringBells}
             onToggleSilence={priest.toggleSilence}
+            onToggleExorcism={priest.toggleExorcism}
+            onToggleTongues={chat.toggleTongues}
             onExcommunicate={() => priest.excommunicate(() => {
               session.endSession();
               (onExcommunicate || onSessionEnd)();
@@ -144,8 +150,10 @@ export default function SessionShell({
         {session.sessionActive && role === 'sinner' && (
           <AtmosphereToolbar
             activeEffects={priest.activeEffects}
+            tonguesActive={chat.tonguesActive}
             onToggleEffect={priest.sendToggleEffect}
             onRingBells={priest.ringBells}
+            onToggleTongues={chat.toggleTongues}
           />
         )}
         {role === 'priest' && priest.bookEntries.length > 0 && (
@@ -157,6 +165,8 @@ export default function SessionShell({
         chatMessages={chat.chatMessages}
         chatInput={chat.chatInput}
         strangerTyping={chat.strangerTyping}
+        tonguesActive={chat.tonguesActive}
+        exorcismActive={priest.exorcismActive}
         chatEndRef={chat.chatEndRef}
         sessionActive={session.sessionActive}
         connectionState={session.connectionState}

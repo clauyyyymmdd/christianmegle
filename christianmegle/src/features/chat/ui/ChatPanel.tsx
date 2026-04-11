@@ -1,11 +1,14 @@
 import type { RefObject } from 'react';
 import { UserRole } from '../../../lib/types';
 import type { ChatMessage } from '../hooks/useChat';
+import { exorcismText } from '../../../lib/exorcism-language';
 
 interface ChatPanelProps {
   chatMessages: ChatMessage[];
   chatInput: string;
   strangerTyping: boolean;
+  tonguesActive: boolean;
+  exorcismActive: boolean;
   chatEndRef: RefObject<HTMLDivElement>;
   sessionActive: boolean;
   connectionState: string;
@@ -19,6 +22,8 @@ export function ChatPanel({
   chatMessages,
   chatInput,
   strangerTyping,
+  tonguesActive,
+  exorcismActive,
   chatEndRef,
   sessionActive,
   connectionState,
@@ -27,49 +32,57 @@ export function ChatPanel({
   onInputChange,
   onKeyDown,
 }: ChatPanelProps) {
+  const t = (text: string) => exorcismText(text, exorcismActive);
   return (
     <div style={styles.chatColumn}>
       <div style={styles.chatHeader}>
-        <span style={styles.chatHeaderLabel}>&gt; CONFESSION CHAT _</span>
+        <span style={styles.chatHeaderLabel}>&gt; {t('CONFESSION CHAT')} _</span>
       </div>
       <div style={styles.chatMessages}>
         {chatMessages.length === 0 && (
           <p style={styles.chatEmpty}>
             {sessionActive
-              ? 'Say something...'
+              ? t('Say something...')
               : connectionState === 'ended'
-                ? 'Session ended.'
-                : 'Waiting for connection...'}
+                ? t('Session ended.')
+                : t('Waiting for connection...')}
           </p>
         )}
         {chatMessages.map((msg) => (
           <div
             key={msg.id}
+            className={msg.tongues ? 'tongues-message' : undefined}
             style={{
               ...styles.chatMessage,
               ...(msg.sender === role ? styles.chatMessageSelf : styles.chatMessageOther),
             }}
           >
             <span style={styles.chatSender}>
-              {msg.sender === 'priest' ? '☦ Priest' : '🕯 Stranger'}
+              {msg.sender === 'priest' ? `☦ ${t('Priest')}` : `🕯 ${t('Stranger')}`}
+              {msg.tongues && <span className="tongues-flame">🔥</span>}
             </span>
             <span style={styles.chatText}>{msg.text}</span>
           </div>
         ))}
         {strangerTyping && (
           <div style={styles.typingIndicator}>
-            {role === 'priest' ? 'Penitent' : 'Priest'} is typing...
+            {t(role === 'priest' ? 'Penitent' : 'Priest')} {t('is typing...')}
           </div>
         )}
         <div ref={chatEndRef} />
       </div>
       <div style={styles.chatInputContainer}>
+        {tonguesActive && (
+          <span className="tongues-indicator">
+            <span className="tongues-flame">🔥</span>
+          </span>
+        )}
         <input
           type="text"
           value={chatInput}
           onChange={onInputChange}
           onKeyDown={onKeyDown}
-          placeholder={sessionActive ? 'Type a message...' : 'Waiting...'}
+          placeholder={sessionActive ? t('Type a message...') : t('Waiting...')}
           disabled={!sessionActive}
           style={{ ...styles.chatInput, opacity: sessionActive ? 1 : 0.4 }}
         />
@@ -78,7 +91,7 @@ export function ChatPanel({
           disabled={!sessionActive}
           style={{ ...styles.chatSendButton, opacity: sessionActive ? 1 : 0.4 }}
         >
-          Send
+          {t('Send')}
         </button>
       </div>
     </div>

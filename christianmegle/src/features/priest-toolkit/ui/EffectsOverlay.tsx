@@ -1,15 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import {
   VisualEffectType,
   PenanceAssignment,
   ScriptureVerse,
 } from '../../../lib/types';
+import { FLOATING_PHRASES } from '../../../lib/exorcism-language';
 
 interface EffectsOverlayProps {
   activeEffects: Set<VisualEffectType>;
   absolutionActive: boolean;
   silenceActive: boolean;
   excommunicateActive: boolean;
+  exorcismActive: boolean;
   currentPenance: PenanceAssignment | null;
   currentScripture: ScriptureVerse | null;
   onPenanceDismiss: () => void;
@@ -23,6 +25,7 @@ export default function EffectsOverlay({
   excommunicateActive,
   currentPenance,
   currentScripture,
+  exorcismActive,
   onPenanceDismiss,
   onScriptureDismiss,
 }: EffectsOverlayProps) {
@@ -125,6 +128,9 @@ export default function EffectsOverlay({
         </div>
       )}
 
+      {/* Exorcism Effect */}
+      {exorcismActive && <ExorcismEffect />}
+
       {/* Penance Display */}
       {currentPenance && (
         <div className="penance-display" onClick={onPenanceDismiss}>
@@ -168,6 +174,42 @@ function HolyWaterEffect() {
       <div className="ripple" />
       <div className="ripple" />
       <div className="droplet">💧</div>
+    </div>
+  );
+}
+
+function ExorcismEffect() {
+  // Stable set of floating text elements — randomized once on mount
+  const fragments = useMemo(
+    () =>
+      FLOATING_PHRASES.map((phrase, i) => ({
+        phrase,
+        left: `${5 + ((i * 37) % 85)}%`,
+        duration: `${12 + (i % 7) * 2}s`,
+        delay: `${-(i * 1.7)}s`,
+        fontSize: `${0.9 + (i % 4) * 0.25}rem`,
+      })),
+    [],
+  );
+
+  return (
+    <div className="effect-exorcism">
+      <div className="color-shift" />
+      <div className="static-overlay" />
+      {fragments.map((f, i) => (
+        <span
+          key={i}
+          className="exorcism-floating-text"
+          style={{
+            '--left': f.left,
+            '--duration': f.duration,
+            '--delay': f.delay,
+            fontSize: f.fontSize,
+          } as React.CSSProperties}
+        >
+          {f.phrase}
+        </span>
+      ))}
     </div>
   );
 }

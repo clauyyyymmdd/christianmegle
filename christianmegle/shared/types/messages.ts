@@ -21,6 +21,7 @@ export type PriestExcommunicateMessage = { type: 'priest-excommunicate' };
 export type PriestSilenceMessage = { type: 'priest-silence'; active: boolean };
 export type PriestInscribeMessage = { type: 'priest-inscribe'; text: string };
 export type PriestBellsMessage = { type: 'priest-bells' };
+export type PriestExorcismMessage = { type: 'priest-exorcism'; active: boolean };
 
 export type PriestActionMessage =
   | PriestPenanceMessage
@@ -30,11 +31,12 @@ export type PriestActionMessage =
   | PriestExcommunicateMessage
   | PriestSilenceMessage
   | PriestInscribeMessage
-  | PriestBellsMessage;
+  | PriestBellsMessage
+  | PriestExorcismMessage;
 
 // ── Chat (either direction, relayed) ────────────────────────────────
 
-export type ChatTextMessage = { type: 'chat-message'; text: string; sender: UserRole };
+export type ChatTextMessage = { type: 'chat-message'; text: string; sender: UserRole; tongues?: boolean };
 export type ChatTypingMessage = { type: 'chat-typing'; isTyping: boolean };
 
 // ── Relayed messages (appear in both client and server unions) ───────
